@@ -21,7 +21,7 @@ mainClassName = 'not-applicable'
 def slf4jVersion = '1.7.30'
 def awsSdkVersion = '1.11.699'
 def junitVersion = '4.12'
-def guavaVersion = '28.1-jre'
+def guavaVersion = '28.2-jre'
 
 group = 'com.awslabs.aws.iot.resultsiterator'
 version = '0.1'
