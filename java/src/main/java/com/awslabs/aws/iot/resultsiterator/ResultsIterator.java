@@ -42,6 +42,40 @@ public class ResultsIterator<T> {
         this.request = request;
     }
 
+    public List<T> iterateOverResults() {
+        if (request == null) {
+            try {
+                // Get a new request object.  If this can't be done with a default constructor it will fail.
+                request = requestClass.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                e.printStackTrace();
+                throw new UnsupportedOperationException(e);
+            }
+        }
+
+        List<T> output = new ArrayList<>();
+        String nextToken = null;
+
+        do {
+            result = queryNextResults();
+
+            output.addAll(getResultData());
+
+            nextToken = getNextToken();
+
+            // Is there a next token?
+            if (nextToken == null) {
+                // No, we're done
+                break;
+            }
+
+            // There is a next token, use it to get the next set of topic rules
+            setNextToken(nextToken);
+        } while (true);
+
+        return output;
+    }
+
     private AmazonWebServiceResult queryNextResults() {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AmazonWebServiceRequest and returns a V.  If zero or more than one exists, fail.
@@ -109,40 +143,6 @@ public class ResultsIterator<T> {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
         }
-    }
-
-    public List<T> iterateOverResults() {
-        if (request == null) {
-            try {
-                // Get a new request object.  If this can't be done with a default constructor it will fail.
-                request = requestClass.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
-                throw new UnsupportedOperationException(e);
-            }
-        }
-
-        List<T> output = new ArrayList<>();
-        String nextToken = null;
-
-        do {
-            result = queryNextResults();
-
-            output.addAll(getResultData());
-
-            nextToken = getNextToken();
-
-            // Is there a next token?
-            if (nextToken == null) {
-                // No, we're done
-                break;
-            }
-
-            // There is a next token, use it to get the next set of topic rules
-            setNextToken(nextToken);
-        } while (true);
-
-        return output;
     }
 
     private Method getMethodWithParameterAndReturnType(Class clazz, Class parameter, Class returnType) {
