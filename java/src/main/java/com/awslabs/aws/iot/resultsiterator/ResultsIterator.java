@@ -14,14 +14,15 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(ResultsIterator.class);
     private final AmazonWebServiceClient amazonWebServiceClient;
     private final Class<? extends AmazonWebServiceRequest> requestClass;
-    private final Class<? extends AmazonWebServiceResult> resultClass;
     private final List<String> getTokenMethodNames = new ArrayList<>(Arrays.asList("getNextToken", "getMarker", "getNextMarker"));
     private final List<String> setTokenMethodNames = new ArrayList<>(Arrays.asList("setNextToken", "setMarker", "setNextMarker"));
+    private Optional<Class<? extends AmazonWebServiceResult>> optionalResultClass = Optional.empty();
     private AmazonWebServiceRequest request;
     private AmazonWebServiceResult result;
     private Method clientMethodReturningResult;
@@ -29,16 +30,14 @@ public class ResultsIterator<T> {
     private Method clientGetMethodReturningString;
     private Method clientSetMethodAcceptingString;
 
-    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, Class<? extends AmazonWebServiceRequest> requestClass, Class<? extends AmazonWebServiceResult> resultClass) {
+    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, Class<? extends AmazonWebServiceRequest> requestClass) {
         this.amazonWebServiceClient = amazonWebServiceClient;
         this.requestClass = requestClass;
-        this.resultClass = resultClass;
     }
 
-    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, AmazonWebServiceRequest request, Class<? extends AmazonWebServiceResult> resultClass) {
+    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, AmazonWebServiceRequest request) {
         this.amazonWebServiceClient = amazonWebServiceClient;
         this.requestClass = request.getClass();
-        this.resultClass = resultClass;
         this.request = request;
     }
 
@@ -79,7 +78,7 @@ public class ResultsIterator<T> {
     private AmazonWebServiceResult queryNextResults() {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AmazonWebServiceRequest and returns a V.  If zero or more than one exists, fail.
-            clientMethodReturningResult = getMethodWithParameterAndReturnType(amazonWebServiceClient.getClass(), requestClass, resultClass);
+            clientMethodReturningResult = getMethodWithParameterAndReturnType(amazonWebServiceClient.getClass(), requestClass, getResultClass());
         }
 
         try {
@@ -102,10 +101,28 @@ public class ResultsIterator<T> {
         }
     }
 
+    private Class<? extends AmazonWebServiceResult> getResultClass() {
+        synchronized (this) {
+            if (!optionalResultClass.isPresent()) {
+                String requestClassName = requestClass.getName();
+                String responseClassName = requestClassName.replaceAll("Request$", "Result");
+
+                try {
+                    optionalResultClass = Optional.of((Class<? extends AmazonWebServiceResult>) Class.forName(responseClassName));
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                    throw new UnsupportedOperationException(e);
+                }
+            }
+        }
+
+        return optionalResultClass.get();
+    }
+
     private List<T> getResultData() {
         if (clientMethodReturningListT == null) {
             // Look for a public method that takes no arguments and returns a List<T>.  If zero or more than one exists, fail.
-            clientMethodReturningListT = getMethodWithParameterAndReturnType(resultClass, null, new TypeToken<List<T>>(getClass()) {
+            clientMethodReturningListT = getMethodWithParameterAndReturnType(getResultClass(), null, new TypeToken<List<T>>(getClass()) {
             }.getRawType());
         }
 
@@ -120,7 +137,7 @@ public class ResultsIterator<T> {
     private String getNextToken() {
         if (clientGetMethodReturningString == null) {
             // Look for a public method that takes no arguments and returns a string that matches our list of expected names.  If zero or more than one exists, fail.
-            clientGetMethodReturningString = getMethodWithParameterReturnTypeAndNames(resultClass, null, String.class, getTokenMethodNames);
+            clientGetMethodReturningString = getMethodWithParameterReturnTypeAndNames(getResultClass(), null, String.class, getTokenMethodNames);
         }
 
         try {
