@@ -77,10 +77,7 @@ public class ResultsIterator<T> {
 
         try {
             return (List<T>) clientMethodReturningListT.invoke(result);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            throw new UnsupportedOperationException(e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
         }
@@ -94,10 +91,7 @@ public class ResultsIterator<T> {
 
         try {
             return (String) clientGetMethodReturningString.invoke(result);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            throw new UnsupportedOperationException(e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
         }
@@ -111,10 +105,7 @@ public class ResultsIterator<T> {
 
         try {
             clientSetMethodAcceptingString.invoke(request, nextToken);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            throw new UnsupportedOperationException(e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
         }
@@ -124,10 +115,9 @@ public class ResultsIterator<T> {
         if (request == null) {
             try {
                 // Get a new request object.  If this can't be done with a default constructor it will fail.
-                request = (AmazonWebServiceRequest) requestClass.newInstance();
-            } catch (InstantiationException e) {
-                throw new UnsupportedOperationException(e);
-            } catch (IllegalAccessException e) {
+                request = requestClass.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                e.printStackTrace();
                 throw new UnsupportedOperationException(e);
             }
         }
@@ -150,7 +140,7 @@ public class ResultsIterator<T> {
 
             // There is a next token, use it to get the next set of topic rules
             setNextToken(nextToken);
-        } while (nextToken != null);
+        } while (true);
 
         return output;
     }
