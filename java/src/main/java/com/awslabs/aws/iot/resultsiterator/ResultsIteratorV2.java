@@ -20,7 +20,7 @@ public class ResultsIteratorV2<T> {
     private final Logger log = LoggerFactory.getLogger(ResultsIteratorV2.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
-    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "marker", "nextMarker"));
+    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
     private final List<String> methodsToIgnore = new ArrayList<>(Arrays.asList("sdkFields", "commonPrefixes"));
     private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
     private AwsRequest awsRequest;
