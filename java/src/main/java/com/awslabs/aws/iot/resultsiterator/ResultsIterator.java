@@ -105,10 +105,10 @@ public class ResultsIterator<T> {
         synchronized (this) {
             if (!optionalResultClass.isPresent()) {
                 String requestClassName = requestClass.getName();
-                String responseClassName = requestClassName.replaceAll("Request$", "Result");
+                String resultClass = requestClassName.replaceAll("Request$", "Result");
 
                 try {
-                    optionalResultClass = Optional.of((Class<? extends AmazonWebServiceResult>) Class.forName(responseClassName));
+                    optionalResultClass = Optional.of((Class<? extends AmazonWebServiceResult>) Class.forName(resultClass));
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                     throw new UnsupportedOperationException(e);
