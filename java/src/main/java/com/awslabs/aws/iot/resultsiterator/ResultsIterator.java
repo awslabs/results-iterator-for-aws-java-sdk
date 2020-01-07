@@ -150,7 +150,7 @@ public class ResultsIterator<T> {
 
     private void setNextToken(String nextToken) {
         if (clientSetMethodAcceptingString == null) {
-            // Look for a public method that takes a string and returns a U that matches our list of expected names.  If zero or more than one exists, fail.
+            // Look for a public method that takes a string and returns nothing that matches our list of expected names.  If zero or more than one exists, fail.
             clientSetMethodAcceptingString = getMethodWithParameterReturnTypeAndNames(requestClass, String.class, Void.TYPE, setTokenMethodNames);
         }
 
