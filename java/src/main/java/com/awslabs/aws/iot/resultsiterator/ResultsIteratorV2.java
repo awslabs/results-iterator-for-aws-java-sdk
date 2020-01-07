@@ -21,6 +21,7 @@ public class ResultsIteratorV2<T> {
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
     private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "marker", "nextMarker"));
+    private final List<String> methodsToIgnore = new ArrayList<>(Arrays.asList("sdkFields", "commonPrefixes"));
     private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
     private AwsRequest awsRequest;
     private AwsResponse awsResponse;
@@ -215,8 +216,10 @@ public class ResultsIteratorV2<T> {
                 continue;
             }
 
-            if (method.getName().equals("sdkFields")) {
-                // Always ignore this method
+            String methodName = method.getName();
+
+            if (methodsToIgnore.contains(methodName)) {
+                // Always ignore these methods
                 continue;
             }
 
