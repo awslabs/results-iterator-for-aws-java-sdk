@@ -6,10 +6,13 @@ import com.amazonaws.services.iot.model.ThingAttribute;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListBucketsRequest;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
+
+import static org.hamcrest.Matchers.greaterThan;
 
 public class TestResultsIterator {
     @Test
@@ -19,6 +22,7 @@ public class TestResultsIterator {
         ResultsIterator<ThingAttribute> resultsIterator = new ResultsIterator<>(awsIotClient, listThingsRequest);
         List<ThingAttribute> thingAttributes = resultsIterator.iterateOverResults();
         thingAttributes.forEach(System.out::println);
+        Assert.assertThat(thingAttributes.size(), greaterThan(0));
     }
 
     @Test
