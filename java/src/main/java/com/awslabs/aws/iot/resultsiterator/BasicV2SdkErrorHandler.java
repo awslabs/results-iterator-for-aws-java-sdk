@@ -7,8 +7,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BasicSdkErrorHandler implements SdkErrorHandler {
-    private final Logger log = LoggerFactory.getLogger(BasicSdkErrorHandler.class);
+public class BasicV2SdkErrorHandler implements V2SdkErrorHandler {
+    private final Logger log = LoggerFactory.getLogger(BasicV2SdkErrorHandler.class);
     private String REGION_EXCEPTION_1 = "Unable to find a region";
     private String REGION_EXCEPTION_2 = "Unable to load region from any of the providers in the chain";
     private String MISSING_CREDENTIALS_EXCEPTION = "Unable to load AWS credentials from any provider in the chain";

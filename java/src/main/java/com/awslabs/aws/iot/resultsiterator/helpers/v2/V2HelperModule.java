@@ -1,7 +1,9 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.v2;
 
+import com.awslabs.aws.iot.resultsiterator.BasicV2SdkErrorHandler;
 import com.awslabs.aws.iot.resultsiterator.SafeProvider;
 import com.awslabs.aws.iot.resultsiterator.SharedModule;
+import com.awslabs.aws.iot.resultsiterator.V2SdkErrorHandler;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.BasicV2IamHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2IamHelper;
 import com.google.inject.AbstractModule;
@@ -24,6 +26,9 @@ public class V2HelperModule extends AbstractModule {
         bind(StsClient.class).toProvider(new SafeProvider<>(StsClient::create));
         bind(S3Client.class).toProvider(new SafeProvider<>(S3Client::create));
         bind(AwsRegionProviderChain.class).toProvider(new SafeProvider<>(DefaultAwsRegionProviderChain::new));
+
+        // Centralized error handling for V2 SDK errors
+        bind(V2SdkErrorHandler.class).to(BasicV2SdkErrorHandler.class);
 
         // Clients that need special configuration
         // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure

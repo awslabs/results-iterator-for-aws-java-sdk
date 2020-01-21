@@ -14,10 +14,10 @@ public class SafeProvider<T> implements Provider<T> {
     }
 
     public T get() {
-        SdkErrorHandler sdkErrorHandler = new BasicSdkErrorHandler();
+        V2SdkErrorHandler v2SdkErrorHandler = new BasicV2SdkErrorHandler();
 
         return Try.of(callable::call)
-                .recover(SdkClientException.class, throwable -> (T) sdkErrorHandler.handleSdkError(throwable))
+                .recover(SdkClientException.class, throwable -> (T) v2SdkErrorHandler.handleSdkError(throwable))
                 .get();
     }
 }
