@@ -1,11 +1,13 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.v2;
 
+import com.awslabs.aws.iot.resultsiterator.SharedModule;
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.BasicV2IamHelper;
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.BasicV2S3Helper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.V2SafeProvider;
-import com.awslabs.aws.iot.resultsiterator.SharedModule;
-import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2SdkErrorHandler;
-import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.BasicV2IamHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2IamHelper;
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2S3Helper;
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2SdkErrorHandler;
 import com.google.inject.AbstractModule;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -36,5 +38,6 @@ public class V2HelperModule extends AbstractModule {
         bind(AwsCredentials.class).toProvider(new V2SafeProvider<>(() -> DefaultCredentialsProvider.create().resolveCredentials()));
 
         bind(V2IamHelper.class).to(BasicV2IamHelper.class);
+        bind(V2S3Helper.class).to(BasicV2S3Helper.class);
     }
 }
