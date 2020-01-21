@@ -21,6 +21,7 @@ public class V1HelperModule extends AbstractModule {
         bind(V1PolicyHelper.class).to(BasicV1PolicyHelper.class);
         bind(V1ThingGroupHelper.class).to(BasicV1ThingGroupHelper.class);
         bind(V1IamHelper.class).to(BasicV1IamHelper.class);
+        bind(V1RuleHelper.class).to(BasicV1RuleHelper.class);
         bind(JsonHelper.class).to(BasicJsonHelper.class);
     }
 }
