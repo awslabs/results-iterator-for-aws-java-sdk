@@ -1,6 +1,6 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.implementations;
 
-import com.awslabs.aws.iot.resultsiterator.helpers.GreengrassIdExtractor;
+import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtractor;
 
 import javax.inject.Inject;
 

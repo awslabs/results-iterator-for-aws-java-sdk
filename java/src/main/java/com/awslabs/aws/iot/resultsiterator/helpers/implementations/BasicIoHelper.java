@@ -1,6 +1,6 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.implementations;
 
-import com.awslabs.aws.iot.resultsiterator.helpers.IoHelper;
+import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.IoHelper;
 
 import javax.inject.Inject;
 

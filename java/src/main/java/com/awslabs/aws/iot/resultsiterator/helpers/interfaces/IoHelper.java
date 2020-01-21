@@ -1,4 +1,4 @@
-package com.awslabs.aws.iot.resultsiterator.helpers;
+package com.awslabs.aws.iot.resultsiterator.helpers.interfaces;
 
 import io.vavr.control.Try;
 

@@ -6,7 +6,7 @@ import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.data.CertificateIdFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientCertFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientPrivateKeyFilename;
-import com.awslabs.aws.iot.resultsiterator.helpers.IoHelper;
+import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.IoHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1CertificateHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1PolicyHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingHelper;

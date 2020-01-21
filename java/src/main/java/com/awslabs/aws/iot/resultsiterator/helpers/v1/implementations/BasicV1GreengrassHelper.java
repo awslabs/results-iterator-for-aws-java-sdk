@@ -4,7 +4,7 @@ import com.amazonaws.services.greengrass.AWSGreengrassClient;
 import com.amazonaws.services.greengrass.model.*;
 import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1GreengrassHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.GreengrassIdExtractor;
+import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingHelper;
 import org.slf4j.Logger;
 

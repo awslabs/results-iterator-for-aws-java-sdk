@@ -1,4 +1,4 @@
-package com.awslabs.aws.iot.resultsiterator.helpers;
+package com.awslabs.aws.iot.resultsiterator.helpers.interfaces;
 
 public interface GreengrassIdExtractor {
     String extractId(String arn);
