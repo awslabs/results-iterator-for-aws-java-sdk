@@ -1,21 +1,34 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.v2;
 
-import com.awslabs.aws.iot.resultsiterator.helpers.implementations.BasicGreengrassIdExtractor;
-import com.awslabs.aws.iot.resultsiterator.helpers.implementations.BasicIoHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.implementations.BasicJsonHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtractor;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.IoHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.JsonHelper;
+import com.awslabs.aws.iot.resultsiterator.SafeProvider;
+import com.awslabs.aws.iot.resultsiterator.SharedModule;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations.BasicV2IamHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2IamHelper;
 import com.google.inject.AbstractModule;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.sts.StsClient;
 
 public class V2HelperModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(JsonHelper.class).to(BasicJsonHelper.class);
-        bind(IoHelper.class).to(BasicIoHelper.class);
-        bind(GreengrassIdExtractor.class).to(BasicGreengrassIdExtractor.class);
+        install(new SharedModule());
+
+        // Normal clients that need no special configuration
+        // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
+        bind(StsClient.class).toProvider(new SafeProvider<>(StsClient::create));
+        bind(S3Client.class).toProvider(new SafeProvider<>(S3Client::create));
+        bind(AwsRegionProviderChain.class).toProvider(new SafeProvider<>(DefaultAwsRegionProviderChain::new));
+
+        // Clients that need special configuration
+        // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
+        bind(IamClient.class).toProvider(new SafeProvider<>(() -> IamClient.builder().region(Region.AWS_GLOBAL).build()));
+        bind(AwsCredentials.class).toProvider(new SafeProvider<>(() -> DefaultCredentialsProvider.create().resolveCredentials()));
 
         bind(V2IamHelper.class).to(BasicV2IamHelper.class);
     }

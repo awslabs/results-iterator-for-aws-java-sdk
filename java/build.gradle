@@ -78,6 +78,7 @@ dependencies {
     compileOnly "software.amazon.awssdk:aws-core:$awsSdk2Version"
     compileOnly "software.amazon.awssdk:iam:$awsSdk2Version"
     compileOnly "software.amazon.awssdk:sts:$awsSdk2Version"
+    compileOnly "software.amazon.awssdk:s3:$awsSdk2Version"
 
     // SDK v1
     compileOnly "com.amazonaws:aws-java-sdk-core:$awsSdkVersion"

@@ -1,11 +1,14 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.v1;
 
-import com.awslabs.aws.iot.resultsiterator.helpers.implementations.BasicGreengrassIdExtractor;
-import com.awslabs.aws.iot.resultsiterator.helpers.implementations.BasicIoHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.implementations.BasicJsonHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtractor;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.IoHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.JsonHelper;
+import com.amazonaws.services.greengrass.AWSGreengrassClient;
+import com.amazonaws.services.greengrass.AWSGreengrassClientBuilder;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
+import com.amazonaws.services.iot.AWSIotClient;
+import com.amazonaws.services.iot.AWSIotClientBuilder;
+import com.amazonaws.services.iotdata.AWSIotDataClient;
+import com.amazonaws.services.iotdata.AWSIotDataClientBuilder;
+import com.awslabs.aws.iot.resultsiterator.SharedModule;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations.*;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.*;
 import com.google.inject.AbstractModule;
@@ -13,9 +16,13 @@ import com.google.inject.AbstractModule;
 public class V1HelperModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(JsonHelper.class).to(BasicJsonHelper.class);
-        bind(IoHelper.class).to(BasicIoHelper.class);
-        bind(GreengrassIdExtractor.class).to(BasicGreengrassIdExtractor.class);
+        install(new SharedModule());
+
+        // Client providers
+        bind(AWSIotClient.class).toProvider(() -> (AWSIotClient) AWSIotClientBuilder.defaultClient());
+        bind(AWSIotDataClient.class).toProvider(() -> (AWSIotDataClient) AWSIotDataClientBuilder.defaultClient());
+        bind(AmazonIdentityManagementClient.class).toProvider(() -> (AmazonIdentityManagementClient) AmazonIdentityManagementClientBuilder.defaultClient());
+        bind(AWSGreengrassClient.class).toProvider(() -> (AWSGreengrassClient) AWSGreengrassClientBuilder.defaultClient());
 
         bind(V1GreengrassHelper.class).to(BasicV1GreengrassHelper.class);
         bind(V1CertificateHelper.class).to(BasicV1CertificateHelper.class);
