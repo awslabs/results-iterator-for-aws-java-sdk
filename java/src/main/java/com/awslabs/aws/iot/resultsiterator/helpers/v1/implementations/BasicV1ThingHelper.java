@@ -2,7 +2,7 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
-import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.exceptions.ThingAttachedToPrincipalsException;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1CertificateHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1PolicyHelper;
@@ -41,7 +41,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
 
     @Override
     public List<ThingAttribute> listThingAttributes() {
-        List<ThingAttribute> thingAttributes = new ResultsIterator<ThingAttribute>(awsIotClient, ListThingsRequest.class).iterateOverResults();
+        List<ThingAttribute> thingAttributes = new V1ResultsIterator<ThingAttribute>(awsIotClient, ListThingsRequest.class).iterateOverResults();
 
         return thingAttributes;
     }
@@ -79,7 +79,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
         ListPrincipalThingsRequest listPrincipalThingsRequest = new ListPrincipalThingsRequest()
                 .withPrincipal(principal);
 
-        List<String> principalThings = new ResultsIterator<String>(awsIotClient, listPrincipalThingsRequest).iterateOverResults();
+        List<String> principalThings = new V1ResultsIterator<String>(awsIotClient, listPrincipalThingsRequest).iterateOverResults();
 
         return principalThings;
     }

@@ -1,6 +1,6 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations;
 
-import com.awslabs.aws.iot.resultsiterator.ResultsIteratorV2;
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.V2ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2S3Helper;
 import io.vavr.control.Try;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -42,9 +42,9 @@ public class BasicV2S3Helper implements V2S3Helper {
                 .bucket(bucket)
                 .prefix(key)
                 .build();
-        ResultsIteratorV2<S3Object> resultsIteratorV2 = new ResultsIteratorV2<>(s3Client, listObjectsRequest);
+        V2ResultsIterator<S3Object> v2ResultsIterator = new V2ResultsIterator<>(s3Client, listObjectsRequest);
 
-        List<S3Object> s3Objects = resultsIteratorV2.iterateOverResults();
+        List<S3Object> s3Objects = v2ResultsIterator.iterateOverResults();
 
         Optional<S3Object> optionalS3Object = s3Objects.stream()
                 // Require an exact match on the name

@@ -1,5 +1,6 @@
 package com.awslabs.aws.iot.resultsiterator;
 
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.V2ResultsIterator;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iot.IotClient;
@@ -10,13 +11,13 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.util.List;
 
-public class TestResultsIteratorV2 {
+public class TestV2ResultsIterator {
     @Test
     public void shouldListThingAttributesAndNotThrowAnException() {
         IotClient iotClient = IotClient.create();
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
-        ResultsIteratorV2<ThingAttribute> resultsIteratorV2 = new ResultsIteratorV2<>(iotClient, listThingsRequest);
-        List<ThingAttribute> thingAttributes = resultsIteratorV2.iterateOverResults();
+        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        List<ThingAttribute> thingAttributes = v2ResultsIterator.iterateOverResults();
         thingAttributes.forEach(System.out::println);
         System.out.println("Thing attribute count: " + thingAttributes.size());
     }
@@ -25,8 +26,8 @@ public class TestResultsIteratorV2 {
     public void shouldListBucketsAndNotThrowAnException() {
         S3Client s3Client = S3Client.create();
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        ResultsIteratorV2<Bucket> resultsIteratorV2 = new ResultsIteratorV2<>(s3Client, listBucketsRequest);
-        List<Bucket> buckets = resultsIteratorV2.iterateOverResults();
+        V2ResultsIterator<Bucket> v2ResultsIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+        List<Bucket> buckets = v2ResultsIterator.iterateOverResults();
         buckets.forEach(System.out::println);
         System.out.println("Bucket count: " + buckets.size());
     }
@@ -35,7 +36,7 @@ public class TestResultsIteratorV2 {
     public void shouldListObjectsAndNotThrowAnException() {
         S3Client s3Client = S3Client.create();
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        ResultsIteratorV2<Bucket> bucketIterator = new ResultsIteratorV2<>(s3Client, listBucketsRequest);
+        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
         List<Bucket> buckets = bucketIterator.iterateOverResults();
 
         buckets.forEach(this::listAll);
@@ -67,7 +68,7 @@ public class TestResultsIteratorV2 {
         ListObjectsRequest listObjectsRequest = ListObjectsRequest.builder()
                 .bucket(bucket.name())
                 .build();
-        ResultsIteratorV2<S3Object> s3ObjectIterator = new ResultsIteratorV2<>(s3Client, listObjectsRequest);
+        V2ResultsIterator<S3Object> s3ObjectIterator = new V2ResultsIterator<>(s3Client, listObjectsRequest);
         List<S3Object> s3Objects = s3ObjectIterator.iterateOverResults();
         s3Objects.forEach(System.out::println);
         System.out.println("Object count: " + s3Objects.size());

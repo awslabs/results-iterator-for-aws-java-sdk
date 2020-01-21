@@ -1,15 +1,16 @@
-package com.awslabs.aws.iot.resultsiterator;
+package com.awslabs.aws.iot.resultsiterator.helpers.v2.implementations;
 
+import com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces.V2SdkErrorHandler;
 import io.vavr.control.Try;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 import javax.inject.Provider;
 import java.util.concurrent.Callable;
 
-public class SafeProvider<T> implements Provider<T> {
+public class V2SafeProvider<T> implements Provider<T> {
     private final Callable<T> callable;
 
-    public SafeProvider(Callable<T> callable) {
+    public V2SafeProvider(Callable<T> callable) {
         this.callable = callable;
     }
 

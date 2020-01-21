@@ -1,4 +1,4 @@
-package com.awslabs.aws.iot.resultsiterator;
+package com.awslabs.aws.iot.resultsiterator.helpers.v2;
 
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class ResultsIteratorV2<T> {
-    private final Logger log = LoggerFactory.getLogger(ResultsIteratorV2.class);
+public class V2ResultsIterator<T> {
+    private final Logger log = LoggerFactory.getLogger(V2ResultsIterator.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
     private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
@@ -34,12 +34,12 @@ public class ResultsIteratorV2<T> {
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
     private Optional<Method> clientSetMethodAcceptingString = null;
 
-    public ResultsIteratorV2(SdkClient sdkClient, Class<? extends AwsRequest> awsRequestClass) {
+    public V2ResultsIterator(SdkClient sdkClient, Class<? extends AwsRequest> awsRequestClass) {
         this.sdkClient = sdkClient;
         this.awsRequestClass = awsRequestClass;
     }
 
-    public ResultsIteratorV2(SdkClient sdkClient, AwsRequest awsRequest) {
+    public V2ResultsIterator(SdkClient sdkClient, AwsRequest awsRequest) {
         this.sdkClient = sdkClient;
         this.awsRequestClass = awsRequest.getClass();
         this.awsRequest = awsRequest;

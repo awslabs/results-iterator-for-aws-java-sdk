@@ -4,7 +4,7 @@ import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.DeleteThingGroupRequest;
 import com.amazonaws.services.iot.model.GroupNameAndArn;
 import com.amazonaws.services.iot.model.ListThingGroupsRequest;
-import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingGroupHelper;
 import org.slf4j.Logger;
 
@@ -22,7 +22,7 @@ public class BasicV1ThingGroupHelper implements V1ThingGroupHelper {
 
     @Override
     public List<GroupNameAndArn> listThingGroups() {
-        List<GroupNameAndArn> groupNamesAndArns = new ResultsIterator<GroupNameAndArn>(awsIotClient, ListThingGroupsRequest.class).iterateOverResults();
+        List<GroupNameAndArn> groupNamesAndArns = new V1ResultsIterator<GroupNameAndArn>(awsIotClient, ListThingGroupsRequest.class).iterateOverResults();
 
         return groupNamesAndArns;
     }

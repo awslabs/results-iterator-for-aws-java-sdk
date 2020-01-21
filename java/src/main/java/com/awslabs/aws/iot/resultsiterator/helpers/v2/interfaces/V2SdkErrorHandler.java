@@ -1,4 +1,4 @@
-package com.awslabs.aws.iot.resultsiterator;
+package com.awslabs.aws.iot.resultsiterator.helpers.v2.interfaces;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 

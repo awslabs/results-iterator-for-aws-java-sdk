@@ -1,4 +1,4 @@
-package com.awslabs.aws.iot.resultsiterator;
+package com.awslabs.aws.iot.resultsiterator.helpers.v1;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.AmazonWebServiceRequest;
@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class ResultsIterator<T> {
-    private final Logger log = LoggerFactory.getLogger(ResultsIterator.class);
+public class V1ResultsIterator<T> {
+    private final Logger log = LoggerFactory.getLogger(V1ResultsIterator.class);
     private final AmazonWebServiceClient amazonWebServiceClient;
     private final Class<? extends AmazonWebServiceRequest> requestClass;
     private final List<String> getTokenMethodNames = new ArrayList<>(Arrays.asList("getNextToken", "getMarker", "getNextMarker"));
@@ -30,12 +30,12 @@ public class ResultsIterator<T> {
     private Method clientGetMethodReturningString;
     private Method clientSetMethodAcceptingString;
 
-    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, Class<? extends AmazonWebServiceRequest> requestClass) {
+    public V1ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, Class<? extends AmazonWebServiceRequest> requestClass) {
         this.amazonWebServiceClient = amazonWebServiceClient;
         this.requestClass = requestClass;
     }
 
-    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, AmazonWebServiceRequest request) {
+    public V1ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, AmazonWebServiceRequest request) {
         this.amazonWebServiceClient = amazonWebServiceClient;
         this.requestClass = request.getClass();
         this.request = request;

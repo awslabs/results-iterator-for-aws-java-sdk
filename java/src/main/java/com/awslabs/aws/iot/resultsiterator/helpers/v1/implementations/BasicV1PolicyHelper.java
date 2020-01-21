@@ -2,7 +2,7 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
-import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1PolicyHelper;
 import org.slf4j.Logger;
 
@@ -49,7 +49,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
 
     @Override
     public List<Policy> listPolicies() {
-        List<Policy> policies = new ResultsIterator<Policy>(awsIotClient, ListPoliciesRequest.class).iterateOverResults();
+        List<Policy> policies = new V1ResultsIterator<Policy>(awsIotClient, ListPoliciesRequest.class).iterateOverResults();
 
         return policies;
     }
@@ -72,7 +72,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
         ListPolicyPrincipalsRequest listPolicyPrincipalsRequest = new ListPolicyPrincipalsRequest()
                 .withPolicyName(policyName);
 
-        List<String> principals = new ResultsIterator<String>(awsIotClient, listPolicyPrincipalsRequest).iterateOverResults();
+        List<String> principals = new V1ResultsIterator<String>(awsIotClient, listPolicyPrincipalsRequest).iterateOverResults();
 
         return principals;
     }
@@ -144,7 +144,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
         ListPrincipalPoliciesRequest listPrincipalPoliciesRequest = new ListPrincipalPoliciesRequest()
                 .withPrincipal(principal);
 
-        List<Policy> policies = new ResultsIterator<Policy>(awsIotClient, listPrincipalPoliciesRequest).iterateOverResults();
+        List<Policy> policies = new V1ResultsIterator<Policy>(awsIotClient, listPrincipalPoliciesRequest).iterateOverResults();
 
         return policies;
     }

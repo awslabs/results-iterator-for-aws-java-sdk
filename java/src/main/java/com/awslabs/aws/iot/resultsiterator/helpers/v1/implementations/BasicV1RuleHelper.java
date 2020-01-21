@@ -3,7 +3,7 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.ListTopicRulesRequest;
 import com.amazonaws.services.iot.model.TopicRuleListItem;
-import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1RuleHelper;
 
 import javax.inject.Inject;
@@ -20,7 +20,7 @@ public class BasicV1RuleHelper implements V1RuleHelper {
 
     @Override
     public List<TopicRuleListItem> listTopicRules() {
-        List<TopicRuleListItem> topicRules = new ResultsIterator<TopicRuleListItem>(awsIotClient, ListTopicRulesRequest.class).iterateOverResults();
+        List<TopicRuleListItem> topicRules = new V1ResultsIterator<TopicRuleListItem>(awsIotClient, ListTopicRulesRequest.class).iterateOverResults();
 
         return topicRules;
     }

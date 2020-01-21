@@ -5,7 +5,7 @@ import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
 import com.amazonaws.services.identitymanagement.model.GetRoleResult;
 import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.Role;
-import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1IamHelper;
 
 import javax.inject.Inject;
@@ -22,7 +22,7 @@ public class BasicV1IamHelper implements V1IamHelper {
 
     @Override
     public List<Role> listRoles() {
-        List<Role> roles = new ResultsIterator<Role>(amazonIdentityManagementClient, ListRolesRequest.class).iterateOverResults();
+        List<Role> roles = new V1ResultsIterator<Role>(amazonIdentityManagementClient, ListRolesRequest.class).iterateOverResults();
 
         return roles;
     }

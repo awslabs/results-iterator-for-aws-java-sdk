@@ -2,7 +2,7 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
-import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.data.CertificateIdFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientCertFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientPrivateKeyFilename;
@@ -55,14 +55,14 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
 
     @Override
     public List<Certificate> listCertificates() {
-        List<Certificate> certificates = new ResultsIterator<Certificate>(awsIotClient, ListCertificatesRequest.class).iterateOverResults();
+        List<Certificate> certificates = new V1ResultsIterator<Certificate>(awsIotClient, ListCertificatesRequest.class).iterateOverResults();
 
         return certificates;
     }
 
     @Override
     public List<CACertificate> listCaCertificates() {
-        List<CACertificate> certificates = new ResultsIterator<CACertificate>(awsIotClient, ListCACertificatesRequest.class).iterateOverResults();
+        List<CACertificate> certificates = new V1ResultsIterator<CACertificate>(awsIotClient, ListCACertificatesRequest.class).iterateOverResults();
 
         return certificates;
     }
