@@ -37,12 +37,12 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
 
     @Override
     public Stream<String> listGroupArns() {
-        return (Stream<String>) mapGroupInfo(GroupInformation::getArn);
+        return mapGroupInfo(String.class, GroupInformation::getArn);
     }
 
     @Override
     public Stream<String> listGroupIds() {
-        return (Stream<String>) mapGroupInfo(GroupInformation::getId);
+        return mapGroupInfo(String.class, GroupInformation::getId);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
                 .distinct();
     }
 
-    private Stream<?> mapGroupInfo(Function<? super GroupInformation, ?> x) {
+    private <V> Stream<V> mapGroupInfo(Class<V> returnType, Function<? super GroupInformation, V> x) {
         return listGroups()
                 .map(x);
     }
