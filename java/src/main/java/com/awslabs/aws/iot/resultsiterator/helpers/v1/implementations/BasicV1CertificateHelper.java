@@ -15,8 +15,6 @@ import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BasicV1CertificateHelper implements V1CertificateHelper {
@@ -65,19 +63,17 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
     }
 
     @Override
-    public List<String> listCaCertificateIds() {
+    public Stream<String> listCaCertificateIds() {
         return listCaCertificates()
-                .map(CACertificate::getCertificateId)
-                .collect(Collectors.toList());
+                .map(CACertificate::getCertificateId);
     }
 
     @Override
-    public List<String> listCaCertificateArns() {
+    public Stream<String> listCaCertificateArns() {
         // Note: API appears to return a ":cert/" ARN when it should return a ":cacert/" ARN, we fix this
         return listCaCertificates()
                 .map(CACertificate::getCertificateArn)
-                .map(arn -> arn.replace(V1CertificateHelper.CERT_IDENTIFIER, V1CertificateHelper.CACERT_IDENTIFIER))
-                .collect(Collectors.toList());
+                .map(arn -> arn.replace(V1CertificateHelper.CERT_IDENTIFIER, V1CertificateHelper.CACERT_IDENTIFIER));
     }
 
     @Override

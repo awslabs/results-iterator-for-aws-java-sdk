@@ -2,42 +2,41 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces;
 
 import com.amazonaws.services.greengrass.model.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 public interface V1GreengrassHelper {
     Stream<GroupInformation> listGroups();
 
-    List<String> listGroupArns();
+    Stream<String> listGroupArns();
 
-    List<String> listGroupIds();
+    Stream<String> listGroupIds();
 
     Map<String, VersionInformation> listLatestGroupVersions();
 
     Map<String, VersionInformation> listLatestImmutableGroupVersions();
 
-    List<DefinitionInformation> listNonImmutableCoreDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableCoreDefinitionInformation();
 
-    List<DefinitionInformation> listNonImmutableDeviceDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableDeviceDefinitionInformation();
 
-    List<DefinitionInformation> listNonImmutableFunctionDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableFunctionDefinitionInformation();
 
-    List<DefinitionInformation> listNonImmutableLoggerDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableLoggerDefinitionInformation();
 
-    List<DefinitionInformation> listNonImmutableResourceDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableResourceDefinitionInformation();
 
-    List<DefinitionInformation> listNonImmutableConnectorDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableConnectorDefinitionInformation();
 
-    List<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation();
 
-    List<VersionInformation> listGroupVersions(String groupId);
+    Stream<VersionInformation> listGroupVersions(String groupId);
 
     VersionInformation getLatestGroupVersion(String groupId);
 
     Stream<Deployment> listDeployments(String groupId);
 
-    List<String> listDeploymentIds(String groupId);
+    Stream<String> listDeploymentIds(String groupId);
 
     Deployment getLatestDeployment(String groupId);
 

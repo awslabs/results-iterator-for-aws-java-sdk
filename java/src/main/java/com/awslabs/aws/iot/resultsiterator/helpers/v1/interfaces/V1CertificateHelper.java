@@ -7,7 +7,6 @@ import com.awslabs.aws.iot.resultsiterator.data.CertificateIdFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientCertFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientPrivateKeyFilename;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 public interface V1CertificateHelper {
@@ -24,9 +23,9 @@ public interface V1CertificateHelper {
 
     Stream<CACertificate> listCaCertificates();
 
-    List<String> listCaCertificateIds();
+    Stream<String> listCaCertificateIds();
 
-    List<String> listCaCertificateArns();
+    Stream<String> listCaCertificateArns();
 
     Stream<String> getUnattachedCertificateArns();
 

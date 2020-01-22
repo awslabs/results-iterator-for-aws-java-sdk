@@ -36,166 +36,147 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<String> listGroupArns() {
-        return (List<String>) mapGroupInfo(GroupInformation::getArn);
+    public Stream<String> listGroupArns() {
+        return (Stream<String>) mapGroupInfo(GroupInformation::getArn);
     }
 
     @Override
-    public List<String> listGroupIds() {
-        return (List<String>) mapGroupInfo(GroupInformation::getId);
+    public Stream<String> listGroupIds() {
+        return (Stream<String>) mapGroupInfo(GroupInformation::getId);
     }
 
     @Override
     public Map<String, VersionInformation> listLatestGroupVersions() {
-        List<GroupInformation> allGroupInformation = listAllGroupInformation();
-
-        Map<String, VersionInformation> latestGroupInformation = allGroupInformation.stream()
-                .collect(Collectors.toMap(group -> group.getId(), group -> getLatestGroupVersion(group.getId())));
-
-        return latestGroupInformation;
+        return listGroups()
+                .collect(Collectors.toMap(GroupInformation::getId, group -> getLatestGroupVersion(group.getId())));
     }
 
     @Override
     public Map<String, VersionInformation> listLatestImmutableGroupVersions() {
-        List<GroupInformation> allGroupInformation = listAllGroupInformation();
-
-        Map<String, VersionInformation> latestGroupInformation = allGroupInformation.stream()
+        return listGroups()
                 .filter(group -> isGroupImmutable(group.getId()))
-                .collect(Collectors.toMap(group -> group.getId(), group -> getLatestGroupVersion(group.getId())));
-
-        return latestGroupInformation;
+                .collect(Collectors.toMap(GroupInformation::getId, group -> getLatestGroupVersion(group.getId())));
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableCoreDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableCoreDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listCoreDefinitions, this::listLatestImmutableCoreDefinitionVersionArns);
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableDeviceDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableDeviceDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listDeviceDefinitions, this::listLatestImmutableDeviceDefinitionVersionArns);
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableFunctionDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableFunctionDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listFunctionDefinitions, this::listLatestImmutableFunctionDefinitionVersionArns);
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableLoggerDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableLoggerDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listLoggerDefinitions, this::listLatestImmutableLoggerDefinitionVersionArns);
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableResourceDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableResourceDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listResourceDefinitions, this::listLatestImmutableResourceDefinitionVersionArns);
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableConnectorDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableConnectorDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listConnectorDefinitions, this::listLatestImmutableConnectorDefinitionVersionArns);
     }
 
     @Override
-    public List<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation() {
+    public Stream<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation() {
         return listNonImmutableDefinitionInformation(this::listSubscriptionDefinitions, this::listLatestImmutableSubscriptionDefinitionVersionArns);
     }
 
-    private List<DefinitionInformation> listNonImmutableDefinitionInformation(Supplier<Stream<DefinitionInformation>> definitionInformationSupplier,
-                                                                              Supplier<Set<String>> immutableDefinitionVersionArnSupplier) {
+    private Stream<DefinitionInformation> listNonImmutableDefinitionInformation(Supplier<Stream<DefinitionInformation>> definitionInformationSupplier,
+                                                                                Supplier<Stream<String>> immutableDefinitionVersionArnSupplier) {
         Stream<DefinitionInformation> definitionInformationStream = definitionInformationSupplier.get();
-        Set<String> latestCoreDefinitions = immutableDefinitionVersionArnSupplier.get();
+        List<String> latestCoreDefinitions = immutableDefinitionVersionArnSupplier.get().collect(Collectors.toList());
 
         // Remove all definitions that are immutable versions
         return definitionInformationStream
-                .filter(d -> !latestCoreDefinitions.contains(d.getLatestVersionArn()))
-                .collect(Collectors.toList());
+                .filter(d -> !latestCoreDefinitions.contains(d.getLatestVersionArn()));
     }
 
-    private Set<String> listLatestImmutableCoreDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableCoreDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getCoreDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetCoreDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private Set<String> listLatestImmutableDeviceDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableDeviceDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getDeviceDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetDeviceDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private Set<String> listLatestImmutableFunctionDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableFunctionDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getFunctionDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetFunctionDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private Set<String> listLatestImmutableLoggerDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableLoggerDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getLoggerDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetLoggerDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private Set<String> listLatestImmutableResourceDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableResourceDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getResourceDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetResourceDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private Set<String> listLatestImmutableConnectorDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableConnectorDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getConnectorDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetConnectorDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private Set<String> listLatestImmutableSubscriptionDefinitionVersionArns() {
+    private Stream<String> listLatestImmutableSubscriptionDefinitionVersionArns() {
         return listLatestImmutableGroupVersions().entrySet().stream()
                 .map(e -> getSubscriptionDefinitionVersion(e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
-                .map(v -> v.getArn())
-                .collect(Collectors.toSet());
+                .map(GetSubscriptionDefinitionVersionResult::getArn)
+                .distinct();
     }
 
-    private List<?> mapGroupInfo(Function<? super GroupInformation, ?> x) {
+    private Stream<?> mapGroupInfo(Function<? super GroupInformation, ?> x) {
         return listGroups()
-                .map(x)
-                .collect(Collectors.toList());
-    }
-
-    private List<GroupInformation> listAllGroupInformation() {
-        return listGroups()
-                .collect(Collectors.toList());
+                .map(x);
     }
 
     @Override
-    public List<VersionInformation> listGroupVersions(String groupId) {
+    public Stream<VersionInformation> listGroupVersions(String groupId) {
         ListGroupVersionsRequest listGroupVersionsRequest = new ListGroupVersionsRequest().withGroupId(groupId);
 
         // Return the list sorted so we can easily find the latest version
-        return (List<VersionInformation>) sortGroupVersionInformation(new V1ResultsIterator<VersionInformation>(awsGreengrassClient, listGroupVersionsRequest).resultStream());
+        return sortGroupVersionInformation(new V1ResultsIterator<VersionInformation>(awsGreengrassClient, listGroupVersionsRequest).resultStream());
     }
 
     @Override
     public VersionInformation getLatestGroupVersion(String groupId) {
-        List<VersionInformation> versionInformationList = listGroupVersions(groupId);
-
-        if (versionInformationList.size() == 0) {
-            return null;
-        }
-
-        return versionInformationList.get(versionInformationList.size() - 1);
+        // Get the last group version or return NULL if there aren't any deployments
+        return listGroupVersions(groupId).min(Collections.reverseOrder())
+                .orElseGet(null);
     }
 
     @Override
@@ -208,10 +189,9 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<String> listDeploymentIds(String groupId) {
+    public Stream<String> listDeploymentIds(String groupId) {
         return listDeployments(groupId)
-                .map(Deployment::getDeploymentId)
-                .collect(Collectors.toList());
+                .map(Deployment::getDeploymentId);
     }
 
     @Override
