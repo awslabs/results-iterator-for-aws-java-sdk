@@ -2,3 +2,4 @@
 .gradle
 /java/build
 /java/out
+generated

@@ -1,4 +1,4 @@
-package com.awslabs.aws.iot.resultsiterator;
+package com.awslabs.aws.iot.resultsiterator.helpers.v1;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.AmazonWebServiceRequest;
@@ -11,71 +11,111 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-public class ResultsIterator<T> {
-    private final Logger log = LoggerFactory.getLogger(ResultsIterator.class);
+public class V1ResultsIterator<T> {
+    private final Logger log = LoggerFactory.getLogger(V1ResultsIterator.class);
     private final AmazonWebServiceClient amazonWebServiceClient;
     private final Class<? extends AmazonWebServiceRequest> requestClass;
     private final List<String> getTokenMethodNames = new ArrayList<>(Arrays.asList("getNextToken", "getMarker", "getNextMarker"));
     private final List<String> setTokenMethodNames = new ArrayList<>(Arrays.asList("setNextToken", "setMarker", "setNextMarker"));
+    private final AmazonWebServiceRequest originalRequest;
     private Optional<Class<? extends AmazonWebServiceResult>> optionalResultClass = Optional.empty();
-    private AmazonWebServiceRequest request;
     private AmazonWebServiceResult result;
     private Method clientMethodReturningResult;
     private Method clientMethodReturningListT;
     private Method clientGetMethodReturningString;
     private Method clientSetMethodAcceptingString;
 
-    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, Class<? extends AmazonWebServiceRequest> requestClass) {
+    public V1ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, Class<? extends AmazonWebServiceRequest> requestClass) {
         this.amazonWebServiceClient = amazonWebServiceClient;
         this.requestClass = requestClass;
+        this.originalRequest = null;
     }
 
-    public ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, AmazonWebServiceRequest request) {
+    public V1ResultsIterator(AmazonWebServiceClient amazonWebServiceClient, AmazonWebServiceRequest originalRequest) {
         this.amazonWebServiceClient = amazonWebServiceClient;
-        this.requestClass = request.getClass();
-        this.request = request;
+        this.requestClass = originalRequest.getClass();
+        this.originalRequest = originalRequest;
     }
 
-    public List<T> iterateOverResults() {
-        if (request == null) {
-            try {
-                // Get a new request object.  If this can't be done with a default constructor it will fail.
-                request = requestClass.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
-                throw new UnsupportedOperationException(e);
+    public Stream<T> resultStream() {
+        Iterator<T> iterator = new Iterator<T>() {
+            List<T> output = new ArrayList<>();
+            boolean started = false;
+            String nextToken = null;
+            AmazonWebServiceRequest request;
+
+            private void performRequest() {
+                if (!started) {
+                    // First time around configure the request
+                    request = configureRequest();
+
+                    // The setup is complete, don't do it again
+                    started = true;
+                }
+
+                result = queryNextResults(request);
+
+                output.addAll(getResultData());
+
+                nextToken = getNextToken();
+
+                if (nextToken == null) {
+                    return;
+                }
+
+                setNextToken(request, nextToken);
             }
+
+            @Override
+            public boolean hasNext() {
+                if (!started) {
+                    // We haven't started, attempt a request
+                    performRequest();
+                }
+
+                while ((output.size() == 0) && (nextToken != null)) {
+                    // Output array is empty but the next token is not null, attempt a request
+                    performRequest();
+                }
+
+                if (output.size() != 0) {
+                    // Output array is not empty, there is at least one more element
+                    return true;
+                }
+
+                // Output array is empty and the next token is NULL
+                return false;
+            }
+
+            @Override
+            public T next() {
+                return output.remove(0);
+            }
+        };
+
+        // This stream does not have a known size, does not contain NULL elements, and can not be run in parallel
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false);
+    }
+
+    private AmazonWebServiceRequest configureRequest() {
+        if (originalRequest != null) {
+            return originalRequest.clone();
         }
 
-        List<T> output = new ArrayList<>();
-        String nextToken = null;
-
-        do {
-            result = queryNextResults();
-
-            output.addAll(getResultData());
-
-            nextToken = getNextToken();
-
-            // Is there a next token?
-            if (nextToken == null) {
-                // No, we're done
-                break;
-            }
-
-            // There is a next token, use it to get the next set of topic rules
-            setNextToken(nextToken);
-        } while (true);
-
-        return output;
+        try {
+            // Get a new request object.  If this can't be done with a default constructor it will fail.
+            return requestClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new UnsupportedOperationException(e);
+        }
     }
 
-    private AmazonWebServiceResult queryNextResults() {
+    private AmazonWebServiceResult queryNextResults(AmazonWebServiceRequest request) {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AmazonWebServiceRequest and returns a V.  If zero or more than one exists, fail.
             clientMethodReturningResult = getMethodWithParameterAndReturnType(amazonWebServiceClient.getClass(), requestClass, getResultClass());
@@ -148,7 +188,7 @@ public class ResultsIterator<T> {
         }
     }
 
-    private void setNextToken(String nextToken) {
+    private void setNextToken(AmazonWebServiceRequest request, String nextToken) {
         if (clientSetMethodAcceptingString == null) {
             // Look for a public method that takes a string and returns nothing that matches our list of expected names.  If zero or more than one exists, fail.
             clientSetMethodAcceptingString = getMethodWithParameterReturnTypeAndNames(requestClass, String.class, Void.TYPE, setTokenMethodNames);

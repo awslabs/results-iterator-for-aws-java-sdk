@@ -6,23 +6,37 @@ import com.amazonaws.services.iot.model.ThingAttribute;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListBucketsRequest;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
-public class TestResultsIterator {
+public class TestV1ResultsIterator {
     @Test
-    public void shouldListThingAttributesAndNotThrowAnException() {
+    public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
         AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
         ListThingsRequest listThingsRequest = new ListThingsRequest();
-        ResultsIterator<ThingAttribute> resultsIterator = new ResultsIterator<>(awsIotClient, listThingsRequest);
-        List<ThingAttribute> thingAttributes = resultsIterator.iterateOverResults();
+        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
+        Stream<ThingAttribute> thingAttributes = v1ResultsIterator.resultStream();
         thingAttributes.forEach(System.out::println);
-        Assert.assertThat(thingAttributes.size(), greaterThan(0));
+        thingAttributes = v1ResultsIterator.resultStream();
+        Assert.assertThat(thingAttributes.count(), greaterThan(0L));
+    }
+
+    @Test
+    public void streamShouldWorkTwice() {
+        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
+        ListThingsRequest listThingsRequest = new ListThingsRequest();
+        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
+        Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.resultStream();
+        Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.resultStream();
+        Assert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
     @Test
@@ -33,8 +47,8 @@ public class TestResultsIterator {
     public void shouldListBucketsAndNotThrowAnException() {
         AmazonS3Client amazonS3Client = (AmazonS3Client) AmazonS3Client.builder().build();
         ListBucketsRequest listBucketsRequest = new ListBucketsRequest();
-        ResultsIterator<Bucket> resultsIterator = new ResultsIterator<>(amazonS3Client, listBucketsRequest);
-        List<Bucket> buckets = resultsIterator.iterateOverResults();
+        V1ResultsIterator<Bucket> v1ResultsIterator = new V1ResultsIterator<>(amazonS3Client, listBucketsRequest);
+        Stream<Bucket> buckets = v1ResultsIterator.resultStream();
         buckets.forEach(System.out::println);
     }
 }
