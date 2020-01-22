@@ -46,12 +46,12 @@ public class V1ResultsIterator<T> {
             List<T> output = new ArrayList<>();
             boolean started = false;
             String nextToken = null;
-            AmazonWebServiceRequest request = originalRequest.clone();
+            AmazonWebServiceRequest request;
 
             private void performRequest() {
                 if (!started) {
                     // First time around configure the request
-                    configureRequest();
+                    request = configureRequest();
 
                     // The setup is complete, don't do it again
                     started = true;
@@ -68,18 +68,6 @@ public class V1ResultsIterator<T> {
                 }
 
                 setNextToken(request, nextToken);
-            }
-
-            private void configureRequest() {
-                if (request == null) {
-                    try {
-                        // Get a new request object.  If this can't be done with a default constructor it will fail.
-                        request = requestClass.getDeclaredConstructor().newInstance();
-                    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                        e.printStackTrace();
-                        throw new UnsupportedOperationException(e);
-                    }
-                }
             }
 
             @Override
@@ -113,18 +101,22 @@ public class V1ResultsIterator<T> {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false);
     }
 
-    public List<T> iterateOverResults() {
-        AmazonWebServiceRequest request = originalRequest.clone();
-
-        if (request == null) {
-            try {
-                // Get a new request object.  If this can't be done with a default constructor it will fail.
-                request = requestClass.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
-                throw new UnsupportedOperationException(e);
-            }
+    private AmazonWebServiceRequest configureRequest() {
+        if (originalRequest != null) {
+            return originalRequest.clone();
         }
+
+        try {
+            // Get a new request object.  If this can't be done with a default constructor it will fail.
+            return requestClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new UnsupportedOperationException(e);
+        }
+    }
+
+    public List<T> iterateOverResults() {
+        AmazonWebServiceRequest request = configureRequest();
 
         List<T> output = new ArrayList<>();
         String nextToken = null;

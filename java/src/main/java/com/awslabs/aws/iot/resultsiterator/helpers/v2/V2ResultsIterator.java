@@ -106,20 +106,18 @@ public class V2ResultsIterator<T> {
     }
 
     private AwsRequest configureRequest() {
-        AwsRequest request = originalAwsRequest.toBuilder().build();
-
-        if (request == null) {
-            try {
-                // Get a new request object.  If this can't be done with a default constructor it will fail.
-                Method method = awsRequestClass.getMethod("builder", AwsRequest.Builder.class);
-                return (AwsRequest) method.invoke(null);
-            } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
-                throw new UnsupportedOperationException(e);
-            }
+        if (originalAwsRequest != null) {
+            return originalAwsRequest.toBuilder().build();
         }
 
-        return request;
+        try {
+            // Get a new request object.  If this can't be done with a default constructor it will fail.
+            Method method = awsRequestClass.getMethod("builder", AwsRequest.Builder.class);
+            return (AwsRequest) method.invoke(null);
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     public List<T> iterateOverResults() {
