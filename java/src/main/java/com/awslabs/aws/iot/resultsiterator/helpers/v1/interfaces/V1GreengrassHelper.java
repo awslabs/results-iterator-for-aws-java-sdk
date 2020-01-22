@@ -4,9 +4,10 @@ import com.amazonaws.services.greengrass.model.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public interface V1GreengrassHelper {
-    List<GroupInformation> listGroups();
+    Stream<GroupInformation> listGroups();
 
     List<String> listGroupArns();
 
@@ -34,7 +35,7 @@ public interface V1GreengrassHelper {
 
     VersionInformation getLatestGroupVersion(String groupId);
 
-    List<Deployment> listDeployments(String groupId);
+    Stream<Deployment> listDeployments(String groupId);
 
     List<String> listDeploymentIds(String groupId);
 
@@ -74,19 +75,19 @@ public interface V1GreengrassHelper {
 
     GetConnectorDefinitionVersionResult getConnectorDefinitionVersion(String groupId, VersionInformation versionInformation);
 
-    List<DefinitionInformation> listCoreDefinitions();
+    Stream<DefinitionInformation> listCoreDefinitions();
 
     void deleteCoreDefinition(DefinitionInformation definitionInformation);
 
-    List<DefinitionInformation> listFunctionDefinitions();
+    Stream<DefinitionInformation> listFunctionDefinitions();
 
     void deleteFunctionDefinition(DefinitionInformation definitionInformation);
 
-    List<DefinitionInformation> listSubscriptionDefinitions();
+    Stream<DefinitionInformation> listSubscriptionDefinitions();
 
     void deleteSubscriptionDefinition(DefinitionInformation definitionInformation);
 
-    List<DefinitionInformation> listDeviceDefinitions();
+    Stream<DefinitionInformation> listDeviceDefinitions();
 
     void deleteDeviceDefinition(DefinitionInformation definitionInformation);
 
@@ -94,13 +95,13 @@ public interface V1GreengrassHelper {
 
     void deleteLoggerDefinition(DefinitionInformation definitionInformation);
 
-    List<DefinitionInformation> listLoggerDefinitions();
+    Stream<DefinitionInformation> listLoggerDefinitions();
 
     GetResourceDefinitionVersionResult getResourceDefinitionVersion(String groupId, VersionInformation versionInformation);
 
-    List<DefinitionInformation> listResourceDefinitions();
+    Stream<DefinitionInformation> listResourceDefinitions();
 
-    List<DefinitionInformation> listConnectorDefinitions();
+    Stream<DefinitionInformation> listConnectorDefinitions();
 
     void deleteResourceDefinition(DefinitionInformation definitionInformation);
 

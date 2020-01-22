@@ -9,8 +9,7 @@ import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1IamHelper;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
 
 public class BasicV1IamHelper implements V1IamHelper {
     @Inject
@@ -21,23 +20,13 @@ public class BasicV1IamHelper implements V1IamHelper {
     }
 
     @Override
-    public List<Role> listRoles() {
-        List<Role> roles = new V1ResultsIterator<Role>(amazonIdentityManagementClient, ListRolesRequest.class).iterateOverResults();
-
-        return roles;
+    public Stream<Role> listRoles() {
+        return new V1ResultsIterator<Role>(amazonIdentityManagementClient, ListRolesRequest.class).resultStream();
     }
 
     @Override
-    public List<String> listRoleNames() {
-        List<Role> roles = listRoles();
-
-        List<String> roleNames = new ArrayList<>();
-
-        for (Role role : roles) {
-            roleNames.add(role.getRoleName());
-        }
-
-        return roleNames;
+    public Stream<String> listRoleNames() {
+        return listRoles().map(Role::getRoleName);
     }
 
     @Override

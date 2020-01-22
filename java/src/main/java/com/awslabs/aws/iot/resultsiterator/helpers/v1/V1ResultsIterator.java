@@ -115,32 +115,6 @@ public class V1ResultsIterator<T> {
         }
     }
 
-    public List<T> iterateOverResults() {
-        AmazonWebServiceRequest request = configureRequest();
-
-        List<T> output = new ArrayList<>();
-        String nextToken = null;
-
-        do {
-            result = queryNextResults(request);
-
-            output.addAll(getResultData());
-
-            nextToken = getNextToken();
-
-            // Is there a next token?
-            if (nextToken == null) {
-                // No, we're done
-                break;
-            }
-
-            // There is a next token, use it to get the next items
-            setNextToken(request, nextToken);
-        } while (true);
-
-        return output;
-    }
-
     private AmazonWebServiceResult queryNextResults(AmazonWebServiceRequest request) {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AmazonWebServiceRequest and returns a V.  If zero or more than one exists, fail.

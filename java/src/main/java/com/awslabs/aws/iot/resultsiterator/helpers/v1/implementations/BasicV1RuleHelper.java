@@ -7,8 +7,7 @@ import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1RuleHelper;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
 
 public class BasicV1RuleHelper implements V1RuleHelper {
     @Inject
@@ -19,22 +18,13 @@ public class BasicV1RuleHelper implements V1RuleHelper {
     }
 
     @Override
-    public List<TopicRuleListItem> listTopicRules() {
-        List<TopicRuleListItem> topicRules = new V1ResultsIterator<TopicRuleListItem>(awsIotClient, ListTopicRulesRequest.class).iterateOverResults();
-
-        return topicRules;
+    public Stream<TopicRuleListItem> listTopicRules() {
+        return new V1ResultsIterator<TopicRuleListItem>(awsIotClient, ListTopicRulesRequest.class).resultStream();
     }
 
     @Override
-    public List<String> listTopicRuleNames() {
-        List<TopicRuleListItem> topicRules = listTopicRules();
-
-        List<String> topicRuleNames = new ArrayList<>();
-
-        for (TopicRuleListItem topicRuleListItem : topicRules) {
-            topicRuleNames.add(topicRuleListItem.getRuleName());
-        }
-
-        return topicRuleNames;
+    public Stream<String> listTopicRuleNames() {
+        return listTopicRules()
+                .map(TopicRuleListItem::getRuleName);
     }
 }

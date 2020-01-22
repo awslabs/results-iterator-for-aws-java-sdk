@@ -120,43 +120,6 @@ public class V2ResultsIterator<T> {
         }
     }
 
-    public List<T> iterateOverResults() {
-        AwsRequest request = configureRequest();
-
-        if (request == null) {
-            try {
-                // Get a new request object.  If this can't be done with a default constructor it will fail.
-                Method method = awsRequestClass.getMethod("builder", AwsRequest.Builder.class);
-                request = (AwsRequest) method.invoke(null);
-            } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
-                throw new UnsupportedOperationException(e);
-            }
-        }
-
-        List<T> output = new ArrayList<>();
-        String nextToken = null;
-
-        do {
-            awsResponse = queryNextResults(request);
-
-            output.addAll(getResultData());
-
-            nextToken = getNextToken();
-
-            // Is there a next token?
-            if (nextToken == null) {
-                // No, we're done
-                break;
-            }
-
-            // There is a next token, use it to get the next items
-            request = setNextToken(request, nextToken);
-        } while (true);
-
-        return output;
-    }
-
     private AwsResponse queryNextResults(AwsRequest request) {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AwsRequest and returns a V.  If zero or more than one exists, fail.

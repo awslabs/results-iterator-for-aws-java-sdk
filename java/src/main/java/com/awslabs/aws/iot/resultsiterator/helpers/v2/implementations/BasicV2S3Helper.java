@@ -10,8 +10,8 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class BasicV2S3Helper implements V2S3Helper {
     @Inject
@@ -42,11 +42,10 @@ public class BasicV2S3Helper implements V2S3Helper {
                 .bucket(bucket)
                 .prefix(key)
                 .build();
-        V2ResultsIterator<S3Object> v2ResultsIterator = new V2ResultsIterator<>(s3Client, listObjectsRequest);
 
-        List<S3Object> s3Objects = v2ResultsIterator.iterateOverResults();
+        Stream<S3Object> s3Objects = new V2ResultsIterator<S3Object>(s3Client, listObjectsRequest).resultStream();
 
-        Optional<S3Object> optionalS3Object = s3Objects.stream()
+        Optional<S3Object> optionalS3Object = s3Objects
                 // Require an exact match on the name
                 .filter(object -> object.key().equals(key))
                 .findFirst();

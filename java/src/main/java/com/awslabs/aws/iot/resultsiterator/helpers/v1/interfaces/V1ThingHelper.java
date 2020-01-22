@@ -5,17 +5,18 @@ import com.awslabs.aws.iot.resultsiterator.exceptions.ThingAttachedToPrincipalsE
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface V1ThingHelper {
-    List<String> listThingNames();
+    Stream<String> listThingNames();
 
-    List<ThingAttribute> listThingAttributes();
+    Stream<ThingAttribute> listThingAttributes();
 
     void delete(String name) throws ThingAttachedToPrincipalsException;
 
     List<String> listPrincipals(String thingName);
 
-    List<String> listPrincipalThings(String principal);
+    Stream<String> listPrincipalThings(String principal);
 
     void detachPrincipal(String thingName, String principal);
 

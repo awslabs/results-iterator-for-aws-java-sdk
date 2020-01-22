@@ -19,16 +19,6 @@ import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV1ResultsIterator {
     @Test
-    public void shouldListThingAttributesAndNotThrowAnException() {
-        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
-        ListThingsRequest listThingsRequest = new ListThingsRequest();
-        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
-        List<ThingAttribute> thingAttributes = v1ResultsIterator.iterateOverResults();
-        thingAttributes.forEach(System.out::println);
-        Assert.assertThat(thingAttributes.size(), greaterThan(0));
-    }
-
-    @Test
     public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
         AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
         ListThingsRequest listThingsRequest = new ListThingsRequest();
@@ -37,16 +27,6 @@ public class TestV1ResultsIterator {
         thingAttributes.forEach(System.out::println);
         thingAttributes = v1ResultsIterator.resultStream();
         Assert.assertThat(thingAttributes.count(), greaterThan(0L));
-    }
-
-    @Test
-    public void streamAndListShouldBeSameLength() {
-        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
-        ListThingsRequest listThingsRequest = new ListThingsRequest();
-        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
-        List<ThingAttribute> thingAttributesList = v1ResultsIterator.iterateOverResults();
-        Stream<ThingAttribute> thingAttributesStream = v1ResultsIterator.resultStream();
-        Assert.assertThat(thingAttributesList.size(), equalTo((int) thingAttributesStream.count()));
     }
 
     @Test
@@ -68,7 +48,7 @@ public class TestV1ResultsIterator {
         AmazonS3Client amazonS3Client = (AmazonS3Client) AmazonS3Client.builder().build();
         ListBucketsRequest listBucketsRequest = new ListBucketsRequest();
         V1ResultsIterator<Bucket> v1ResultsIterator = new V1ResultsIterator<>(amazonS3Client, listBucketsRequest);
-        List<Bucket> buckets = v1ResultsIterator.iterateOverResults();
+        Stream<Bucket> buckets = v1ResultsIterator.resultStream();
         buckets.forEach(System.out::println);
     }
 }

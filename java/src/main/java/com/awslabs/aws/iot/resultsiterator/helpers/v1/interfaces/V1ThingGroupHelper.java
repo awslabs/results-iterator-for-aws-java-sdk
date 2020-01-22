@@ -2,10 +2,10 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces;
 
 import com.amazonaws.services.iot.model.GroupNameAndArn;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface V1ThingGroupHelper {
-    List<GroupNameAndArn> listThingGroups();
+    Stream<GroupNameAndArn> listThingGroups();
 
     void deleteThingGroup(String thingGroupName);
 }

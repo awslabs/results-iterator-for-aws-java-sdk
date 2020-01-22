@@ -2,9 +2,9 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 
 import com.amazonaws.services.greengrass.AWSGreengrassClient;
 import com.amazonaws.services.greengrass.model.*;
+import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1GreengrassHelper;
-import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingHelper;
 import org.slf4j.Logger;
 
@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1GreengrassHelper.class);
@@ -29,13 +30,9 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<GroupInformation> listGroups() {
-        List<GroupInformation> groupInformationList = new V1ResultsIterator<GroupInformation>(awsGreengrassClient, ListGroupsRequest.class).iterateOverResults();
-
+    public Stream<GroupInformation> listGroups() {
         // Return the list sorted so overlapping names can be found easily
-        sortGroupInformation(groupInformationList);
-
-        return groupInformationList;
+        return sortGroupInformation(new V1ResultsIterator<GroupInformation>(awsGreengrassClient, ListGroupsRequest.class).resultStream());
     }
 
     @Override
@@ -104,13 +101,13 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         return listNonImmutableDefinitionInformation(this::listSubscriptionDefinitions, this::listLatestImmutableSubscriptionDefinitionVersionArns);
     }
 
-    private List<DefinitionInformation> listNonImmutableDefinitionInformation(Supplier<List<DefinitionInformation>> definitionInformationSupplier,
+    private List<DefinitionInformation> listNonImmutableDefinitionInformation(Supplier<Stream<DefinitionInformation>> definitionInformationSupplier,
                                                                               Supplier<Set<String>> immutableDefinitionVersionArnSupplier) {
-        List<DefinitionInformation> definitionInformationList = definitionInformationSupplier.get();
+        Stream<DefinitionInformation> definitionInformationStream = definitionInformationSupplier.get();
         Set<String> latestCoreDefinitions = immutableDefinitionVersionArnSupplier.get();
 
         // Remove all definitions that are immutable versions
-        return definitionInformationList = definitionInformationList.stream()
+        return definitionInformationStream
                 .filter(d -> !latestCoreDefinitions.contains(d.getLatestVersionArn()))
                 .collect(Collectors.toList());
     }
@@ -172,17 +169,13 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     private List<?> mapGroupInfo(Function<? super GroupInformation, ?> x) {
-        List<GroupInformation> groupInformationList = listGroups();
-
-        return groupInformationList.stream()
+        return listGroups()
                 .map(x)
                 .collect(Collectors.toList());
     }
 
     private List<GroupInformation> listAllGroupInformation() {
-        List<GroupInformation> groupInformationList = listGroups();
-
-        return groupInformationList.stream()
+        return listGroups()
                 .collect(Collectors.toList());
     }
 
@@ -190,12 +183,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public List<VersionInformation> listGroupVersions(String groupId) {
         ListGroupVersionsRequest listGroupVersionsRequest = new ListGroupVersionsRequest().withGroupId(groupId);
 
-        List<VersionInformation> versionInformationList = new V1ResultsIterator<VersionInformation>(awsGreengrassClient, listGroupVersionsRequest).iterateOverResults();
-
         // Return the list sorted so we can easily find the latest version
-        sortGroupVersionInformation(versionInformationList);
-
-        return versionInformationList;
+        return (List<VersionInformation>) sortGroupVersionInformation(new V1ResultsIterator<VersionInformation>(awsGreengrassClient, listGroupVersionsRequest).resultStream());
     }
 
     @Override
@@ -210,35 +199,26 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<Deployment> listDeployments(String groupId) {
+    public Stream<Deployment> listDeployments(String groupId) {
         ListDeploymentsRequest listDeploymentsRequest = new ListDeploymentsRequest()
                 .withGroupId(groupId);
 
-        List<Deployment> deploymentsList = new V1ResultsIterator<Deployment>(awsGreengrassClient, listDeploymentsRequest).iterateOverResults();
-
         // Return the list sorted so we can easily find the latest deployment
-        sortDeployments(deploymentsList);
-
-        return deploymentsList;
+        return sortDeployments(new V1ResultsIterator<Deployment>(awsGreengrassClient, listDeploymentsRequest).resultStream());
     }
 
     @Override
     public List<String> listDeploymentIds(String groupId) {
         return listDeployments(groupId)
-                .stream()
                 .map(Deployment::getDeploymentId)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Deployment getLatestDeployment(String groupId) {
-        List<Deployment> deploymentList = listDeployments(groupId);
-
-        if (deploymentList.size() == 0) {
-            return null;
-        }
-
-        return deploymentList.get(deploymentList.size() - 1);
+        // Get the last deployment or return NULL if there aren't any deployments
+        return listDeployments(groupId).min(Collections.reverseOrder())
+                .orElseGet(null);
     }
 
     @Override
@@ -366,12 +346,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<DefinitionInformation> listLoggerDefinitions() {
+    public Stream<DefinitionInformation> listLoggerDefinitions() {
         ListLoggerDefinitionsRequest listLoggerDefinitionsRequest = new ListLoggerDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listLoggerDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listLoggerDefinitionsRequest).resultStream();
     }
 
     @Override
@@ -389,21 +367,17 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<DefinitionInformation> listResourceDefinitions() {
+    public Stream<DefinitionInformation> listResourceDefinitions() {
         ListResourceDefinitionsRequest listResourceDefinitionsRequest = new ListResourceDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listResourceDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listResourceDefinitionsRequest).resultStream();
     }
 
     @Override
-    public List<DefinitionInformation> listConnectorDefinitions() {
+    public Stream<DefinitionInformation> listConnectorDefinitions() {
         ListConnectorDefinitionsRequest listConnectorDefinitionsRequest = new ListConnectorDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listConnectorDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listConnectorDefinitionsRequest).resultStream();
     }
 
     @Override
@@ -526,12 +500,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<DefinitionInformation> listCoreDefinitions() {
+    public Stream<DefinitionInformation> listCoreDefinitions() {
         ListCoreDefinitionsRequest listCoreDefinitionsRequest = new ListCoreDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listCoreDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listCoreDefinitionsRequest).resultStream();
     }
 
     @Override
@@ -550,12 +522,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<DefinitionInformation> listFunctionDefinitions() {
+    public Stream<DefinitionInformation> listFunctionDefinitions() {
         ListFunctionDefinitionsRequest listFunctionDefinitionsRequest = new ListFunctionDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listFunctionDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listFunctionDefinitionsRequest).resultStream();
     }
 
     @Override
@@ -567,12 +537,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<DefinitionInformation> listSubscriptionDefinitions() {
+    public Stream<DefinitionInformation> listSubscriptionDefinitions() {
         ListSubscriptionDefinitionsRequest listSubscriptionDefinitionsRequest = new ListSubscriptionDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listSubscriptionDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listSubscriptionDefinitionsRequest).resultStream();
     }
 
     @Override
@@ -584,12 +552,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public List<DefinitionInformation> listDeviceDefinitions() {
+    public Stream<DefinitionInformation> listDeviceDefinitions() {
         ListDeviceDefinitionsRequest listDeviceDefinitionsRequest = new ListDeviceDefinitionsRequest();
 
-        List<DefinitionInformation> definitionInformationList = new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listDeviceDefinitionsRequest).iterateOverResults();
-
-        return definitionInformationList;
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listDeviceDefinitionsRequest).resultStream();
     }
 
     @Override
@@ -656,15 +622,15 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         }
     }
 
-    private void sortDeployments(List<Deployment> deploymentsList) {
-        Collections.sort(deploymentsList, Comparator.comparing(Deployment::getCreatedAt));
+    private Stream<Deployment> sortDeployments(Stream<Deployment> deploymentsStream) {
+        return deploymentsStream.sorted(Comparator.comparing(Deployment::getCreatedAt));
     }
 
-    private void sortGroupVersionInformation(List<VersionInformation> versionInformationList) {
-        Collections.sort(versionInformationList, Comparator.comparing(VersionInformation::getCreationTimestamp));
+    private Stream<VersionInformation> sortGroupVersionInformation(Stream<VersionInformation> versionInformationStream) {
+        return versionInformationStream.sorted(Comparator.comparing(VersionInformation::getCreationTimestamp));
     }
 
-    private void sortGroupInformation(List<GroupInformation> groupInformationList) {
-        Collections.sort(groupInformationList, Comparator.comparing(GroupInformation::getName));
+    private Stream<GroupInformation> sortGroupInformation(Stream<GroupInformation> groupInformationStream) {
+        return groupInformationStream.sorted(Comparator.comparing(GroupInformation::getName));
     }
 }

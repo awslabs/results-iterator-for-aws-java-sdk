@@ -7,8 +7,8 @@ import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1PolicyHelper;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class BasicV1PolicyHelper implements V1PolicyHelper {
     private static final String ALLOW_ALL_POLICY_DOCUMENT = "{ \"Statement\": [ { \"Action\": \"iot:*\", \"Resource\": \"*\", \"Effect\": \"Allow\" } ], \"Version\": \"2012-10-17\" }";
@@ -48,42 +48,28 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
     }
 
     @Override
-    public List<Policy> listPolicies() {
-        List<Policy> policies = new V1ResultsIterator<Policy>(awsIotClient, ListPoliciesRequest.class).iterateOverResults();
-
-        return policies;
+    public Stream<Policy> listPolicies() {
+        return new V1ResultsIterator<Policy>(awsIotClient, ListPoliciesRequest.class).resultStream();
     }
 
     @Override
-    public List<String> listPolicyNames() {
-        List<Policy> policies = listPolicies();
-
-        List<String> policyNames = new ArrayList<>();
-
-        for (Policy policy : policies) {
-            policyNames.add(policy.getPolicyName());
-        }
-
-        return policyNames;
+    public Stream<String> listPolicyNames() {
+        return listPolicies()
+                .map(Policy::getPolicyName);
     }
 
     @Override
-    public List<String> listPolicyPrincipals(String policyName) {
+    public Stream<String> listPolicyPrincipals(String policyName) {
         ListPolicyPrincipalsRequest listPolicyPrincipalsRequest = new ListPolicyPrincipalsRequest()
                 .withPolicyName(policyName);
 
-        List<String> principals = new V1ResultsIterator<String>(awsIotClient, listPolicyPrincipalsRequest).iterateOverResults();
-
-        return principals;
+        return new V1ResultsIterator<String>(awsIotClient, listPolicyPrincipalsRequest).resultStream();
     }
 
     @Override
     public void deletePolicy(String policyName) {
-        List<String> policyPrincipals = listPolicyPrincipals(policyName);
-
-        for (String policyPrincipal : policyPrincipals) {
-            detachPolicy(policyPrincipal, policyName);
-        }
+        listPolicyPrincipals(policyName)
+                .forEach(policyPrincipal -> detachPolicy(policyPrincipal, policyName));
 
         DeletePolicyRequest deletePolicyRequest = new DeletePolicyRequest()
                 .withPolicyName(policyName);
@@ -140,12 +126,10 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
     }
 
     @Override
-    public List<Policy> listPrincipalPolicies(String principal) {
+    public Stream<Policy> listPrincipalPolicies(String principal) {
         ListPrincipalPoliciesRequest listPrincipalPoliciesRequest = new ListPrincipalPoliciesRequest()
                 .withPrincipal(principal);
 
-        List<Policy> policies = new V1ResultsIterator<Policy>(awsIotClient, listPrincipalPoliciesRequest).iterateOverResults();
-
-        return policies;
+        return new V1ResultsIterator<Policy>(awsIotClient, listPrincipalPoliciesRequest).resultStream();
     }
 }

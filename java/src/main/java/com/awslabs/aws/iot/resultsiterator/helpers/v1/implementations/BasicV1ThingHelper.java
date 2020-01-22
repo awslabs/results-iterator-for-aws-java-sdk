@@ -2,8 +2,8 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
-import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.exceptions.ThingAttachedToPrincipalsException;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1CertificateHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1PolicyHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingHelper;
@@ -14,6 +14,7 @@ import javax.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class BasicV1ThingHelper implements V1ThingHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1ThingHelper.class);
@@ -27,23 +28,13 @@ public class BasicV1ThingHelper implements V1ThingHelper {
     }
 
     @Override
-    public List<String> listThingNames() {
-        List<ThingAttribute> thingAttributes = listThingAttributes();
-
-        List<String> thingNames = new ArrayList<>();
-
-        for (ThingAttribute thingAttribute : thingAttributes) {
-            thingNames.add(thingAttribute.getThingName());
-        }
-
-        return thingNames;
+    public Stream<String> listThingNames() {
+        return listThingAttributes().map(ThingAttribute::getThingName);
     }
 
     @Override
-    public List<ThingAttribute> listThingAttributes() {
-        List<ThingAttribute> thingAttributes = new V1ResultsIterator<ThingAttribute>(awsIotClient, ListThingsRequest.class).iterateOverResults();
-
-        return thingAttributes;
+    public Stream<ThingAttribute> listThingAttributes() {
+        return new V1ResultsIterator<ThingAttribute>(awsIotClient, ListThingsRequest.class).resultStream();
     }
 
     @Override
@@ -75,13 +66,11 @@ public class BasicV1ThingHelper implements V1ThingHelper {
     }
 
     @Override
-    public List<String> listPrincipalThings(String principal) {
+    public Stream<String> listPrincipalThings(String principal) {
         ListPrincipalThingsRequest listPrincipalThingsRequest = new ListPrincipalThingsRequest()
                 .withPrincipal(principal);
 
-        List<String> principalThings = new V1ResultsIterator<String>(awsIotClient, listPrincipalThingsRequest).iterateOverResults();
-
-        return principalThings;
+        return new V1ResultsIterator<String>(awsIotClient, listPrincipalThingsRequest).resultStream();
     }
 
     @Override
@@ -122,19 +111,11 @@ public class BasicV1ThingHelper implements V1ThingHelper {
             }
 
             // This is a regular certificate, detach everything from it
-            List<Policy> policies = policyHelperProvider.get().listPrincipalPolicies(principal);
+            policyHelperProvider.get().listPrincipalPolicies(principal)
+                    .forEach(policy -> detachAndDelete(principal, policy));
 
-            for (Policy policy : policies) {
-                String policyName = policy.getPolicyName();
-                policyHelperProvider.get().detachPolicy(principal, policyName);
-                policyHelperProvider.get().deletePolicy(policy.getPolicyName());
-            }
-
-            List<String> things = listPrincipalThings(principal);
-
-            for (String thing : things) {
-                detachPrincipal(thing, principal);
-            }
+            listPrincipalThings(principal)
+                    .forEach(thing -> detachPrincipal(thing, principal));
 
             UpdateCertificateRequest updateCertificateRequest = new UpdateCertificateRequest()
                     .withCertificateId(certificateId)
@@ -165,17 +146,22 @@ public class BasicV1ThingHelper implements V1ThingHelper {
         }
     }
 
+    private void detachAndDelete(String principal, Policy policy) {
+        String policyName = policy.getPolicyName();
+        policyHelperProvider.get().detachPolicy(principal, policyName);
+        policyHelperProvider.get().deletePolicy(policy.getPolicyName());
+    }
+
     @Override
     public boolean principalAttachedToImmutableThing(String principal) {
-        List<String> things = listPrincipalThings(principal);
+        // Look for a true value
+        Optional<Boolean> optionalBoolean = listPrincipalThings(principal)
+                .map(this::isThingImmutable)
+                .filter(value -> value)
+                .findFirst();
 
-        for (String thing : things) {
-            if (isThingImmutable(thing)) {
-                return true;
-            }
-        }
-
-        return false;
+        // If one is present then this thing is immutable
+        return optionalBoolean.isPresent();
     }
 
     @Override
@@ -203,7 +189,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
 
     @Override
     public Optional<ThingAttribute> getThingIfItExists(String thingArn) {
-        return listThingAttributes().stream()
+        return listThingAttributes()
                 .filter(t -> t.getThingArn().equals(thingArn))
                 .findFirst();
     }

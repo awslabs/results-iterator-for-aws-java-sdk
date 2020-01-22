@@ -9,7 +9,7 @@ import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingGroupHel
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
-import java.util.List;
+import java.util.stream.Stream;
 
 public class BasicV1ThingGroupHelper implements V1ThingGroupHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1ThingGroupHelper.class);
@@ -21,10 +21,8 @@ public class BasicV1ThingGroupHelper implements V1ThingGroupHelper {
     }
 
     @Override
-    public List<GroupNameAndArn> listThingGroups() {
-        List<GroupNameAndArn> groupNamesAndArns = new V1ResultsIterator<GroupNameAndArn>(awsIotClient, ListThingGroupsRequest.class).iterateOverResults();
-
-        return groupNamesAndArns;
+    public Stream<GroupNameAndArn> listThingGroups() {
+        return new V1ResultsIterator<GroupNameAndArn>(awsIotClient, ListThingGroupsRequest.class).resultStream();
     }
 
     @Override

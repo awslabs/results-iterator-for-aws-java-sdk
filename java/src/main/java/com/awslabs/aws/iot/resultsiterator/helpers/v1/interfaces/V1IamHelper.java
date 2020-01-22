@@ -2,12 +2,12 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces;
 
 import com.amazonaws.services.identitymanagement.model.Role;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface V1IamHelper {
-    List<Role> listRoles();
+    Stream<Role> listRoles();
 
-    List<String> listRoleNames();
+    Stream<String> listRoleNames();
 
     String getRoleArn(String roleName);
 }

@@ -8,6 +8,7 @@ import com.awslabs.aws.iot.resultsiterator.data.ClientCertFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientPrivateKeyFilename;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface V1CertificateHelper {
     String CACERT_IDENTIFIER = ":cacert/";
@@ -15,19 +16,19 @@ public interface V1CertificateHelper {
 
     CreateKeysAndCertificateResult setupCertificate(ClientPrivateKeyFilename clientPrivateKeyFilename, ClientCertFilename clientCertFilename, CertificateIdFilename certificateIdFilename);
 
-    List<Certificate> listCertificates();
+    Stream<Certificate> listCertificates();
 
-    List<String> listCertificateIds();
+    Stream<String> listCertificateIds();
 
-    List<String> listCertificateArns();
+    Stream<String> listCertificateArns();
 
-    List<CACertificate> listCaCertificates();
+    Stream<CACertificate> listCaCertificates();
 
     List<String> listCaCertificateIds();
 
     List<String> listCaCertificateArns();
 
-    List<String> getUnattachedCertificateArns();
+    Stream<String> getUnattachedCertificateArns();
 
     void attachCertificateToThing(String certificateArn, String thingName);
 }

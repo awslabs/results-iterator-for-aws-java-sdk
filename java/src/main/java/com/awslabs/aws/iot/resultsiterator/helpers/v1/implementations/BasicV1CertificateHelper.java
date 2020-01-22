@@ -2,11 +2,11 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.implementations;
 
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
-import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.data.CertificateIdFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientCertFilename;
 import com.awslabs.aws.iot.resultsiterator.data.ClientPrivateKeyFilename;
 import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.IoHelper;
+import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1CertificateHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1PolicyHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingHelper;
@@ -15,8 +15,9 @@ import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BasicV1CertificateHelper implements V1CertificateHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1CertificateHelper.class);
@@ -54,69 +55,38 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
     }
 
     @Override
-    public List<Certificate> listCertificates() {
-        List<Certificate> certificates = new V1ResultsIterator<Certificate>(awsIotClient, ListCertificatesRequest.class).iterateOverResults();
-
-        return certificates;
+    public Stream<Certificate> listCertificates() {
+        return new V1ResultsIterator<Certificate>(awsIotClient, ListCertificatesRequest.class).resultStream();
     }
 
     @Override
-    public List<CACertificate> listCaCertificates() {
-        List<CACertificate> certificates = new V1ResultsIterator<CACertificate>(awsIotClient, ListCACertificatesRequest.class).iterateOverResults();
-
-        return certificates;
+    public Stream<CACertificate> listCaCertificates() {
+        return new V1ResultsIterator<CACertificate>(awsIotClient, ListCACertificatesRequest.class).resultStream();
     }
 
     @Override
     public List<String> listCaCertificateIds() {
-        List<CACertificate> caCertificates = listCaCertificates();
-
-        List<String> caCertificateIds = new ArrayList<>();
-
-        for (CACertificate caCertificate : caCertificates) {
-            caCertificateIds.add(caCertificate.getCertificateId());
-        }
-
-        return caCertificateIds;
+        return listCaCertificates()
+                .map(CACertificate::getCertificateId)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<String> listCaCertificateArns() {
-        List<CACertificate> caCertificates = listCaCertificates();
-
-        List<String> caCertificateArns = new ArrayList<>();
-
-        for (CACertificate caCertificate : caCertificates) {
-            // Note: API appears to return a ":cert/" ARN when it should return a ":cacert/" ARN, we fix this
-            caCertificateArns.add(caCertificate.getCertificateArn().replace(V1CertificateHelper.CERT_IDENTIFIER, V1CertificateHelper.CACERT_IDENTIFIER));
-        }
-
-        return caCertificateArns;
+        // Note: API appears to return a ":cert/" ARN when it should return a ":cacert/" ARN, we fix this
+        return listCaCertificates()
+                .map(CACertificate::getCertificateArn)
+                .map(arn -> arn.replace(V1CertificateHelper.CERT_IDENTIFIER, V1CertificateHelper.CACERT_IDENTIFIER))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<String> getUnattachedCertificateArns() {
-        List<String> certificateArns = listCertificateArns();
-
-        List<String> unattachedCertificateArns = new ArrayList<>();
-
-        for (String certificateArn : certificateArns) {
-            List<String> principalThings = thingHelperProvider.get().listPrincipalThings(certificateArn);
-
-            if (principalThings.size() != 0) {
-                continue;
-            }
-
-            List<Policy> principalPolicies = policyHelperProvider.get().listPrincipalPolicies(certificateArn);
-
-            if (principalPolicies.size() != 0) {
-                continue;
-            }
-
-            unattachedCertificateArns.add(certificateArn);
-        }
-
-        return unattachedCertificateArns;
+    public Stream<String> getUnattachedCertificateArns() {
+        return listCertificateArns()
+                // Look for certificates with no things attached
+                .filter(certificateArn -> !thingHelperProvider.get().listPrincipalThings(certificateArn).findAny().isPresent())
+                // Look for certificates with no policies attached
+                .filter(certificateArn -> !policyHelperProvider.get().listPrincipalPolicies(certificateArn).findAny().isPresent());
     }
 
     @Override
@@ -127,28 +97,14 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
     }
 
     @Override
-    public List<String> listCertificateIds() {
-        List<Certificate> certificates = listCertificates();
-
-        List<String> certificateIds = new ArrayList<>();
-
-        for (Certificate certificate : certificates) {
-            certificateIds.add(certificate.getCertificateId());
-        }
-
-        return certificateIds;
+    public Stream<String> listCertificateIds() {
+        return listCertificates()
+                .map(Certificate::getCertificateId);
     }
 
     @Override
-    public List<String> listCertificateArns() {
-        List<Certificate> certificates = listCertificates();
-
-        List<String> certificateArns = new ArrayList<>();
-
-        for (Certificate certificate : certificates) {
-            certificateArns.add(certificate.getCertificateArn());
-        }
-
-        return certificateArns;
+    public Stream<String> listCertificateArns() {
+        return listCertificates()
+                .map(Certificate::getCertificateArn);
     }
 }
