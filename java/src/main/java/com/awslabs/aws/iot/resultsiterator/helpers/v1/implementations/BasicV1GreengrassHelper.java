@@ -175,7 +175,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public VersionInformation getLatestGroupVersion(String groupId) {
         // Get the last group version or return NULL if there aren't any deployments
-        return listGroupVersions(groupId).min(Collections.reverseOrder())
+        return listGroupVersions(groupId)
+                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Long.parseLong(versionInformation.getCreationTimestamp()))))
                 .orElseGet(null);
     }
 
@@ -197,7 +198,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public Deployment getLatestDeployment(String groupId) {
         // Get the last deployment or return NULL if there aren't any deployments
-        return listDeployments(groupId).min(Collections.reverseOrder())
+        return listDeployments(groupId)
+                .min(Collections.reverseOrder(Comparator.comparingLong(deployment -> Long.parseLong(deployment.getCreatedAt()))))
                 .orElseGet(null);
     }
 
