@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -176,7 +177,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public VersionInformation getLatestGroupVersion(String groupId) {
         // Get the last group version or return NULL if there aren't any deployments
         return listGroupVersions(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Long.parseLong(versionInformation.getCreationTimestamp()))))
+                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli())))
                 .orElseGet(null);
     }
 
@@ -199,7 +200,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Deployment getLatestDeployment(String groupId) {
         // Get the last deployment or return NULL if there aren't any deployments
         return listDeployments(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(deployment -> Long.parseLong(deployment.getCreatedAt()))))
+                .min(Collections.reverseOrder(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())))
                 .orElseGet(null);
     }
 
