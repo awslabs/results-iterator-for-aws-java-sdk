@@ -3,6 +3,7 @@ package com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces;
 import com.amazonaws.services.greengrass.model.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V1GreengrassHelper {
@@ -32,13 +33,13 @@ public interface V1GreengrassHelper {
 
     Stream<VersionInformation> listGroupVersions(String groupId);
 
-    VersionInformation getLatestGroupVersion(String groupId);
+    Optional<VersionInformation> getLatestGroupVersion(String groupId);
 
     Stream<Deployment> listDeployments(String groupId);
 
     Stream<String> listDeploymentIds(String groupId);
 
-    Deployment getLatestDeployment(String groupId);
+    Optional<Deployment> getLatestDeployment(String groupId);
 
     String getDeploymentStatus(String groupId, String deploymentId);
 

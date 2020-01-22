@@ -49,14 +49,20 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public Map<String, VersionInformation> listLatestGroupVersions() {
         return listGroups()
-                .collect(Collectors.toMap(GroupInformation::getId, group -> getLatestGroupVersion(group.getId())));
+                .map(group -> new AbstractMap.SimpleEntry<>(group.getId(), getLatestGroupVersion(group.getId())))
+                .filter(entry -> entry.getValue().isPresent())
+                .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
     @Override
     public Map<String, VersionInformation> listLatestImmutableGroupVersions() {
         return listGroups()
                 .filter(group -> isGroupImmutable(group.getId()))
-                .collect(Collectors.toMap(GroupInformation::getId, group -> getLatestGroupVersion(group.getId())));
+                .map(group -> new AbstractMap.SimpleEntry<>(group.getId(), getLatestGroupVersion(group.getId())))
+                .filter(entry -> entry.getValue().isPresent())
+                .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
     @Override
@@ -174,11 +180,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public VersionInformation getLatestGroupVersion(String groupId) {
+    public Optional<VersionInformation> getLatestGroupVersion(String groupId) {
         // Get the last group version or return NULL if there aren't any deployments
         return listGroupVersions(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli())))
-                .orElseGet(null);
+                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli())));
     }
 
     @Override
@@ -197,11 +202,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public Deployment getLatestDeployment(String groupId) {
+    public Optional<Deployment> getLatestDeployment(String groupId) {
         // Get the last deployment or return NULL if there aren't any deployments
         return listDeployments(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())))
-                .orElseGet(null);
+                .min(Collections.reverseOrder(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())));
     }
 
     @Override
@@ -573,11 +577,13 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
             return false;
         }
 
-        VersionInformation latestGroupVersion = getLatestGroupVersion(groupId);
+        Optional<VersionInformation> optionalLatestGroupVersion = getLatestGroupVersion(groupId);
 
-        if (latestGroupVersion == null) {
+        if (!optionalLatestGroupVersion.isPresent()) {
             return false;
         }
+
+        VersionInformation latestGroupVersion = optionalLatestGroupVersion.get();
 
         if (!coreDefinitionVersionExists(latestGroupVersion)) {
             return false;
