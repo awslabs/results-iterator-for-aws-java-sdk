@@ -6,6 +6,7 @@ import com.awslabs.aws.iot.resultsiterator.helpers.interfaces.GreengrassIdExtrac
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.V1ResultsIterator;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1GreengrassHelper;
 import com.awslabs.aws.iot.resultsiterator.helpers.v1.interfaces.V1ThingHelper;
+import io.vavr.control.Try;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
@@ -423,28 +424,22 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public boolean deleteGroup(String groupId) {
-        if (isGroupImmutable(groupId)) {
-            // Don't delete a definition for an immutable group
-            log.info("Skipping group [" + groupId + "] because it is an immutable group");
-            return false;
-        }
+    public void deleteGroup(String groupId) {
+        ResetDeploymentsRequest resetDeploymentsRequest = new ResetDeploymentsRequest()
+                .withGroupId(groupId);
 
-        try {
-            ResetDeploymentsRequest resetDeploymentsRequest = new ResetDeploymentsRequest()
-                    .withGroupId(groupId);
+        Try<ResetDeploymentsResult> result = Try.of(() -> awsGreengrassClient.resetDeployments(resetDeploymentsRequest));
 
-            awsGreengrassClient.resetDeployments(resetDeploymentsRequest);
-        } catch (AWSGreengrassException e) {
-            // Ignore
+        if (result.isFailure() && !(result.getCause() instanceof AWSGreengrassException)) {
+            // Only ignore AWSGreengrassExceptions, this needs to be thrown
+            throw new RuntimeException(result.getCause());
         }
 
         DeleteGroupRequest deleteGroupRequest = new DeleteGroupRequest()
                 .withGroupId(groupId);
         awsGreengrassClient.deleteGroup(deleteGroupRequest);
-        log.info("Deleted group [" + groupId + "]");
 
-        return true;
+        log.info("Deleted group [" + groupId + "]");
     }
 
     private String getDeviceDefinitionVersionArn(String groupId, VersionInformation versionInformation) {
@@ -558,17 +553,26 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         GetGroupRequest getGroupRequest = new GetGroupRequest()
                 .withGroupId(groupId);
 
-        try {
-            awsGreengrassClient.getGroup(getGroupRequest);
+        Try<GetGroupResult> result = Try.of(() -> awsGreengrassClient.getGroup(getGroupRequest));
 
+        if (result.isSuccess()) {
             return true;
-        } catch (AWSGreengrassException e) {
-            if (e.getStatusCode() == 404) {
-                return false;
-            }
-
-            throw new UnsupportedOperationException(e);
         }
+
+        if (!(result.getCause() instanceof AWSGreengrassException)) {
+            // Only handle AWSGreengrassExceptions, this needs to be thrown
+            throw new RuntimeException(result.getCause());
+        }
+
+        AWSGreengrassException awsGreengrassException = (AWSGreengrassException) result.getCause();
+
+        if (awsGreengrassException.getStatusCode() != 404) {
+            // Only handle 404 errors, this needs to be thrown
+            throw new RuntimeException(result.getCause());
+        }
+
+        // This is a 404 Not Found, return false
+        return false;
     }
 
     @Override
