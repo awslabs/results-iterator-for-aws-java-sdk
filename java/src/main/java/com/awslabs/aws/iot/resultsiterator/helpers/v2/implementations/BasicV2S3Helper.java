@@ -43,7 +43,7 @@ public class BasicV2S3Helper implements V2S3Helper {
                 .prefix(key)
                 .build();
 
-        Stream<S3Object> s3Objects = new V2ResultsIterator<S3Object>(s3Client, listObjectsRequest).resultStream();
+        Stream<S3Object> s3Objects = new V2ResultsIterator<S3Object>(s3Client, listObjectsRequest).stream();
 
         Optional<S3Object> optionalS3Object = s3Objects
                 // Require an exact match on the name

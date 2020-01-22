@@ -34,7 +34,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
 
     @Override
     public Stream<ThingAttribute> listThingAttributes() {
-        return new V1ResultsIterator<ThingAttribute>(awsIotClient, ListThingsRequest.class).resultStream();
+        return new V1ResultsIterator<ThingAttribute>(awsIotClient, ListThingsRequest.class).stream();
     }
 
     @Override
@@ -70,7 +70,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
         ListPrincipalThingsRequest listPrincipalThingsRequest = new ListPrincipalThingsRequest()
                 .withPrincipal(principal);
 
-        return new V1ResultsIterator<String>(awsIotClient, listPrincipalThingsRequest).resultStream();
+        return new V1ResultsIterator<String>(awsIotClient, listPrincipalThingsRequest).stream();
     }
 
     @Override

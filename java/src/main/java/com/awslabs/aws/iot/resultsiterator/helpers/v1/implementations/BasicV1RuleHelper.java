@@ -19,7 +19,7 @@ public class BasicV1RuleHelper implements V1RuleHelper {
 
     @Override
     public Stream<TopicRuleListItem> listTopicRules() {
-        return new V1ResultsIterator<TopicRuleListItem>(awsIotClient, ListTopicRulesRequest.class).resultStream();
+        return new V1ResultsIterator<TopicRuleListItem>(awsIotClient, ListTopicRulesRequest.class).stream();
     }
 
     @Override

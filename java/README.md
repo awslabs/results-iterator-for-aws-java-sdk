@@ -4,6 +4,9 @@ Results iterator for AWS SDK
 News
 ----
 
+- Release 0.6.x
+  - NOTE: This release is a breaking change from the previous series
+  - resultStream() has been renamed to just stream() to be more consistent with other APIs
 - Release 0.5.x
   - NOTE: This release is a breaking change from the previous series
   - No more lists! Everything returned from the library now comes back as a stream. This can help avoid eagerly fetching results that a user only needs part of or that would not fit in memory.

@@ -49,7 +49,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
 
     @Override
     public Stream<Policy> listPolicies() {
-        return new V1ResultsIterator<Policy>(awsIotClient, ListPoliciesRequest.class).resultStream();
+        return new V1ResultsIterator<Policy>(awsIotClient, ListPoliciesRequest.class).stream();
     }
 
     @Override
@@ -63,7 +63,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
         ListPolicyPrincipalsRequest listPolicyPrincipalsRequest = new ListPolicyPrincipalsRequest()
                 .withPolicyName(policyName);
 
-        return new V1ResultsIterator<String>(awsIotClient, listPolicyPrincipalsRequest).resultStream();
+        return new V1ResultsIterator<String>(awsIotClient, listPolicyPrincipalsRequest).stream();
     }
 
     @Override
@@ -130,6 +130,6 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
         ListPrincipalPoliciesRequest listPrincipalPoliciesRequest = new ListPrincipalPoliciesRequest()
                 .withPrincipal(principal);
 
-        return new V1ResultsIterator<Policy>(awsIotClient, listPrincipalPoliciesRequest).resultStream();
+        return new V1ResultsIterator<Policy>(awsIotClient, listPrincipalPoliciesRequest).stream();
     }
 }

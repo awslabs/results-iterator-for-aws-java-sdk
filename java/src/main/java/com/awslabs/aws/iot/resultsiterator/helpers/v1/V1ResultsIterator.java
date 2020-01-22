@@ -4,6 +4,7 @@ import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.AmazonWebServiceResult;
 import com.amazonaws.SdkClientException;
+import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class V1ResultsIterator<T> {
+public class V1ResultsIterator<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V1ResultsIterator.class);
     private final AmazonWebServiceClient amazonWebServiceClient;
     private final Class<? extends AmazonWebServiceRequest> requestClass;
@@ -41,7 +42,8 @@ public class V1ResultsIterator<T> {
         this.originalRequest = originalRequest;
     }
 
-    public Stream<T> resultStream() {
+    @Override
+    public Stream<T> stream() {
         Iterator<T> iterator = new Iterator<T>() {
             List<T> output = new ArrayList<>();
             boolean started = false;

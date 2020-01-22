@@ -32,7 +32,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public Stream<GroupInformation> listGroups() {
         // Return the list sorted so overlapping names can be found easily
-        return sortGroupInformation(new V1ResultsIterator<GroupInformation>(awsGreengrassClient, ListGroupsRequest.class).resultStream());
+        return sortGroupInformation(new V1ResultsIterator<GroupInformation>(awsGreengrassClient, ListGroupsRequest.class).stream());
     }
 
     @Override
@@ -169,7 +169,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         ListGroupVersionsRequest listGroupVersionsRequest = new ListGroupVersionsRequest().withGroupId(groupId);
 
         // Return the list sorted so we can easily find the latest version
-        return sortGroupVersionInformation(new V1ResultsIterator<VersionInformation>(awsGreengrassClient, listGroupVersionsRequest).resultStream());
+        return sortGroupVersionInformation(new V1ResultsIterator<VersionInformation>(awsGreengrassClient, listGroupVersionsRequest).stream());
     }
 
     @Override
@@ -185,7 +185,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
                 .withGroupId(groupId);
 
         // Return the list sorted so we can easily find the latest deployment
-        return sortDeployments(new V1ResultsIterator<Deployment>(awsGreengrassClient, listDeploymentsRequest).resultStream());
+        return sortDeployments(new V1ResultsIterator<Deployment>(awsGreengrassClient, listDeploymentsRequest).stream());
     }
 
     @Override
@@ -329,7 +329,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Stream<DefinitionInformation> listLoggerDefinitions() {
         ListLoggerDefinitionsRequest listLoggerDefinitionsRequest = new ListLoggerDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listLoggerDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listLoggerDefinitionsRequest).stream();
     }
 
     @Override
@@ -350,14 +350,14 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Stream<DefinitionInformation> listResourceDefinitions() {
         ListResourceDefinitionsRequest listResourceDefinitionsRequest = new ListResourceDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listResourceDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listResourceDefinitionsRequest).stream();
     }
 
     @Override
     public Stream<DefinitionInformation> listConnectorDefinitions() {
         ListConnectorDefinitionsRequest listConnectorDefinitionsRequest = new ListConnectorDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listConnectorDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listConnectorDefinitionsRequest).stream();
     }
 
     @Override
@@ -483,7 +483,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Stream<DefinitionInformation> listCoreDefinitions() {
         ListCoreDefinitionsRequest listCoreDefinitionsRequest = new ListCoreDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listCoreDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listCoreDefinitionsRequest).stream();
     }
 
     @Override
@@ -505,7 +505,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Stream<DefinitionInformation> listFunctionDefinitions() {
         ListFunctionDefinitionsRequest listFunctionDefinitionsRequest = new ListFunctionDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listFunctionDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listFunctionDefinitionsRequest).stream();
     }
 
     @Override
@@ -520,7 +520,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Stream<DefinitionInformation> listSubscriptionDefinitions() {
         ListSubscriptionDefinitionsRequest listSubscriptionDefinitionsRequest = new ListSubscriptionDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listSubscriptionDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listSubscriptionDefinitionsRequest).stream();
     }
 
     @Override
@@ -535,7 +535,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Stream<DefinitionInformation> listDeviceDefinitions() {
         ListDeviceDefinitionsRequest listDeviceDefinitionsRequest = new ListDeviceDefinitionsRequest();
 
-        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listDeviceDefinitionsRequest).resultStream();
+        return new V1ResultsIterator<DefinitionInformation>(awsGreengrassClient, listDeviceDefinitionsRequest).stream();
     }
 
     @Override

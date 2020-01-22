@@ -20,9 +20,9 @@ public class TestV2ResultsIterator {
         IotClient iotClient = IotClient.create();
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
         V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributes = v2ResultsIterator.resultStream();
+        Stream<ThingAttribute> thingAttributes = v2ResultsIterator.stream();
         thingAttributes.forEach(System.out::println);
-        thingAttributes = v2ResultsIterator.resultStream();
+        thingAttributes = v2ResultsIterator.stream();
         long count = thingAttributes.count();
         System.out.println("Thing attribute count: " + count);
         Assert.assertThat(count, greaterThan(0L));
@@ -33,9 +33,9 @@ public class TestV2ResultsIterator {
         S3Client s3Client = S3Client.create();
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
         V2ResultsIterator<Bucket> v2ResultsIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
-        Stream<Bucket> buckets = v2ResultsIterator.resultStream();
+        Stream<Bucket> buckets = v2ResultsIterator.stream();
         buckets.forEach(System.out::println);
-        buckets = v2ResultsIterator.resultStream();
+        buckets = v2ResultsIterator.stream();
         System.out.println("Bucket count: " + buckets.count());
     }
 
@@ -44,7 +44,7 @@ public class TestV2ResultsIterator {
         S3Client s3Client = S3Client.create();
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
         V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
-        Stream<Bucket> buckets = bucketIterator.resultStream();
+        Stream<Bucket> buckets = bucketIterator.stream();
 
         buckets.forEach(this::listAll);
     }
@@ -76,9 +76,9 @@ public class TestV2ResultsIterator {
                 .bucket(bucket.name())
                 .build();
         V2ResultsIterator<S3Object> s3ObjectIterator = new V2ResultsIterator<>(s3Client, listObjectsRequest);
-        Stream<S3Object> s3Objects = s3ObjectIterator.resultStream();
+        Stream<S3Object> s3Objects = s3ObjectIterator.stream();
         s3Objects.forEach(System.out::println);
-        s3Objects = s3ObjectIterator.resultStream();
+        s3Objects = s3ObjectIterator.stream();
         System.out.println("Object count: " + s3Objects.count());
     }
 }

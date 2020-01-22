@@ -54,12 +54,12 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
 
     @Override
     public Stream<Certificate> listCertificates() {
-        return new V1ResultsIterator<Certificate>(awsIotClient, ListCertificatesRequest.class).resultStream();
+        return new V1ResultsIterator<Certificate>(awsIotClient, ListCertificatesRequest.class).stream();
     }
 
     @Override
     public Stream<CACertificate> listCaCertificates() {
-        return new V1ResultsIterator<CACertificate>(awsIotClient, ListCACertificatesRequest.class).resultStream();
+        return new V1ResultsIterator<CACertificate>(awsIotClient, ListCACertificatesRequest.class).stream();
     }
 
     @Override

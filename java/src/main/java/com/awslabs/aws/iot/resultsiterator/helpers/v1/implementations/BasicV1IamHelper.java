@@ -21,7 +21,7 @@ public class BasicV1IamHelper implements V1IamHelper {
 
     @Override
     public Stream<Role> listRoles() {
-        return new V1ResultsIterator<Role>(amazonIdentityManagementClient, ListRolesRequest.class).resultStream();
+        return new V1ResultsIterator<Role>(amazonIdentityManagementClient, ListRolesRequest.class).stream();
     }
 
     @Override

@@ -23,9 +23,9 @@ public class TestV1ResultsIterator {
         AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
         ListThingsRequest listThingsRequest = new ListThingsRequest();
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributes = v1ResultsIterator.resultStream();
+        Stream<ThingAttribute> thingAttributes = v1ResultsIterator.stream();
         thingAttributes.forEach(System.out::println);
-        thingAttributes = v1ResultsIterator.resultStream();
+        thingAttributes = v1ResultsIterator.stream();
         Assert.assertThat(thingAttributes.count(), greaterThan(0L));
     }
 
@@ -34,8 +34,8 @@ public class TestV1ResultsIterator {
         AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
         ListThingsRequest listThingsRequest = new ListThingsRequest();
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.resultStream();
-        Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.resultStream();
+        Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.stream();
+        Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.stream();
         Assert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
@@ -48,7 +48,7 @@ public class TestV1ResultsIterator {
         AmazonS3Client amazonS3Client = (AmazonS3Client) AmazonS3Client.builder().build();
         ListBucketsRequest listBucketsRequest = new ListBucketsRequest();
         V1ResultsIterator<Bucket> v1ResultsIterator = new V1ResultsIterator<>(amazonS3Client, listBucketsRequest);
-        Stream<Bucket> buckets = v1ResultsIterator.resultStream();
+        Stream<Bucket> buckets = v1ResultsIterator.stream();
         buckets.forEach(System.out::println);
     }
 }

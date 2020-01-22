@@ -1,5 +1,6 @@
 package com.awslabs.aws.iot.resultsiterator.helpers.v2;
 
+import com.awslabs.aws.iot.resultsiterator.ResultsIterator;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class V2ResultsIterator<T> {
+public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIterator.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
@@ -45,7 +46,8 @@ public class V2ResultsIterator<T> {
         this.originalAwsRequest = originalAwsRequest;
     }
 
-    public Stream<T> resultStream() {
+    @Override
+    public Stream<T> stream() {
         Iterator<T> iterator = new Iterator<T>() {
             List<T> output = new ArrayList<>();
             boolean started = false;

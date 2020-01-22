@@ -22,7 +22,7 @@ public class BasicV1ThingGroupHelper implements V1ThingGroupHelper {
 
     @Override
     public Stream<GroupNameAndArn> listThingGroups() {
-        return new V1ResultsIterator<GroupNameAndArn>(awsIotClient, ListThingGroupsRequest.class).resultStream();
+        return new V1ResultsIterator<GroupNameAndArn>(awsIotClient, ListThingGroupsRequest.class).stream();
     }
 
     @Override
