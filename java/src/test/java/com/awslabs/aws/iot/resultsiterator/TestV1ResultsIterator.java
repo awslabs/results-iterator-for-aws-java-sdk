@@ -12,7 +12,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV1ResultsIterator {
@@ -24,6 +26,37 @@ public class TestV1ResultsIterator {
         List<ThingAttribute> thingAttributes = v1ResultsIterator.iterateOverResults();
         thingAttributes.forEach(System.out::println);
         Assert.assertThat(thingAttributes.size(), greaterThan(0));
+    }
+
+    @Test
+    public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
+        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
+        ListThingsRequest listThingsRequest = new ListThingsRequest();
+        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
+        Stream<ThingAttribute> thingAttributes = v1ResultsIterator.resultStream();
+        thingAttributes.forEach(System.out::println);
+        thingAttributes = v1ResultsIterator.resultStream();
+        Assert.assertThat(thingAttributes.count(), greaterThan(0L));
+    }
+
+    @Test
+    public void streamAndListShouldBeSameLength() {
+        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
+        ListThingsRequest listThingsRequest = new ListThingsRequest();
+        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
+        List<ThingAttribute> thingAttributesList = v1ResultsIterator.iterateOverResults();
+        Stream<ThingAttribute> thingAttributesStream = v1ResultsIterator.resultStream();
+        Assert.assertThat(thingAttributesList.size(), equalTo((int) thingAttributesStream.count()));
+    }
+
+    @Test
+    public void streamShouldWorkTwice() {
+        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
+        ListThingsRequest listThingsRequest = new ListThingsRequest();
+        V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
+        Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.resultStream();
+        Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.resultStream();
+        Assert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
     @Test

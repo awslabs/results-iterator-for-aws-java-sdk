@@ -11,10 +11,9 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class V2ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIterator.class);
@@ -22,8 +21,8 @@ public class V2ResultsIterator<T> {
     private final Class<? extends AwsRequest> awsRequestClass;
     private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
     private final List<String> methodsToIgnore = new ArrayList<>(Arrays.asList("sdkFields", "commonPrefixes"));
+    private final AwsRequest originalAwsRequest;
     private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
-    private AwsRequest awsRequest;
     private AwsResponse awsResponse;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
     private Optional<Method> clientMethodReturningResult = null;
@@ -37,20 +36,100 @@ public class V2ResultsIterator<T> {
     public V2ResultsIterator(SdkClient sdkClient, Class<? extends AwsRequest> awsRequestClass) {
         this.sdkClient = sdkClient;
         this.awsRequestClass = awsRequestClass;
+        this.originalAwsRequest = null;
     }
 
-    public V2ResultsIterator(SdkClient sdkClient, AwsRequest awsRequest) {
+    public V2ResultsIterator(SdkClient sdkClient, AwsRequest originalAwsRequest) {
         this.sdkClient = sdkClient;
-        this.awsRequestClass = awsRequest.getClass();
-        this.awsRequest = awsRequest;
+        this.awsRequestClass = originalAwsRequest.getClass();
+        this.originalAwsRequest = originalAwsRequest;
     }
 
-    public List<T> iterateOverResults() {
-        if (awsRequest == null) {
+    public Stream<T> resultStream() {
+        Iterator<T> iterator = new Iterator<T>() {
+            List<T> output = new ArrayList<>();
+            boolean started = false;
+            String nextToken = null;
+            AwsRequest request;
+
+            private void performRequest() {
+                if (!started) {
+                    // First time around configure the request
+                    request = configureRequest();
+
+                    // The setup is complete, don't do it again
+                    started = true;
+                }
+
+                awsResponse = queryNextResults(request);
+
+                output.addAll(getResultData());
+
+                nextToken = getNextToken();
+
+                if (nextToken == null) {
+                    return;
+                }
+
+                request = setNextToken(request, nextToken);
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (!started) {
+                    // We haven't started, attempt a request
+                    performRequest();
+                }
+
+                while ((output.size() == 0) && (nextToken != null)) {
+                    // Output array is empty but the next token is not null, attempt a request
+                    performRequest();
+                }
+
+                if (output.size() != 0) {
+                    // Output array is not empty, there is at least one more element
+                    return true;
+                }
+
+                // Output array is empty and the next token is NULL
+                return false;
+            }
+
+            @Override
+            public T next() {
+                return output.remove(0);
+            }
+        };
+
+        // This stream does not have a known size, does not contain NULL elements, and can not be run in parallel
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false);
+    }
+
+    private AwsRequest configureRequest() {
+        AwsRequest request = originalAwsRequest.toBuilder().build();
+
+        if (request == null) {
             try {
                 // Get a new request object.  If this can't be done with a default constructor it will fail.
                 Method method = awsRequestClass.getMethod("builder", AwsRequest.Builder.class);
-                awsRequest = (AwsRequest) method.invoke(null);
+                return (AwsRequest) method.invoke(null);
+            } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                e.printStackTrace();
+                throw new UnsupportedOperationException(e);
+            }
+        }
+
+        return request;
+    }
+
+    public List<T> iterateOverResults() {
+        AwsRequest request = configureRequest();
+
+        if (request == null) {
+            try {
+                // Get a new request object.  If this can't be done with a default constructor it will fail.
+                Method method = awsRequestClass.getMethod("builder", AwsRequest.Builder.class);
+                request = (AwsRequest) method.invoke(null);
             } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 e.printStackTrace();
                 throw new UnsupportedOperationException(e);
@@ -61,7 +140,7 @@ public class V2ResultsIterator<T> {
         String nextToken = null;
 
         do {
-            awsResponse = queryNextResults();
+            awsResponse = queryNextResults(request);
 
             output.addAll(getResultData());
 
@@ -73,14 +152,14 @@ public class V2ResultsIterator<T> {
                 break;
             }
 
-            // There is a next token, use it to get the next set of topic rules
-            setNextToken(nextToken);
+            // There is a next token, use it to get the next items
+            request = setNextToken(request, nextToken);
         } while (true);
 
         return output;
     }
 
-    private AwsResponse queryNextResults() {
+    private AwsResponse queryNextResults(AwsRequest request) {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AwsRequest and returns a V.  If zero or more than one exists, fail.
             clientMethodReturningResult = getMethodWithParameterAndReturnType(sdkClient.getClass(), awsRequestClass, getResponseClass());
@@ -93,7 +172,7 @@ public class V2ResultsIterator<T> {
         try {
             // This is necessary because these methods are not accessible by default
             clientMethodReturningResult.get().setAccessible(true);
-            return (AwsResponse) clientMethodReturningResult.get().invoke(sdkClient, awsRequest);
+            return (AwsResponse) clientMethodReturningResult.get().invoke(sdkClient, request);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
@@ -167,14 +246,14 @@ public class V2ResultsIterator<T> {
         }
     }
 
-    private void setNextToken(String nextToken) {
+    private AwsRequest setNextToken(AwsRequest request, String nextToken) {
         if (!clientGetMethodReturningString.isPresent()) {
             throw new UnsupportedOperationException("Trying to set the next token on a method that does not support pagination, this should never happen.");
         }
 
         if (clientSetMethodAcceptingString == null) {
             // Look for a public method that takes a string and returns a builder class that matches our list of expected names.  If zero or more than one exists, fail.
-            Class<? extends AwsRequest.Builder> builderClass = awsRequest.toBuilder().getClass();
+            Class<? extends AwsRequest.Builder> builderClass = request.toBuilder().getClass();
             clientSetMethodAcceptingString = getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, tokenMethodNames);
         }
 
@@ -183,10 +262,10 @@ public class V2ResultsIterator<T> {
         }
 
         try {
-            AwsRequest.Builder builder = awsRequest.toBuilder();
+            AwsRequest.Builder builder = request.toBuilder();
             clientSetMethodAcceptingString.get().setAccessible(true);
             clientSetMethodAcceptingString.get().invoke(builder, nextToken);
-            awsRequest = builder.build();
+            return builder.build();
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);

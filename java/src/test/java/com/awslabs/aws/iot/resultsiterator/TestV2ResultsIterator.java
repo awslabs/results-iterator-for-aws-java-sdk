@@ -1,6 +1,7 @@
 package com.awslabs.aws.iot.resultsiterator;
 
 import com.awslabs.aws.iot.resultsiterator.helpers.v2.V2ResultsIterator;
+import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iot.IotClient;
@@ -10,6 +11,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.util.List;
+import java.util.stream.Stream;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV2ResultsIterator {
     @Test
@@ -20,6 +25,30 @@ public class TestV2ResultsIterator {
         List<ThingAttribute> thingAttributes = v2ResultsIterator.iterateOverResults();
         thingAttributes.forEach(System.out::println);
         System.out.println("Thing attribute count: " + thingAttributes.size());
+        Assert.assertThat(thingAttributes.size(), greaterThan(0));
+    }
+
+    @Test
+    public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
+        IotClient iotClient = IotClient.create();
+        ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
+        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        Stream<ThingAttribute> thingAttributes = v2ResultsIterator.resultStream();
+        thingAttributes.forEach(System.out::println);
+        thingAttributes = v2ResultsIterator.resultStream();
+        long count = thingAttributes.count();
+        System.out.println("Thing attribute count: " + count);
+        Assert.assertThat(count, greaterThan(0L));
+    }
+
+    @Test
+    public void streamAndListShouldBeSameLength() {
+        IotClient iotClient = IotClient.create();
+        ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
+        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        List<ThingAttribute> thingAttributesList = v2ResultsIterator.iterateOverResults();
+        Stream<ThingAttribute> thingAttributesStream = v2ResultsIterator.resultStream();
+        Assert.assertThat(thingAttributesList.size(), equalTo((int) thingAttributesStream.count()));
     }
 
     @Test
