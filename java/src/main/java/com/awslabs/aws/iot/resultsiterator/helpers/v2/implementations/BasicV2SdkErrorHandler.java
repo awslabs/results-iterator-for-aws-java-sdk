@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,10 @@ public class BasicV2SdkErrorHandler implements V2SdkErrorHandler {
     private String HTTP_REQUEST_EXCEPTION = "Unable to execute HTTP request";
     private String HTTP_REQUEST_SOLUTION = "Couldn't contact one of the AWS services, is your Internet connection down?";
 
+    @Inject
+    public BasicV2SdkErrorHandler() {
+    }
+   
     @Override
     public Void handleSdkError(SdkClientException e) {
         String message = e.getMessage();
