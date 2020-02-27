@@ -36,7 +36,7 @@ public class BasicV2SdkErrorHandler implements V2SdkErrorHandler {
     @Inject
     public BasicV2SdkErrorHandler() {
     }
-   
+
     @Override
     public Void handleSdkError(SdkClientException e) {
         String message = e.getMessage();
