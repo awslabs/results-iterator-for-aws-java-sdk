@@ -2,7 +2,7 @@ package com.awslabs.iot.helpers.implementations;
 
 import com.amazonaws.services.greengrass.AWSGreengrassClient;
 import com.amazonaws.services.greengrass.model.*;
-import com.awslabs.iot.helpers.interfaces.SharedGreengrassIdExtractor;
+import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.iot.helpers.interfaces.V1GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V1ThingHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
@@ -23,7 +23,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Inject
     AWSGreengrassClient awsGreengrassClient;
     @Inject
-    SharedGreengrassIdExtractor sharedGreengrassIdExtractor;
+    GreengrassIdExtractor greengrassIdExtractor;
     @Inject
     Provider<V1ThingHelper> thingHelperProvider;
 
@@ -245,7 +245,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         String coreDefinitionVersionArn = getCoreDefinitionVersionArn(groupId, versionInformation);
 
         GetCoreDefinitionRequest getCoreDefinitionRequest = new GetCoreDefinitionRequest()
-                .withCoreDefinitionId(sharedGreengrassIdExtractor.extractId(coreDefinitionVersionArn));
+                .withCoreDefinitionId(greengrassIdExtractor.extractId(coreDefinitionVersionArn));
         return awsGreengrassClient.getCoreDefinition(getCoreDefinitionRequest);
     }
 
@@ -253,7 +253,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public GetCoreDefinitionVersionResult getCoreDefinitionVersion(String groupId, VersionInformation versionInformation) {
         String coreDefinitionVersionArn = getCoreDefinitionVersionArn(groupId, versionInformation);
 
-        return getCoreDefinitionVersion(sharedGreengrassIdExtractor.extractId(coreDefinitionVersionArn), sharedGreengrassIdExtractor.extractVersionId(coreDefinitionVersionArn));
+        return getCoreDefinitionVersion(greengrassIdExtractor.extractId(coreDefinitionVersionArn), greengrassIdExtractor.extractVersionId(coreDefinitionVersionArn));
     }
 
     private GetCoreDefinitionVersionResult getCoreDefinitionVersion(String coreDefinitionId, String coreDefinitionVersionId) {
@@ -293,7 +293,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         String functionDefinitionVersionArn = getFunctionDefinitionVersionArn(groupId, versionInformation);
 
         GetFunctionDefinitionRequest getFunctionDefinitionRequest = new GetFunctionDefinitionRequest()
-                .withFunctionDefinitionId(sharedGreengrassIdExtractor.extractId(functionDefinitionVersionArn));
+                .withFunctionDefinitionId(greengrassIdExtractor.extractId(functionDefinitionVersionArn));
         return awsGreengrassClient.getFunctionDefinition(getFunctionDefinitionRequest);
     }
 
@@ -306,8 +306,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         }
 
         GetFunctionDefinitionVersionRequest getFunctionDefinitionVersionRequest = new GetFunctionDefinitionVersionRequest()
-                .withFunctionDefinitionId(sharedGreengrassIdExtractor.extractId(functionDefinitionVersionArn))
-                .withFunctionDefinitionVersionId(sharedGreengrassIdExtractor.extractVersionId(functionDefinitionVersionArn));
+                .withFunctionDefinitionId(greengrassIdExtractor.extractId(functionDefinitionVersionArn))
+                .withFunctionDefinitionVersionId(greengrassIdExtractor.extractVersionId(functionDefinitionVersionArn));
         return awsGreengrassClient.getFunctionDefinitionVersion(getFunctionDefinitionVersionRequest);
     }
 
@@ -320,8 +320,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         }
 
         GetLoggerDefinitionVersionRequest getLoggerDefinitionVersionRequest = new GetLoggerDefinitionVersionRequest()
-                .withLoggerDefinitionId(sharedGreengrassIdExtractor.extractId(loggerDefinitionVersionArn))
-                .withLoggerDefinitionVersionId(sharedGreengrassIdExtractor.extractVersionId(loggerDefinitionVersionArn));
+                .withLoggerDefinitionId(greengrassIdExtractor.extractId(loggerDefinitionVersionArn))
+                .withLoggerDefinitionVersionId(greengrassIdExtractor.extractVersionId(loggerDefinitionVersionArn));
         return awsGreengrassClient.getLoggerDefinitionVersion(getLoggerDefinitionVersionRequest);
     }
 
@@ -349,8 +349,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         }
 
         GetResourceDefinitionVersionRequest getResourceDefinitionVersionRequest = new GetResourceDefinitionVersionRequest()
-                .withResourceDefinitionId(sharedGreengrassIdExtractor.extractId(resourceDefinitionVersionArn))
-                .withResourceDefinitionVersionId(sharedGreengrassIdExtractor.extractVersionId(resourceDefinitionVersionArn));
+                .withResourceDefinitionId(greengrassIdExtractor.extractId(resourceDefinitionVersionArn))
+                .withResourceDefinitionVersionId(greengrassIdExtractor.extractVersionId(resourceDefinitionVersionArn));
         return awsGreengrassClient.getResourceDefinitionVersion(getResourceDefinitionVersionRequest);
     }
 
@@ -405,7 +405,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         String subscriptionDefinitionVersionArn = getSubscriptionDefinitionVersionArn(groupId, versionInformation);
 
         GetSubscriptionDefinitionRequest getSubscriptionDefinitionRequest = new GetSubscriptionDefinitionRequest()
-                .withSubscriptionDefinitionId(sharedGreengrassIdExtractor.extractId(subscriptionDefinitionVersionArn));
+                .withSubscriptionDefinitionId(greengrassIdExtractor.extractId(subscriptionDefinitionVersionArn));
         return awsGreengrassClient.getSubscriptionDefinition(getSubscriptionDefinitionRequest);
     }
 
@@ -418,8 +418,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         }
 
         GetSubscriptionDefinitionVersionRequest getSubscriptionDefinitionVersionRequest = new GetSubscriptionDefinitionVersionRequest()
-                .withSubscriptionDefinitionId(sharedGreengrassIdExtractor.extractId(subscriptionDefinitionVersionArn))
-                .withSubscriptionDefinitionVersionId(sharedGreengrassIdExtractor.extractVersionId(subscriptionDefinitionVersionArn));
+                .withSubscriptionDefinitionId(greengrassIdExtractor.extractId(subscriptionDefinitionVersionArn))
+                .withSubscriptionDefinitionVersionId(greengrassIdExtractor.extractVersionId(subscriptionDefinitionVersionArn));
         return awsGreengrassClient.getSubscriptionDefinitionVersion(getSubscriptionDefinitionVersionRequest);
     }
 
@@ -458,8 +458,8 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         }
 
         GetDeviceDefinitionVersionRequest getDeviceDefinitionVersionRequest = new GetDeviceDefinitionVersionRequest()
-                .withDeviceDefinitionId(sharedGreengrassIdExtractor.extractId(deviceDefinitionVersionArn))
-                .withDeviceDefinitionVersionId(sharedGreengrassIdExtractor.extractVersionId(deviceDefinitionVersionArn));
+                .withDeviceDefinitionId(greengrassIdExtractor.extractId(deviceDefinitionVersionArn))
+                .withDeviceDefinitionVersionId(greengrassIdExtractor.extractVersionId(deviceDefinitionVersionArn));
         return awsGreengrassClient.getDeviceDefinitionVersion(getDeviceDefinitionVersionRequest);
     }
 
@@ -471,7 +471,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
             return null;
         }
 
-        return getConnectorDefinitionVersionResult(sharedGreengrassIdExtractor.extractId(connectorDefinitionVersionArn), sharedGreengrassIdExtractor.extractVersionId(connectorDefinitionVersionArn));
+        return getConnectorDefinitionVersionResult(greengrassIdExtractor.extractId(connectorDefinitionVersionArn), greengrassIdExtractor.extractVersionId(connectorDefinitionVersionArn));
     }
 
     private GetConnectorDefinitionVersionResult getConnectorDefinitionVersionResult(String connectorDefinitionId, String connectorDefinitionVersionId) {

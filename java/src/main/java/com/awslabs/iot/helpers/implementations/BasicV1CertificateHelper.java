@@ -2,10 +2,10 @@ package com.awslabs.iot.helpers.implementations;
 
 import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
+import com.awslabs.general.helpers.interfaces.IoHelper;
 import com.awslabs.iot.data.CertificateIdFilename;
 import com.awslabs.iot.data.ClientCertFilename;
 import com.awslabs.iot.data.ClientPrivateKeyFilename;
-import com.awslabs.general.helpers.interfaces.IoHelper;
 import com.awslabs.iot.helpers.interfaces.V1CertificateHelper;
 import com.awslabs.iot.helpers.interfaces.V1PolicyHelper;
 import com.awslabs.iot.helpers.interfaces.V1ThingHelper;

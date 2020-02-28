@@ -11,25 +11,51 @@ import com.amazonaws.services.iotdata.AWSIotDataClientBuilder;
 import com.awslabs.iot.helpers.implementations.*;
 import com.awslabs.iot.helpers.interfaces.*;
 import com.awslabs.resultsiterator.SharedModule;
-import com.google.inject.AbstractModule;
+import dagger.Module;
 
-public class V1HelperModule extends AbstractModule {
-    @Override
-    protected void configure() {
-        install(new SharedModule());
+@Module(includes = {SharedModule.class})
+public class V1HelperModule {
+    public AWSIotClient provideAwsIotClient() {
+        return (AWSIotClient) AWSIotClientBuilder.defaultClient();
+    }
 
-        // Client providers
-        bind(AWSIotClient.class).toProvider(() -> (AWSIotClient) AWSIotClientBuilder.defaultClient());
-        bind(AWSIotDataClient.class).toProvider(() -> (AWSIotDataClient) AWSIotDataClientBuilder.defaultClient());
-        bind(AmazonIdentityManagementClient.class).toProvider(() -> (AmazonIdentityManagementClient) AmazonIdentityManagementClientBuilder.defaultClient());
-        bind(AWSGreengrassClient.class).toProvider(() -> (AWSGreengrassClient) AWSGreengrassClientBuilder.defaultClient());
+    public AWSIotDataClient provideAwsIotDataClient() {
+        return (AWSIotDataClient) AWSIotDataClientBuilder.defaultClient();
+    }
 
-        bind(V1GreengrassHelper.class).to(BasicV1GreengrassHelper.class);
-        bind(V1CertificateHelper.class).to(BasicV1CertificateHelper.class);
-        bind(V1ThingHelper.class).to(BasicV1ThingHelper.class);
-        bind(V1PolicyHelper.class).to(BasicV1PolicyHelper.class);
-        bind(V1ThingGroupHelper.class).to(BasicV1ThingGroupHelper.class);
-        bind(V1IamHelper.class).to(BasicV1IamHelper.class);
-        bind(V1RuleHelper.class).to(BasicV1RuleHelper.class);
+    public AmazonIdentityManagementClient provideAmazonIdentityManagementClient() {
+        return (AmazonIdentityManagementClient) AmazonIdentityManagementClientBuilder.defaultClient();
+    }
+
+    public AWSGreengrassClient provideAwsGreengrassClient() {
+        return (AWSGreengrassClient) AWSGreengrassClientBuilder.defaultClient();
+    }
+
+    public V1GreengrassHelper provideV1GreengrassHelper(BasicV1GreengrassHelper basicV1GreengrassHelper) {
+        return basicV1GreengrassHelper;
+    }
+
+    public V1CertificateHelper provideV1CertificateHelper(BasicV1CertificateHelper basicV1CertificateHelper) {
+        return basicV1CertificateHelper;
+    }
+
+    public V1ThingHelper provideV1ThingHelper(BasicV1ThingHelper basicV1ThingHelper) {
+        return basicV1ThingHelper;
+    }
+
+    public V1PolicyHelper provideV1PolicyHelper(BasicV1PolicyHelper basicV1PolicyHelper) {
+        return basicV1PolicyHelper;
+    }
+
+    public V1ThingGroupHelper provideV1ThingGroupHelper(BasicV1ThingGroupHelper basicV1ThingGroupHelper) {
+        return basicV1ThingGroupHelper;
+    }
+
+    public V1IamHelper provideV1IamHelper(BasicV1IamHelper basicV1IamHelper) {
+        return basicV1IamHelper;
+    }
+
+    public V1RuleHelper provideV1RuleHelper(BasicV1RuleHelper basicV1RuleHelper) {
+        return basicV1RuleHelper;
     }
 }

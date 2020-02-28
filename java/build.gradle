@@ -24,9 +24,9 @@ def awsSdk2Version = '2.10.54'
 def junitVersion = '4.13'
 def guavaVersion = '28.2-jre'
 def hamcrestVersion = '2.2'
-def guiceVersion = '4.2.2'
 def vavrVersion = '0.10.2'
 def immutablesValueVersion = '2.8.3'
+def daggerVersion = '2.26'
 
 group = 'com.awslabs.aws.iot.resultsiterator'
 version = '0.1'
@@ -67,6 +67,12 @@ dependencies {
     annotationProcessor "org.immutables:value:$immutablesValueVersion"
     annotationProcessor "org.immutables:gson:$immutablesValueVersion"
 
+    // Dagger code generation
+    annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
+
+    // Dependency injection with Dagger
+    compile "com.google.dagger:dagger:$daggerVersion"
+
     compile "org.immutables:value:$immutablesValueVersion"
     compile "org.immutables:gson:$immutablesValueVersion"
 
@@ -85,7 +91,6 @@ dependencies {
     compileOnly "com.amazonaws:aws-java-sdk-greengrass:$awsSdkVersion"
     compileOnly "com.amazonaws:aws-java-sdk-iot:$awsSdkVersion"
     compileOnly "com.amazonaws:aws-java-sdk-iam:$awsSdkVersion"
-    compileOnly "com.google.inject:guice:$guiceVersion"
 
     testCompile "junit:junit:$junitVersion"
     testCompile "software.amazon.awssdk:iot:$awsSdk2Version"
