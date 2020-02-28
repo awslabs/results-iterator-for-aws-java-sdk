@@ -10,6 +10,8 @@ import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.AWSIotClientBuilder;
 import com.amazonaws.services.iotdata.AWSIotDataClient;
 import com.amazonaws.services.iotdata.AWSIotDataClientBuilder;
+import com.awslabs.ec2.implementations.BasicV1Ec2Helper;
+import com.awslabs.ec2.interfaces.V1Ec2Helper;
 import com.awslabs.iot.helpers.implementations.*;
 import com.awslabs.iot.helpers.interfaces.*;
 import com.awslabs.resultsiterator.SharedModule;
@@ -41,6 +43,11 @@ public class V1HelperModule {
     @Provides
     public AWSGreengrassClient provideAwsGreengrassClient() {
         return (AWSGreengrassClient) AWSGreengrassClientBuilder.defaultClient();
+    }
+
+    @Provides
+    public V1Ec2Helper provideV1Ec2Helper(BasicV1Ec2Helper basicV1Ec2Helper) {
+        return basicV1Ec2Helper;
     }
 
     @Provides
