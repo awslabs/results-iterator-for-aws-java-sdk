@@ -10,6 +10,8 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 
+import java.util.Optional;
+
 public class BasicAwsHelper implements AwsHelper {
     @Override
     public boolean isEc2() {

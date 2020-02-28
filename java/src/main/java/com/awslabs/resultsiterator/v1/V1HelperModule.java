@@ -1,5 +1,7 @@
 package com.awslabs.resultsiterator.v1;
 
+import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.greengrass.AWSGreengrassClient;
 import com.amazonaws.services.greengrass.AWSGreengrassClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
@@ -16,6 +18,11 @@ import dagger.Provides;
 
 @Module(includes = {SharedModule.class})
 public class V1HelperModule {
+    @Provides
+    public AmazonEC2Client provideAmazonEC2Client() {
+        return (AmazonEC2Client) AmazonEC2ClientBuilder.defaultClient();
+    }
+
     @Provides
     public AWSIotClient provideAwsIotClient() {
         return (AWSIotClient) AWSIotClientBuilder.defaultClient();

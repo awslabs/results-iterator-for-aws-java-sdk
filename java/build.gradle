@@ -91,6 +91,7 @@ dependencies {
     compileOnly "com.amazonaws:aws-java-sdk-greengrass:$awsSdkVersion"
     compileOnly "com.amazonaws:aws-java-sdk-iot:$awsSdkVersion"
     compileOnly "com.amazonaws:aws-java-sdk-iam:$awsSdkVersion"
+    compileOnly "com.amazonaws:aws-java-sdk-ec2:$awsSdkVersion"
 
     testCompile "junit:junit:$junitVersion"
     testCompile "software.amazon.awssdk:iot:$awsSdk2Version"
