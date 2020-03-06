@@ -13,7 +13,7 @@ A library that handles iterating over results from the AWS Java SDK with minimal
 2. Add the dependency version [(replace x.y.z with the appropriate version from the JitPack site)](https://jitpack.io/#awslabs/results-iterator-for-aws-java-sdk)
 
     ```
-    def resultsIteratorForAwsJavaSdkVersion = '0.6.4'
+    def resultsIteratorForAwsJavaSdkVersion = 'x.y.z'
     ```
 
 3. Add the dependency to the dependencies section
