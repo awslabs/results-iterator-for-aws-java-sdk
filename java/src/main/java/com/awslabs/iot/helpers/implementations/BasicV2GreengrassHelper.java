@@ -25,6 +25,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Inject
     GreengrassClient greengrassClient;
 
+    @Inject
+    public BasicV2GreengrassHelper() {
+    }
+
     @Override
     public Stream<GroupInformation> getGroups() {
         return new V2ResultsIterator<GroupInformation>(greengrassClient, ListGroupsRequest.class).stream();
@@ -298,8 +302,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrId) {
-        return getGroupInformationByNameOrId(groupNameOrId)
+    public Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId) {
+        return getGroupInformationByNameOrId(groupNameOrGroupId)
                 .filter(groupInformation -> groupInformation.latestVersion() != null)
                 .findFirst()
                 .flatMap(this::getLatestGroupVersionByGroupInformation);

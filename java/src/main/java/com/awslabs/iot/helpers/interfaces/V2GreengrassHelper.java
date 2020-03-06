@@ -56,5 +56,5 @@ public interface V2GreengrassHelper {
 
     boolean groupExistsByName(String groupName);
 
-    Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrId);
+    Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
 }
