@@ -40,7 +40,7 @@ public interface V2GreengrassHelper {
 
     Optional<GroupVersion> getLatestGroupVersionByGroupInformation(GroupInformation groupInformation);
 
-    Optional<List<Function>> getFunctions(GroupInformation groupInformation);
+    Optional<List<Function>> getFunctionsByGroupInformation(GroupInformation groupInformation);
 
     Optional<FunctionDefinitionVersion> getFunctionDefinitionVersionByGroupInformation(GroupInformation groupInformation);
 

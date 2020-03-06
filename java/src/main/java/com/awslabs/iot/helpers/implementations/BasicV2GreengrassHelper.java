@@ -144,7 +144,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<List<Function>> getFunctions(GroupInformation groupInformation) {
+    public Optional<List<Function>> getFunctionsByGroupInformation(GroupInformation groupInformation) {
         // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
         return getFunctionDefinitionVersionByGroupInformation(groupInformation)
                 .map(FunctionDefinitionVersion::functions)
