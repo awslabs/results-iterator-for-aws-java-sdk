@@ -113,9 +113,9 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
         }
 
         try {
-            // Get a new request object.  If this can't be done with a default constructor it will fail.
-            Method method = awsRequestClass.getMethod("builder", AwsRequest.Builder.class);
-            return (AwsRequest) method.invoke(null);
+            // Get a new request object.  If this can't be done without parameters it will fail.
+            Method method = awsRequestClass.getMethod("builder");
+            return ((AwsRequest.Builder) method.invoke(null)).build();
         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
