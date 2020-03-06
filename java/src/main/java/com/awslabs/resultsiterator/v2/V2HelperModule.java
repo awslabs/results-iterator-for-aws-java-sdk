@@ -2,6 +2,8 @@ package com.awslabs.resultsiterator.v2;
 
 import com.awslabs.iam.helpers.implementations.BasicV2IamHelper;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
+import com.awslabs.iot.helpers.implementations.BasicV2GreengrassHelper;
+import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.SharedModule;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.V2SafeProvider;
@@ -15,6 +17,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -31,6 +34,11 @@ public class V2HelperModule {
     @Provides
     public S3Client provideS3Client() {
         return new V2SafeProvider<>(S3Client::create).get();
+    }
+
+    @Provides
+    public GreengrassClient provideGreengrassClient() {
+        return new V2SafeProvider<>(GreengrassClient::create).get();
     }
 
     @Provides
@@ -64,5 +72,10 @@ public class V2HelperModule {
     @Provides
     public V2S3Helper provideS3Helper(BasicV2S3Helper basicV2S3Helper) {
         return basicV2S3Helper;
+    }
+
+    @Provides
+    public V2GreengrassHelper provideGreengrassHelper(BasicV2GreengrassHelper basicV2GreengrassHelper) {
+        return basicV2GreengrassHelper;
     }
 }
