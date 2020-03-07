@@ -1,20 +1,30 @@
 package com.awslabs.resultsiterator;
 
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.greengrass.GreengrassClient;
+import software.amazon.awssdk.services.greengrass.model.GroupInformation;
+import software.amazon.awssdk.services.greengrass.model.ListGroupsRequest;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.ListThingsRequest;
 import software.amazon.awssdk.services.iot.model.ThingAttribute;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV2ResultsIterator {
+    private final Logger log = LoggerFactory.getLogger(TestV2ResultsIterator.class);
+
     @Test
     public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
         IotClient iotClient = IotClient.create();
@@ -47,6 +57,14 @@ public class TestV2ResultsIterator {
         Stream<Bucket> buckets = bucketIterator.stream();
 
         buckets.forEach(this::listAll);
+    }
+
+    @Test
+    public void shouldListGreengrassGroupsAndNotThrowAnException() {
+        GreengrassClient greengrassClient = GreengrassClient.create();
+        V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
+        List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
+        groupInformationList.forEach(groupInformation -> log.info(new Gson().toJson(groupInformation)));
     }
 
     private void listAll(Bucket bucket) {
