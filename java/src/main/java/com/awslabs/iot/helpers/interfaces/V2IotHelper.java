@@ -21,9 +21,9 @@ public interface V2IotHelper {
 
     void attachThingPrincipal(ThingName thingName, CertificateArn certificateArn);
 
-    Optional<List<String>> getThingPrincipals(ThingName thingName);
+    Optional<List<ThingPrincipal>> getThingPrincipals(ThingName thingName);
 
-    Optional<String> getThingArn(ThingName thingName);
+    Optional<ThingArn> getThingArn(ThingName thingName);
 
     String getCredentialProviderUrl();
 

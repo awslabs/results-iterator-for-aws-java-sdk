@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.iot.model.*;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BasicV2IotHelper implements V2IotHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
@@ -93,20 +94,31 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public Optional<List<String>> getThingPrincipals(ThingName thingName) {
+    public Optional<List<ThingPrincipal>> getThingPrincipals(ThingName thingName) {
         ListThingPrincipalsRequest listThingPrincipalsRequest = ListThingPrincipalsRequest.builder()
                 .thingName(thingName.getName())
                 .build();
 
         // ListThingPrincipals will throw an exception if the thing does not exist
-        return Try.of(() -> Optional.of(iotClient.listThingPrincipals(listThingPrincipalsRequest)))
-                .recover(ResourceNotFoundException.class, throwable -> Optional.empty())
-                .get()
-                .map(ListThingPrincipalsResponse::principals);
+        ListThingPrincipalsResponse listThingPrincipalsResponse = Try.of(() -> IotClient.create().listThingPrincipals(listThingPrincipalsRequest))
+                // ResourceNotFoundException is OK, other exceptions are not
+                .recover(ResourceNotFoundException.class, throwable -> null)
+                // Throw all other exceptions here
+                .get();
+
+        if (listThingPrincipalsRequest == null) {
+            // This only happens when a ResourceNotFoundException is thrown
+            return Optional.empty();
+        }
+
+        return Optional.of(listThingPrincipalsResponse.principals().stream()
+                // Convert the principals to the correct static type
+                .map(principal -> ImmutableThingPrincipal.builder().principal(principal).build())
+                .collect(Collectors.toList()));
     }
 
     @Override
-    public Optional<String> getThingArn(ThingName thingName) {
+    public Optional<ThingArn> getThingArn(ThingName thingName) {
         DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
                 .thingName(thingName.getName())
                 .build();
@@ -116,7 +128,8 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .recover(ResourceNotFoundException.class, throwable -> Optional.empty())
                 // At this point our try should be successful, even if the resource wasn't found, but the result may be empty
                 .get()
-                .map(DescribeThingResponse::thingArn);
+                .map(DescribeThingResponse::thingArn)
+                .map(thingArn -> ImmutableThingArn.builder().arn(thingArn).build());
     }
 
     @Override
