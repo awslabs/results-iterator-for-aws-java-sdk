@@ -100,21 +100,21 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .build();
 
         // ListThingPrincipals will throw an exception if the thing does not exist
-        ListThingPrincipalsResponse listThingPrincipalsResponse = Try.of(() -> IotClient.create().listThingPrincipals(listThingPrincipalsRequest))
-                // ResourceNotFoundException is OK, other exceptions are not
-                .recover(ResourceNotFoundException.class, throwable -> null)
-                // Throw all other exceptions here
-                .get();
-
-        if (listThingPrincipalsRequest == null) {
-            // This only happens when a ResourceNotFoundException is thrown
-            return Optional.empty();
-        }
-
-        return Optional.of(listThingPrincipalsResponse.principals().stream()
-                // Convert the principals to the correct static type
-                .map(principal -> ImmutableThingPrincipal.builder().principal(principal).build())
-                .collect(Collectors.toList()));
+        return Optional.ofNullable(
+                // Try to list the principals
+                Try.of(() -> IotClient.create().listThingPrincipals(listThingPrincipalsRequest))
+                        // ResourceNotFoundException is OK, other exceptions are not
+                        .recover(ResourceNotFoundException.class, throwable -> null)
+                        // Throw all other exceptions here
+                        .get())
+                // Get the principals
+                .map(ListThingPrincipalsResponse::principals)
+                // Get a stream from the principal list
+                .map(principals -> principals.stream()
+                        // Convert the principals to the correct static type
+                        .map(principal -> ImmutableThingPrincipal.builder().principal(principal).build())
+                        // Collect the principals to a list
+                        .collect(Collectors.toList()));
     }
 
     @Override
