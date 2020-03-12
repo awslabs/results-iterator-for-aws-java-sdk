@@ -6,6 +6,8 @@ import com.awslabs.iot.helpers.implementations.BasicV2GreengrassHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2IotHelper;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
+import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
+import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.V2SafeProvider;
@@ -79,6 +81,11 @@ public class V2HelperModule {
     @Provides
     public V2GreengrassHelper provideGreengrassHelper(BasicV2GreengrassHelper basicV2GreengrassHelper) {
         return basicV2GreengrassHelper;
+    }
+
+    @Provides
+    public V2LambdaHelper provideLambdaHelper(BasicV2LambdaHelper basicV2LambdaHelper) {
+        return basicV2LambdaHelper;
     }
 
     @Provides
