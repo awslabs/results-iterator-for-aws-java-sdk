@@ -1,5 +1,6 @@
 package com.awslabs.iot.helpers.implementations;
 
+import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
@@ -45,9 +46,9 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesById(String groupId) {
+    public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesById(GreengrassGroupId greengrassGroupId) {
         ListGroupCertificateAuthoritiesRequest listGroupCertificateAuthoritiesRequest = ListGroupCertificateAuthoritiesRequest.builder()
-                .groupId(groupId)
+                .groupId(greengrassGroupId.getGroupId())
                 .build();
 
         return new V2ResultsIterator<GroupCertificateAuthorityProperties>(greengrassClient, listGroupCertificateAuthoritiesRequest).stream();
@@ -55,23 +56,23 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesByGroupInformation(GroupInformation groupInformation) {
-        return getGroupCertificateAuthorityPropertiesById(groupInformation.id());
+        return getGroupCertificateAuthorityPropertiesById(ImmutableGreengrassGroupId.builder().groupId(groupInformation.id()).build());
     }
 
     @Override
-    public Predicate<GroupInformation> getGroupNameMatchesPredicate(String groupName) {
-        return groupInformation -> groupInformation.name().equals(groupName);
+    public Predicate<GroupInformation> getGroupNameMatchesPredicate(GreengrassGroupName greengrassGroupName) {
+        return groupInformation -> groupInformation.name().equals(greengrassGroupName.getGroupName());
     }
 
     @Override
-    public Predicate<GroupInformation> getGroupIdMatchesPredicate(String groupId) {
-        return groupInformation -> groupInformation.id().equals(groupId);
+    public Predicate<GroupInformation> getGroupIdMatchesPredicate(GreengrassGroupId greengrassGroupId) {
+        return groupInformation -> groupInformation.id().equals(greengrassGroupId.getGroupId());
     }
 
     @Override
     public Predicate<GroupInformation> getGroupNameOrGroupIdMatchesPredicate(String groupNameOrGroupId) {
-        return getGroupNameMatchesPredicate(groupNameOrGroupId)
-                .or(getGroupIdMatchesPredicate(groupNameOrGroupId));
+        return getGroupNameMatchesPredicate(ImmutableGreengrassGroupName.builder().groupName(groupNameOrGroupId).build())
+                .or(getGroupIdMatchesPredicate(ImmutableGreengrassGroupId.builder().groupId(groupNameOrGroupId).build()));
     }
 
     @Override
@@ -81,22 +82,23 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<GroupInformation> getGroupInformationByName(String groupName) {
+    public Stream<GroupInformation> getGroupInformationByName(GreengrassGroupName greengrassGroupName) {
         return getGroups()
-                .filter(getGroupNameMatchesPredicate(groupName));
+                .filter(getGroupNameMatchesPredicate(greengrassGroupName));
     }
 
     @Override
-    public Stream<GroupInformation> getGroupInformationById(String groupId) {
+    public Stream<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId) {
         return getGroups()
-                .filter(getGroupIdMatchesPredicate(groupId));
+                .filter(getGroupIdMatchesPredicate(greengrassGroupId));
     }
 
     @Override
-    public Stream<String> getGroupIdByName(String groupName) {
+    public Stream<GreengrassGroupId> getGroupIdByName(GreengrassGroupName greengrassGroupName) {
         return getGroups()
-                .filter(getGroupNameMatchesPredicate(groupName))
-                .map(GroupInformation::id);
+                .filter(getGroupNameMatchesPredicate(greengrassGroupName))
+                .map(GroupInformation::id)
+                .map(groupId -> ImmutableGreengrassGroupId.builder().groupId(groupId).build());
     }
 
     @Override
@@ -115,15 +117,16 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .filter(definitionInformation -> definitionInformation.name() != null)
                 // Find entries with matching names
                 .filter(definitionInformation -> definitionInformation.name().equals(name))
-                // Extract the core definition ID
+                // Extract the definition ID
                 .map(DefinitionInformation::id)
                 .findFirst();
     }
 
     @Override
-    public Optional<String> getGroupIdByGroupInformation(GroupInformation groupInformation) {
+    public Optional<GreengrassGroupId> getGroupIdByGroupInformation(GroupInformation groupInformation) {
         return getGroupVersionResponse(groupInformation)
-                .map(GetGroupVersionResponse::id);
+                .map(GetGroupVersionResponse::id)
+                .map(groupId -> ImmutableGreengrassGroupId.builder().groupId(groupId).build());
     }
 
     @Override
@@ -264,7 +267,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<String> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation) {
+    public Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation) {
         Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
@@ -291,12 +294,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .map(CoreDefinitionVersion::cores)
                 .filter(list -> list.size() != 0)
                 .map(list -> list.get(0))
-                .map(Core::certificateArn);
+                .map(Core::certificateArn)
+                .map(certificateArn -> ImmutableCertificateArn.builder().arn(certificateArn).build());
     }
 
     @Override
-    public boolean groupExistsByName(String groupName) {
-        return getGroupIdByName(groupName)
+    public boolean groupExistsByName(GreengrassGroupName greengrassGroupName) {
+        return getGroupIdByName(greengrassGroupName)
                 .findAny()
                 .isPresent();
     }

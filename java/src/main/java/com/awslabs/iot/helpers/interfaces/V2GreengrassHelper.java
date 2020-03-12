@@ -1,5 +1,8 @@
 package com.awslabs.iot.helpers.interfaces;
 
+import com.awslabs.iot.data.CertificateArn;
+import com.awslabs.iot.data.GreengrassGroupId;
+import com.awslabs.iot.data.GreengrassGroupName;
 import software.amazon.awssdk.services.greengrass.model.*;
 
 import java.util.List;
@@ -14,29 +17,29 @@ public interface V2GreengrassHelper {
 
     Stream<DefinitionInformation> getDeviceDefinitions();
 
-    Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesById(String groupId);
+    Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesById(GreengrassGroupId greengrassGroupId);
 
     Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesByGroupInformation(GroupInformation groupInformation);
 
-    Predicate<GroupInformation> getGroupNameMatchesPredicate(String groupName);
+    Predicate<GroupInformation> getGroupNameMatchesPredicate(GreengrassGroupName greengrassGroupName);
 
-    Predicate<GroupInformation> getGroupIdMatchesPredicate(String groupId);
+    Predicate<GroupInformation> getGroupIdMatchesPredicate(GreengrassGroupId groupId);
 
     Predicate<GroupInformation> getGroupNameOrGroupIdMatchesPredicate(String groupNameOrGroupId);
 
     Stream<GroupInformation> getGroupInformationByNameOrId(String groupNameOrGroupId);
 
-    Stream<GroupInformation> getGroupInformationByName(String groupName);
+    Stream<GroupInformation> getGroupInformationByName(GreengrassGroupName greengrassGroupName);
 
-    Stream<GroupInformation> getGroupInformationById(String groupId);
+    Stream<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId);
 
-    Stream<String> getGroupIdByName(String groupName);
+    Stream<GreengrassGroupId> getGroupIdByName(GreengrassGroupName greengrassGroupName);
 
     Optional<String> getCoreDefinitionIdByName(String coreDefinitionName);
 
     Optional<String> getDeviceDefinitionIdByName(String deviceDefinitionName);
 
-    Optional<String> getGroupIdByGroupInformation(GroupInformation groupInformation);
+    Optional<GreengrassGroupId> getGroupIdByGroupInformation(GroupInformation groupInformation);
 
     Optional<GroupVersion> getLatestGroupVersionByGroupInformation(GroupInformation groupInformation);
 
@@ -52,9 +55,9 @@ public interface V2GreengrassHelper {
 
     Optional<FunctionIsolationMode> getDefaultIsolationModeByGroupInformation(GroupInformation groupInformation);
 
-    Optional<String> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation);
+    Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation);
 
-    boolean groupExistsByName(String groupName);
+    boolean groupExistsByName(GreengrassGroupName greengrassGroupName);
 
     Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
 }

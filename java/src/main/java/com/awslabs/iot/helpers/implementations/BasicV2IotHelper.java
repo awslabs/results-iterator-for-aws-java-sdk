@@ -207,4 +207,30 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .map(DescribeCertificateResponse::certificateDescription)
                 .map(CertificateDescription::certificatePem);
     }
+
+    @Override
+    public ThingArn createThing(ThingName thingName) {
+        CreateThingRequest createThingRequest = CreateThingRequest.builder()
+                .thingName(thingName.getName())
+                .build();
+
+        return Try.of(() -> iotClient.createThing(createThingRequest).thingArn())
+                .map(thingArnString -> ImmutableThingArn.builder().arn(thingArnString).build())
+                .recover(ResourceAlreadyExistsException.class, throwable -> recoverFromResourceAlreadyExistsException(thingName, throwable))
+                .get();
+    }
+
+    private ImmutableThingArn recoverFromResourceAlreadyExistsException(ThingName thingName, ResourceAlreadyExistsException throwable) {
+        if (throwable.getMessage().contains("with different attributes")) {
+            log.info("The thing [" + thingName.getName() + "] already exists with different tags/attributes (e.g. immutable or other attributes)");
+
+            DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
+                    .thingName(thingName.getName())
+                    .build();
+
+            return ImmutableThingArn.builder().arn(iotClient.describeThing(describeThingRequest).thingArn()).build();
+        }
+
+        throw new RuntimeException(throwable);
+    }
 }

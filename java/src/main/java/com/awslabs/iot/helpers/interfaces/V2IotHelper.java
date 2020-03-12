@@ -36,4 +36,6 @@ public interface V2IotHelper {
     Optional<String> getCertificatePem(CertificateArn certificateArn);
 
     Optional<String> getCertificatePem(CertificateId certificateId);
+
+    ThingArn createThing(ThingName thingName);
 }
