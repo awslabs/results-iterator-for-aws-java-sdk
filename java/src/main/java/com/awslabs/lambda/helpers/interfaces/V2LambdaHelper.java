@@ -16,7 +16,11 @@ public interface V2LambdaHelper {
 
     boolean functionExists(FunctionName functionName);
 
+    boolean functionExists(FunctionAliasArn functionAliasArn);
+
     Optional<GetFunctionResponse> getFunction(FunctionName functionName);
+
+    Optional<GetFunctionResponse> getFunction(FunctionAliasArn functionAliasArn);
 
     boolean aliasExists(FunctionName functionName, FunctionAlias functionAlias);
 

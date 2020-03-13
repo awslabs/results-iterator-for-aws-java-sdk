@@ -42,19 +42,31 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
 
     @Override
     public boolean functionExists(FunctionName functionName) {
-        GetFunctionRequest getFunctionRequest = GetFunctionRequest.builder()
-                .functionName(functionName.getName())
-                .build();
+        return innerFunctionExists(functionName.getName());
+    }
 
-        return Try.of(() -> lambdaClient.getFunction(getFunctionRequest) != null)
-                .recover(ResourceNotFoundException.class, throwable -> false)
-                .get();
+    @Override
+    public boolean functionExists(FunctionAliasArn functionAliasArn) {
+        return innerFunctionExists(functionAliasArn.getAliasArn());
+    }
+
+    private boolean innerFunctionExists(String functionNameOrAliasArn) {
+        return innerGetFunction(functionNameOrAliasArn).isPresent();
     }
 
     @Override
     public Optional<GetFunctionResponse> getFunction(FunctionName functionName) {
+        return innerGetFunction(functionName.getName());
+    }
+
+    @Override
+    public Optional<GetFunctionResponse> getFunction(FunctionAliasArn functionAliasArn) {
+        return innerGetFunction(functionAliasArn.getAliasArn());
+    }
+
+    private Optional<GetFunctionResponse> innerGetFunction(String functionNameOrAliasArn) {
         GetFunctionRequest getFunctionRequest = GetFunctionRequest.builder()
-                .functionName(functionName.getName())
+                .functionName(functionNameOrAliasArn)
                 .build();
 
         return Try.of(() -> Optional.of(lambdaClient.getFunction(getFunctionRequest)))
