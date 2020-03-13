@@ -5,9 +5,11 @@ import com.awslabs.lambda.data.FunctionAliasArn;
 import com.awslabs.lambda.data.FunctionName;
 import com.awslabs.lambda.data.FunctionVersion;
 import software.amazon.awssdk.services.lambda.model.FunctionConfiguration;
+import software.amazon.awssdk.services.lambda.model.GetFunctionConfigurationResponse;
 import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
 import software.amazon.awssdk.services.lambda.model.PublishVersionResponse;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -27,4 +29,12 @@ public interface V2LambdaHelper {
     FunctionAliasArn createAlias(FunctionName functionName, FunctionVersion functionVersion, FunctionAlias functionAlias);
 
     PublishVersionResponse publishFunctionVersion(FunctionName functionName);
+
+    Map<String, String> getFunctionEnvironment(FunctionName functionName);
+
+    Map<String, String> getFunctionEnvironment(FunctionAliasArn functionAliasArn);
+
+    GetFunctionConfigurationResponse getFunctionConfiguration(FunctionName functionName);
+
+    GetFunctionConfigurationResponse getFunctionConfiguration(FunctionAliasArn functionAliasArn);
 }

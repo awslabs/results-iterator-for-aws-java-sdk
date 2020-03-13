@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.lambda.model.*;
 
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -119,5 +121,41 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
                 .build();
 
         return lambdaClient.publishVersion(publishVersionRequest);
+    }
+
+    @Override
+    public Map<String, String> getFunctionEnvironment(FunctionName functionName) {
+        return innerGetFunctionEnvironment(functionName.getName());
+    }
+
+    @Override
+    public Map<String, String> getFunctionEnvironment(FunctionAliasArn functionAliasArn) {
+        return innerGetFunctionEnvironment(functionAliasArn.getAliasArn());
+    }
+
+    private Map<String, String> innerGetFunctionEnvironment(String functionNameOrAliasArn) {
+        GetFunctionConfigurationResponse getFunctionConfigurationResponse = innerGetFunctionConfiguration(functionNameOrAliasArn);
+
+        return Optional.ofNullable(getFunctionConfigurationResponse.environment())
+                .map(EnvironmentResponse::variables)
+                .orElseGet(HashMap::new);
+    }
+
+    @Override
+    public GetFunctionConfigurationResponse getFunctionConfiguration(FunctionName functionName) {
+        return innerGetFunctionConfiguration(functionName.getName());
+    }
+
+    @Override
+    public GetFunctionConfigurationResponse getFunctionConfiguration(FunctionAliasArn functionAliasArn) {
+        return innerGetFunctionConfiguration(functionAliasArn.getAliasArn());
+    }
+
+    private GetFunctionConfigurationResponse innerGetFunctionConfiguration(String functionNameOrAliasArn) {
+        GetFunctionConfigurationRequest getFunctionConfigurationRequest = GetFunctionConfigurationRequest.builder()
+                .functionName(functionNameOrAliasArn)
+                .build();
+
+        return lambdaClient.getFunctionConfiguration(getFunctionConfigurationRequest);
     }
 }
