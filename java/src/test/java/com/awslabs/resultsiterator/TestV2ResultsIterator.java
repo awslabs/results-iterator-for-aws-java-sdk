@@ -2,7 +2,7 @@ package com.awslabs.resultsiterator;
 
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.google.gson.Gson;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class TestV2ResultsIterator {
         thingAttributes = v2ResultsIterator.stream();
         long count = thingAttributes.count();
         System.out.println("Thing attribute count: " + count);
-        Assert.assertThat(count, greaterThan(0L));
+        MatcherAssert.assertThat(count, greaterThan(0L));
     }
 
     @Test

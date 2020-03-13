@@ -1,7 +1,7 @@
 package com.awslabs.lambda.helpers.implementations;
 
-import com.awslabs.lambda.data.*;
 import com.awslabs.lambda.data.FunctionVersion;
+import com.awslabs.lambda.data.*;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import io.vavr.control.Try;
@@ -98,5 +98,14 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
         CreateAliasResponse createAliasResponse = lambdaClient.createAlias(createAliasRequest);
 
         return ImmutableFunctionAliasArn.builder().aliasArn(createAliasResponse.aliasArn()).build();
+    }
+
+    @Override
+    public PublishVersionResponse publishFunctionVersion(FunctionName functionName) {
+        PublishVersionRequest publishVersionRequest = PublishVersionRequest.builder()
+                .functionName(functionName.getName())
+                .build();
+
+        return lambdaClient.publishVersion(publishVersionRequest);
     }
 }

@@ -6,6 +6,7 @@ import com.awslabs.lambda.data.FunctionName;
 import com.awslabs.lambda.data.FunctionVersion;
 import software.amazon.awssdk.services.lambda.model.FunctionConfiguration;
 import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
+import software.amazon.awssdk.services.lambda.model.PublishVersionResponse;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -20,4 +21,6 @@ public interface V2LambdaHelper {
     boolean aliasExists(FunctionName functionName, FunctionAlias functionAlias);
 
     FunctionAliasArn createAlias(FunctionName functionName, FunctionVersion functionVersion, FunctionAlias functionAlias);
+
+    PublishVersionResponse publishFunctionVersion(FunctionName functionName);
 }
