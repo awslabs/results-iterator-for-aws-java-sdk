@@ -7,4 +7,10 @@ import org.immutables.value.Value;
 @Value.Immutable
 public abstract class FunctionAlias {
     public abstract String getAlias();
+
+    @Override
+    public String toString() {
+        // This is to make sure string concatenation with this type throws an exception immediately
+        return null;
+    }
 }

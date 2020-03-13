@@ -7,4 +7,10 @@ import org.immutables.value.Value;
 @Value.Immutable
 public abstract class ClientCertFilename {
     public abstract String getClientCertFilename();
+
+    @Override
+    public String toString() {
+        // This is to make sure string concatenation with this type throws an exception immediately
+        return null;
+    }
 }
