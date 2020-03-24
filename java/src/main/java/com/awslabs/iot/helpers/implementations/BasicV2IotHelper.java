@@ -188,14 +188,14 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public Optional<String> getCertificatePem(CertificateArn certificateArn) {
+    public Optional<CertificatePem> getCertificatePem(CertificateArn certificateArn) {
         String certificateId = certificateArn.getArn().split("/")[1];
 
         return getCertificatePem(ImmutableCertificateId.builder().id(certificateId).build());
     }
 
     @Override
-    public Optional<String> getCertificatePem(CertificateId certificateId) {
+    public Optional<CertificatePem> getCertificatePem(CertificateId certificateId) {
         DescribeCertificateRequest describeCertificateRequest = DescribeCertificateRequest.builder()
                 .certificateId(certificateId.getId())
                 .build();
@@ -206,7 +206,8 @@ public class BasicV2IotHelper implements V2IotHelper {
                 // At this point our try should be successful, even if the resource wasn't found, but the result may be empty
                 .get()
                 .map(DescribeCertificateResponse::certificateDescription)
-                .map(CertificateDescription::certificatePem);
+                .map(CertificateDescription::certificatePem)
+                .map(pem -> ImmutableCertificatePem.builder().pem(pem).build());
     }
 
     @Override

@@ -33,9 +33,9 @@ public interface V2IotHelper {
 
     CertificateArn signCsrAndReturnCertificateArn(CertificateSigningRequest certificateSigningRequest);
 
-    Optional<String> getCertificatePem(CertificateArn certificateArn);
+    Optional<CertificatePem> getCertificatePem(CertificateArn certificateArn);
 
-    Optional<String> getCertificatePem(CertificateId certificateId);
+    Optional<CertificatePem> getCertificatePem(CertificateId certificateId);
 
     ThingArn createThing(ThingName thingName);
 }
