@@ -176,14 +176,15 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public String signCsrAndReturnCertificateArn(CertificateSigningRequest certificateSigningRequest) {
+    public CertificateArn signCsrAndReturnCertificateArn(CertificateSigningRequest certificateSigningRequest) {
         CreateCertificateFromCsrRequest createCertificateFromCsrRequest = CreateCertificateFromCsrRequest.builder()
                 .certificateSigningRequest(certificateSigningRequest.getRequest())
                 .setAsActive(true)
                 .build();
 
-        return iotClient.createCertificateFromCsr(createCertificateFromCsrRequest)
-                .certificateArn();
+        return ImmutableCertificateArn.builder()
+                .arn(iotClient.createCertificateFromCsr(createCertificateFromCsrRequest).certificateArn())
+                .build();
     }
 
     @Override

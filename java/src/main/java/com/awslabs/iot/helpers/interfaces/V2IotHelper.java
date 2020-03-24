@@ -31,7 +31,7 @@ public interface V2IotHelper {
 
     CreateRoleAliasResponse forceCreateRoleAlias(Role serviceRole, RoleAlias roleAlias);
 
-    String signCsrAndReturnCertificateArn(CertificateSigningRequest certificateSigningRequest);
+    CertificateArn signCsrAndReturnCertificateArn(CertificateSigningRequest certificateSigningRequest);
 
     Optional<String> getCertificatePem(CertificateArn certificateArn);
 
