@@ -9,5 +9,5 @@ import java.nio.file.Path;
 public interface LambdaPackagingHelper {
     Path packagePythonFunction(FunctionName functionName, PythonLambdaFunctionDirectory pythonLambdaFunctionDirectory);
 
-    void packageJavaFunction(FunctionName functionName, JavaLambdaFunctionDirectory javaLambdaFunctionDirectory);
+    void packageJavaFunction(JavaLambdaFunctionDirectory javaLambdaFunctionDirectory);
 }

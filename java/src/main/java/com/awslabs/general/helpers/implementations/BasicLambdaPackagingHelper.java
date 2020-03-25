@@ -94,7 +94,7 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
     }
 
     @Override
-    public void packageJavaFunction(FunctionName functionName, JavaLambdaFunctionDirectory javaLambdaFunctionDirectory) {
+    public void packageJavaFunction(JavaLambdaFunctionDirectory javaLambdaFunctionDirectory) {
         // Guidance from: https://discuss.gradle.org/t/how-to-execute-a-gradle-task-from-java-code/7421
         Try.withResources(() -> getProjectConnection(javaLambdaFunctionDirectory.getDirectory()))
                 .of(this::runBuild)
