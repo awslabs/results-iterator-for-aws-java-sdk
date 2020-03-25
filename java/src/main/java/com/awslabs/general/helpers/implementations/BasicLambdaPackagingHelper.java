@@ -1,10 +1,12 @@
 package com.awslabs.general.helpers.implementations;
 
+import com.awslabs.general.helpers.data.ProcessOutput;
 import com.awslabs.general.helpers.interfaces.LambdaPackagingHelper;
 import com.awslabs.general.helpers.interfaces.ProcessHelper;
 import com.awslabs.lambda.data.FunctionName;
 import com.awslabs.lambda.data.JavaLambdaFunctionDirectory;
 import com.awslabs.lambda.data.PythonLambdaFunctionDirectory;
+import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.BuildLauncher;
@@ -18,10 +20,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
     public static final String PIP_3 = "pip3";
@@ -60,23 +59,20 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
             log.info(String.join("-", functionName.getName(), "Retrieving Python dependencies"));
 
             // Install the requirements in a package directory
-            List<String> programAndArguments = new ArrayList<>();
-            programAndArguments.add(PIP_3);
-            programAndArguments.add("install");
-            programAndArguments.add("-r");
-            programAndArguments.add(REQUIREMENTS_TXT);
-            programAndArguments.add("-t");
-            programAndArguments.add(absolutePackageDirectory.getPath());
+            List<String> programAndArguments = List.of(
+                    PIP_3,
+                    "install",
+                    "-r",
+                    REQUIREMENTS_TXT,
+                    "-t",
+                    absolutePackageDirectory.getPath());
 
             ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
             processBuilder.directory(baseDirectory);
 
-            List<String> stdoutStrings = new ArrayList<>();
-            List<String> stderrStrings = new ArrayList<>();
+            Optional<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
 
-            Optional<Integer> exitVal = processHelper.getOutputFromProcess(log, processBuilder, true, Optional.of(stdoutStrings::add), Optional.of(stderrStrings::add));
-
-            checkPipStatus(exitVal, stdoutStrings, stderrStrings);
+            checkPipStatus(optionalProcessOutput);
         } else {
             log.info(String.join("-", functionName.getName(), "No Python dependencies to install"));
         }
@@ -138,60 +134,78 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         return buildDirectory.resolve(REQUIREMENTS_TXT).toFile().exists();
     }
 
-    private void checkPipStatus(Optional<Integer> exitVal, List<String> stdoutStrings, List<String> stderrStrings) {
-        if (!exitVal.isPresent() || exitVal.get() != 0) {
-            log.error("Something went wrong with pip");
+    private void checkPipStatus(Optional<ProcessOutput> optionalProcessOutput) {
+        if (!optionalProcessOutput.isPresent()) {
+            log.error("pip failed to start, cannot continue.");
+            System.exit(1);
+        }
 
-            if (stderrStrings.stream().anyMatch(string -> string.contains("'clang' failed"))) {
-                stdoutStrings.forEach(log::warn);
-                stderrStrings.forEach(log::error);
+        ProcessOutput processOutput = optionalProcessOutput.get();
 
-                log.error("Building this function failed because a dependency failed to compile. This can happen when a dependency needs to build a native library. Error messages are above.");
+        if (processOutput.getExitCode() == 0) {
+            // Success!
+            return;
+        }
 
-                System.exit(1);
-            }
+        // Some kind of failure, investigate
+        log.error("Something went wrong with pip");
 
-            if (stderrStrings.stream().anyMatch(string -> string.contains("Could not find a version that satisfies the requirement")) ||
-                    stderrStrings.stream().anyMatch(string -> string.contains("No matching distribution found"))) {
-                stdoutStrings.forEach(log::warn);
-                stderrStrings.forEach(log::error);
+        List<String> stdoutStrings = processOutput.getStandardOutStrings();
+        List<String> stderrStrings = processOutput.getStandardErrorStrings();
 
-                log.error("Building this function failed because a dependency was not available. Error messages are above.");
+        if (stderrStrings.find(string -> string.contains("'clang' failed")).isDefined()) {
+            stdoutStrings.forEach(log::warn);
+            stderrStrings.forEach(log::error);
 
-                System.exit(1);
-            }
-
-            if (isCorrectPipVersion()) {
-                log.error("pip version is correct but the Python dependency failed to install");
-            } else {
-                log.error("pip version appears to be incorrect or pip is missing");
-            }
-
-            log.error("To resolve:");
-            log.error("1) Make sure Python and pip are installed and on your path");
-            log.error("2) Make sure pip version is 19.x (pip --version) and install it with get-pip.py if necessary (https://pip.pypa.io/en/stable/installing/)");
-            log.error("3) Try installing the dependency with pip and see if pip returns any installation errors");
+            log.error("Building this function failed because a dependency failed to compile. This can happen when a dependency needs to build a native library. Error messages are above.");
 
             System.exit(1);
         }
+
+        if (stderrStrings.find(string -> string.contains("Could not find a version that satisfies the requirement")).isDefined() ||
+                stderrStrings.find(string -> string.contains("No matching distribution found")).isDefined()) {
+            stdoutStrings.forEach(log::warn);
+            stderrStrings.forEach(log::error);
+
+            log.error("Building this function failed because a dependency was not available. Error messages are above.");
+
+            System.exit(1);
+        }
+
+        if (isCorrectPipVersion()) {
+            log.error("pip version is correct but the Python dependency failed to install");
+        } else {
+            log.error("pip version appears to be incorrect or pip is missing");
+        }
+
+        log.error("To resolve:");
+        log.error("1) Make sure Python and pip are installed and on your path");
+        log.error("2) Make sure pip version is 19.x (pip --version) and install it with get-pip.py if necessary (https://pip.pypa.io/en/stable/installing/)");
+        log.error("3) Try installing the dependency with pip and see if pip returns any installation errors");
+
+        System.exit(1);
     }
 
     protected boolean isCorrectPipVersion() {
-        List<String> programAndArguments = new ArrayList<>();
-        programAndArguments.add(PIP_3);
-        programAndArguments.add("--version");
+        List<String> programAndArguments = List.of(PIP_3, "--version");
 
         ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
 
-        StringBuilder stdoutStringBuilder = new StringBuilder();
+        Optional<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
 
-        processHelper.getOutputFromProcess(log, processBuilder, true, Optional.of(stdoutStringBuilder::append), Optional.empty());
+        if (!optionalProcessOutput.isPresent()) {
+            return false;
+        }
+
+        ProcessOutput processOutput = optionalProcessOutput.get();
 
         // We expect pip 19.x only!
-        return stdoutStringBuilder.toString().startsWith("pip 19.");
+        return processOutput.getStandardOutStrings()
+                .getOrElse("")
+                .startsWith("pip 19.");
     }
 
     private List<Path> getDirectorySnapshot(Path directory) {
-        return Try.of(() -> Files.list(directory).collect(Collectors.toList())).get();
+        return Try.of(() -> Files.list(directory).collect(List.collector())).get();
     }
 }
