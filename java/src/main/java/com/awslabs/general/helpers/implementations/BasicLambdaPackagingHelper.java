@@ -3,9 +3,13 @@ package com.awslabs.general.helpers.implementations;
 import com.awslabs.general.helpers.interfaces.LambdaPackagingHelper;
 import com.awslabs.general.helpers.interfaces.ProcessHelper;
 import com.awslabs.lambda.data.FunctionName;
+import com.awslabs.lambda.data.JavaLambdaFunctionDirectory;
 import com.awslabs.lambda.data.PythonLambdaFunctionDirectory;
 import io.vavr.control.Try;
 import org.apache.commons.io.FileUtils;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeroturnaround.zip.ZipUtil;
@@ -87,6 +91,31 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         cleanUpPackageDirectory(absolutePackageDirectory);
 
         return zipFilePath;
+    }
+
+    @Override
+    public void packageJavaFunction(FunctionName functionName, JavaLambdaFunctionDirectory javaLambdaFunctionDirectory) {
+        // Guidance from: https://discuss.gradle.org/t/how-to-execute-a-gradle-task-from-java-code/7421
+        Try.withResources(() -> getProjectConnection(javaLambdaFunctionDirectory.getDirectory()))
+                .of(this::runBuild)
+                .get();
+    }
+
+    private ProjectConnection getProjectConnection(File gradleBuildPath) {
+        return GradleConnector.newConnector()
+                .forProjectDirectory(gradleBuildPath)
+                .connect();
+    }
+
+    private Void runBuild(ProjectConnection projectConnection) {
+        // Build with gradle and send the output to stdout
+        BuildLauncher build = projectConnection.newBuild();
+        build.forTasks("build");
+        build.setStandardOutput(System.out);
+        build.setStandardError(System.err);
+        build.run();
+
+        return null;
     }
 
     private void cleanUpPackageDirectory(File absolutePackageDirectory) {

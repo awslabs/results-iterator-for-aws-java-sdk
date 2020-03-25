@@ -9,7 +9,7 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.28.0'
 }
 
-def gradleDependencyVersion = '6.1'
+def gradleDependencyVersion = '6.1.1'
 
 wrapper {
     gradleVersion = gradleDependencyVersion
@@ -89,6 +89,7 @@ dependencies {
     // For building Lambda functions
     implementation "commons-io:commons-io:$commonsIoVersion"
     implementation "org.zeroturnaround:zt-zip:$ztZipVersion"
+    implementation "org.gradle:gradle-tooling-api:$gradleDependencyVersion"
 
     // SDK v2
     api "software.amazon.awssdk:aws-core:$awsSdk2Version"
