@@ -176,19 +176,19 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         }
     }
 
-    private boolean isCorrectPipVersion() {
+    protected boolean isCorrectPipVersion() {
         List<String> programAndArguments = new ArrayList<>();
         programAndArguments.add(PIP_3);
         programAndArguments.add("--version");
 
         ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
 
-        String stdoutStrings = "";
+        StringBuilder stdoutStringBuilder = new StringBuilder();
 
-        processHelper.getOutputFromProcess(log, processBuilder, true, Optional.of(stdoutStrings::concat), Optional.empty());
+        processHelper.getOutputFromProcess(log, processBuilder, true, Optional.of(stdoutStringBuilder::append), Optional.empty());
 
         // We expect pip 19.x only!
-        return stdoutStrings.startsWith("pip 19.");
+        return stdoutStringBuilder.toString().startsWith("pip 19.");
     }
 
     private List<Path> getDirectorySnapshot(Path directory) {
