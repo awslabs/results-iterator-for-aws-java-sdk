@@ -6,10 +6,15 @@ import com.amazonaws.services.iot.model.ThingAttribute;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListBucketsRequest;
+import com.awslabs.resultsiterator.v1.implementations.DaggerV1TestInjector;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import com.awslabs.resultsiterator.v1.implementations.V1TestInjector;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
@@ -17,9 +22,19 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV1ResultsIterator {
+    private final Logger log = LoggerFactory.getLogger(TestV1ResultsIterator.class);
+    private AWSIotClient awsIotClient;
+    private AmazonS3Client amazonS3Client;
+
+    @Before
+    public void setup() {
+        V1TestInjector injector = DaggerV1TestInjector.create();
+        awsIotClient = injector.awsIotClient();
+        amazonS3Client = injector.amazonS3Client();
+    }
+
     @Test
     public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
-        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
         ListThingsRequest listThingsRequest = new ListThingsRequest();
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
         Stream<ThingAttribute> thingAttributes = v1ResultsIterator.stream();
@@ -30,7 +45,6 @@ public class TestV1ResultsIterator {
 
     @Test
     public void streamShouldWorkTwice() {
-        AWSIotClient awsIotClient = (AWSIotClient) AWSIotClient.builder().build();
         ListThingsRequest listThingsRequest = new ListThingsRequest();
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
         Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.stream();
@@ -44,7 +58,6 @@ public class TestV1ResultsIterator {
     //         Instead it returns the list of buckets directly. This may not be implemented because there's really no reason
     //         to add the complexity into the results iterator for an operation that does not need the iterator.
     public void shouldListBucketsAndNotThrowAnException() {
-        AmazonS3Client amazonS3Client = (AmazonS3Client) AmazonS3Client.builder().build();
         ListBucketsRequest listBucketsRequest = new ListBucketsRequest();
         V1ResultsIterator<Bucket> v1ResultsIterator = new V1ResultsIterator<>(amazonS3Client, listBucketsRequest);
         Stream<Bucket> buckets = v1ResultsIterator.stream();

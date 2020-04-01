@@ -1,5 +1,9 @@
 package com.awslabs.resultsiterator.v1;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.AwsRegionProviderChain;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.greengrass.AWSGreengrassClient;
@@ -10,6 +14,8 @@ import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.AWSIotClientBuilder;
 import com.amazonaws.services.iotdata.AWSIotDataClient;
 import com.amazonaws.services.iotdata.AWSIotDataClientBuilder;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.awslabs.ec2.implementations.BasicV1Ec2Helper;
 import com.awslabs.ec2.interfaces.V1Ec2Helper;
 import com.awslabs.iot.helpers.implementations.*;
@@ -21,28 +27,73 @@ import dagger.Provides;
 @Module(includes = {SharedModule.class})
 public class V1HelperModule {
     @Provides
-    public AmazonEC2Client provideAmazonEC2Client() {
-        return (AmazonEC2Client) AmazonEC2ClientBuilder.defaultClient();
+    public AWSCredentialsProvider provideAWSCredentialsProvider() {
+        return DefaultAWSCredentialsProviderChain.getInstance();
     }
 
     @Provides
-    public AWSIotClient provideAwsIotClient() {
-        return (AWSIotClient) AWSIotClientBuilder.defaultClient();
+    public AwsRegionProviderChain provideAwsRegionProviderChain() {
+        return new DefaultAwsRegionProviderChain();
     }
 
     @Provides
-    public AWSIotDataClient provideAwsIotDataClient() {
-        return (AWSIotDataClient) AWSIotDataClientBuilder.defaultClient();
+    public AmazonEC2ClientBuilder provideAmazonEC2ClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+        return AmazonEC2ClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AmazonIdentityManagementClient provideAmazonIdentityManagementClient() {
-        return (AmazonIdentityManagementClient) AmazonIdentityManagementClientBuilder.defaultClient();
+    public AmazonEC2Client provideAmazonEC2Client(AmazonEC2ClientBuilder amazonEC2ClientBuilder) {
+        return (AmazonEC2Client) amazonEC2ClientBuilder.build();
     }
 
     @Provides
-    public AWSGreengrassClient provideAwsGreengrassClient() {
-        return (AWSGreengrassClient) AWSGreengrassClientBuilder.defaultClient();
+    public AWSIotClientBuilder provideAwsIotClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+        return AWSIotClientBuilder.standard().withCredentials(awsCredentialsProvider);
+    }
+
+    @Provides
+    public AWSIotClient provideAwsIotClient(AWSIotClientBuilder awsIotClientBuilder) {
+        return (AWSIotClient) awsIotClientBuilder.build();
+    }
+
+    @Provides
+    public AmazonS3ClientBuilder provideAmazonS3ClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+        return AmazonS3ClientBuilder.standard().withCredentials(awsCredentialsProvider);
+    }
+
+    @Provides
+    public AmazonS3Client provideAmazonS3Client(AmazonS3ClientBuilder amazonS3ClientBuilder) {
+        return (AmazonS3Client) amazonS3ClientBuilder.build();
+    }
+
+    @Provides
+    public AWSIotDataClientBuilder provideAwsIotDataClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+        return AWSIotDataClientBuilder.standard().withCredentials(awsCredentialsProvider);
+    }
+
+    @Provides
+    public AWSIotDataClient provideAwsIotDataClient(AWSIotDataClientBuilder awsIotDataClientBuilder) {
+        return (AWSIotDataClient) awsIotDataClientBuilder.build();
+    }
+
+    @Provides
+    public AmazonIdentityManagementClientBuilder provideAmazonIdentityManagementClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+        return AmazonIdentityManagementClientBuilder.standard().withCredentials(awsCredentialsProvider);
+    }
+
+    @Provides
+    public AmazonIdentityManagementClient provideAmazonIdentityManagementClient(AmazonIdentityManagementClientBuilder amazonIdentityManagementClientBuilder) {
+        return (AmazonIdentityManagementClient) amazonIdentityManagementClientBuilder.build();
+    }
+
+    @Provides
+    public AWSGreengrassClientBuilder provideAwsGreengrassClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+        return AWSGreengrassClientBuilder.standard().withCredentials(awsCredentialsProvider);
+    }
+
+    @Provides
+    public AWSGreengrassClient provideAwsGreengrassClient(AWSGreengrassClientBuilder awsGreengrassClientBuilder) {
+        return (AWSGreengrassClient) awsGreengrassClientBuilder.build();
     }
 
     @Provides

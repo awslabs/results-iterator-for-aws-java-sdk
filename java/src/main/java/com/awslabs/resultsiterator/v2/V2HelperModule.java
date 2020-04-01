@@ -17,32 +17,27 @@ import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import dagger.Module;
 import dagger.Provides;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
+import software.amazon.awssdk.services.greengrass.GreengrassClientBuilder;
 import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.IamClientBuilder;
+import software.amazon.awssdk.services.iot.IotClient;
+import software.amazon.awssdk.services.iot.IotClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.StsClientBuilder;
 
 @Module(includes = {SharedModule.class})
 public class V2HelperModule {
-    // Normal clients that need no special configuration
-    // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
     @Provides
-    public StsClient provideStsClient() {
-        return new V2SafeProvider<>(StsClient::create).get();
-    }
-
-    @Provides
-    public S3Client provideS3Client() {
-        return new V2SafeProvider<>(S3Client::create).get();
-    }
-
-    @Provides
-    public GreengrassClient provideGreengrassClient() {
-        return new V2SafeProvider<>(GreengrassClient::create).get();
+    public AwsCredentialsProvider provideAwsCredentialsProvider() {
+        return new V2SafeProvider<>(DefaultCredentialsProvider::create).get();
     }
 
     @Provides
@@ -56,16 +51,63 @@ public class V2HelperModule {
         return basicV2SdkErrorHandler;
     }
 
-    // Clients that need special configuration
+    // Normal clients that need no special configuration
     // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
     @Provides
-    public IamClient provideIamClient() {
-        return new V2SafeProvider<>(() -> IamClient.builder().region(Region.AWS_GLOBAL).build()).get();
+    public StsClientBuilder provideStsClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return StsClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
-    public AwsCredentials provideAwsCredentials() {
-        return new V2SafeProvider<>(() -> DefaultCredentialsProvider.create().resolveCredentials()).get();
+    public StsClient provideStsClient(StsClientBuilder stsClientBuilder) {
+        return new V2SafeProvider<>(stsClientBuilder::build).get();
+    }
+
+    @Provides
+    public S3ClientBuilder provideS3ClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return S3Client.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public S3Client provideS3Client(S3ClientBuilder s3ClientBuilder) {
+        return new V2SafeProvider<>(s3ClientBuilder::build).get();
+    }
+
+    @Provides
+    public IotClientBuilder provideIotClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return IotClient.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public IotClient provideIotClient(IotClientBuilder iotClientBuilder) {
+        return new V2SafeProvider<>(iotClientBuilder::build).get();
+    }
+
+    @Provides
+    public GreengrassClientBuilder provideGreengrassClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return GreengrassClient.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public GreengrassClient provideGreengrassClient(GreengrassClientBuilder greengrassClientBuilder) {
+        return new V2SafeProvider<>(greengrassClientBuilder::build).get();
+    }
+
+    // Clients that need special configuration
+    // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
+    @Provides
+    public IamClientBuilder provideIamClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return IamClient.builder().credentialsProvider(awsCredentialsProvider).region(Region.AWS_GLOBAL);
+    }
+
+    @Provides
+    public IamClient provideIamClient(IamClientBuilder iamClientBuilder) {
+        return new V2SafeProvider<>(iamClientBuilder::build).get();
+    }
+
+    @Provides
+    public AwsCredentials provideAwsCredentials(AwsCredentialsProvider awsCredentialsProvider) {
+        return new V2SafeProvider<>(awsCredentialsProvider::resolveCredentials).get();
     }
 
     @Provides

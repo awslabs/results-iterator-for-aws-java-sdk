@@ -6,8 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -147,6 +149,10 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
                     log.error("Unable to connect to the API.  Do you have an Internet connection?");
                     return null;
                 }
+            } else if (e.getTargetException() instanceof S3Exception) {
+                S3Exception s3Exception = (S3Exception) e.getTargetException();
+                AwsErrorDetails a = s3Exception.awsErrorDetails();
+                a = null;
             }
 
             e.printStackTrace();
