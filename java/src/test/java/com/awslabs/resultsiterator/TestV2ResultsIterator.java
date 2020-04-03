@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV2ResultsIterator {
@@ -80,6 +81,15 @@ public class TestV2ResultsIterator {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
         List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
         groupInformationList.forEach(groupInformation -> log.info(new Gson().toJson(groupInformation)));
+    }
+
+    @Test
+    public void streamShouldWorkTwice() {
+        ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
+        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        Stream<ThingAttribute> thingAttributesStream1 = v2ResultsIterator.stream();
+        Stream<ThingAttribute> thingAttributesStream2 = v2ResultsIterator.stream();
+        MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
     private void listAll(Bucket bucket) {
