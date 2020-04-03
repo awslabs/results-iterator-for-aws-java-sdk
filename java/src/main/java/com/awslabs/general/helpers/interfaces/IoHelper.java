@@ -1,5 +1,7 @@
 package com.awslabs.general.helpers.interfaces;
 
+import org.apache.http.client.HttpClient;
+
 import java.io.FileNotFoundException;
 
 public interface IoHelper {
@@ -10,4 +12,6 @@ public interface IoHelper {
     void download(String url, String outputFilename);
 
     boolean exists(String filename);
+
+    HttpClient getDefaultHttpClient();
 }

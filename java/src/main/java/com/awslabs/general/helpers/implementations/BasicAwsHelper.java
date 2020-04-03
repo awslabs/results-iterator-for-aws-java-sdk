@@ -2,6 +2,7 @@ package com.awslabs.general.helpers.implementations;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.awslabs.general.helpers.interfaces.AwsHelper;
+import com.awslabs.general.helpers.interfaces.IoHelper;
 import io.vavr.control.Try;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -10,22 +11,22 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 
+import javax.inject.Inject;
 import java.util.Optional;
 
 public class BasicAwsHelper implements AwsHelper {
+    @Inject
+    IoHelper ioHelper;
+
+    @Inject
+    public BasicAwsHelper() {
+    }
+
     @Override
     public boolean isEc2() {
         String metadataUrl = EC2MetadataUtils.getHostAddressForEC2MetadataService();
 
-        // Set some short timeouts so this doesn't hang while testing
-        RequestConfig.Builder requestBuilder = RequestConfig.custom();
-        requestBuilder = requestBuilder.setConnectTimeout(100);
-        requestBuilder = requestBuilder.setConnectionRequestTimeout(100);
-        requestBuilder = requestBuilder.setSocketTimeout(100);
-
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setDefaultRequestConfig(requestBuilder.build());
-        HttpClient client = builder.build();
+        HttpClient client = ioHelper.getDefaultHttpClient();
         HttpGet httpGet = new HttpGet(metadataUrl);
 
         Try<Integer> tryHttpGetStatusCode = Try.of(() -> client.execute(httpGet))

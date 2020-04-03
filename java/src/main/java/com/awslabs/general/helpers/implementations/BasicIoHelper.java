@@ -2,6 +2,9 @@ package com.awslabs.general.helpers.implementations;
 
 import com.awslabs.general.helpers.interfaces.IoHelper;
 import io.vavr.control.Try;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import javax.inject.Inject;
 import java.io.FileNotFoundException;
@@ -50,5 +53,20 @@ public class BasicIoHelper implements IoHelper {
     @Override
     public boolean exists(String filename) {
         return Paths.get(filename).toFile().exists();
+    }
+
+    @Override
+    public HttpClient getDefaultHttpClient() {
+        // Set some short timeouts so this doesn't hang while testing
+        RequestConfig.Builder requestBuilder = RequestConfig.custom();
+        requestBuilder = requestBuilder.setConnectTimeout(100);
+        requestBuilder = requestBuilder.setConnectionRequestTimeout(100);
+        requestBuilder = requestBuilder.setSocketTimeout(100);
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setDefaultRequestConfig(requestBuilder.build());
+        HttpClient client = builder.build();
+
+        return client;
     }
 }
