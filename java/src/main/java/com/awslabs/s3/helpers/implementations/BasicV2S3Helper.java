@@ -86,10 +86,13 @@ public class BasicV2S3Helper implements V2S3Helper {
 
     private Try<S3Client> getRegionSpecificClientForBucketAfterException(S3Exception s3Exception) {
         if (!regionIsWrongException(s3Exception)) {
+            // This isn't an exception that contains the info we need
             return Try.failure(s3Exception);
         }
 
+        // Extract the region information
         return Try.of(() -> extractRegionFromRegionIsWrongException(s3Exception))
+                // Create a new S3 client with the extracted region
                 .map(region -> s3ClientBuilderProvider.get().region(region).build());
     }
 
