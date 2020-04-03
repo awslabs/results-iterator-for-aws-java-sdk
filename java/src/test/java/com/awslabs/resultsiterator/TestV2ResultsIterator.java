@@ -1,8 +1,10 @@
 package com.awslabs.resultsiterator;
 
+import com.awslabs.resultsiterator.v2.implementations.BasicV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
+import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import com.google.gson.Gson;
 import org.hamcrest.MatcherAssert;
@@ -28,6 +30,8 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public class TestV2ResultsIterator {
     private final Logger log = LoggerFactory.getLogger(TestV2ResultsIterator.class);
@@ -35,6 +39,7 @@ public class TestV2ResultsIterator {
     private GreengrassClient greengrassClient;
     private V2S3Helper v2S3Helper;
     private S3Client s3Client;
+    private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
 
     @Before
     public void setup() {
@@ -43,6 +48,7 @@ public class TestV2ResultsIterator {
         greengrassClient = injector.greengrassClient();
         v2S3Helper = injector.v2S3Helper();
         s3Client = injector.s3Client();
+        v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
     }
 
     @Test
@@ -107,5 +113,11 @@ public class TestV2ResultsIterator {
         s3Objects.map(S3Object::toString).forEach(log::info);
         s3Objects = s3ObjectIterator.stream();
         log.info("Object count: " + s3Objects.count());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenThingNameNotPresent() {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> v2CertificateCredentialsProvider.resolveCredentials());
+        assertTrue(exception.getMessage().contains(BasicV2CertificateCredentialsProvider.AWS_CREDENTIAL_PROVIDER_URL));
     }
 }
