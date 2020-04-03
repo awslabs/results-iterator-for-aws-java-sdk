@@ -9,7 +9,7 @@ import com.amazonaws.services.s3.model.ListBucketsRequest;
 import com.awslabs.resultsiterator.v1.implementations.DaggerV1TestInjector;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
 import com.awslabs.resultsiterator.v1.implementations.V1TestInjector;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class TestV1ResultsIterator {
         Stream<ThingAttribute> thingAttributes = v1ResultsIterator.stream();
         thingAttributes.forEach(System.out::println);
         thingAttributes = v1ResultsIterator.stream();
-        Assert.assertThat(thingAttributes.count(), greaterThan(0L));
+        MatcherAssert.assertThat(thingAttributes.count(), greaterThan(0L));
     }
 
     @Test
@@ -49,7 +49,7 @@ public class TestV1ResultsIterator {
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
         Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.stream();
         Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.stream();
-        Assert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
+        MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
     @Test
