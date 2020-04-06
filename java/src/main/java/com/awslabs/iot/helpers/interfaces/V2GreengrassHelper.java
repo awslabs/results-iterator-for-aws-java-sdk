@@ -55,7 +55,7 @@ public interface V2GreengrassHelper {
 
     Optional<FunctionIsolationMode> getDefaultIsolationModeByGroupInformation(GroupInformation groupInformation);
 
-    Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupInformation groupInformation);
+    Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation);
 
     Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupVersion groupVersion);
 

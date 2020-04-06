@@ -267,7 +267,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupInformation groupInformation) {
+    public Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation) {
         Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
