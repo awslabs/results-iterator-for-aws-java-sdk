@@ -267,7 +267,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation) {
+    public Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupInformation groupInformation) {
         Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
@@ -276,6 +276,11 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
         GroupVersion groupVersion = optionalGroupVersion.get();
 
+        return getCoreCertificateArnByGroupVersion(groupVersion);
+    }
+
+    @Override
+    public Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupVersion groupVersion) {
         String coreDefinitionVersionArn = groupVersion.coreDefinitionVersionArn();
         String coreDefinitionVersionId = greengrassIdExtractor.extractVersionId(coreDefinitionVersionArn);
         String coreDefinitionId = greengrassIdExtractor.extractId(coreDefinitionVersionArn);
