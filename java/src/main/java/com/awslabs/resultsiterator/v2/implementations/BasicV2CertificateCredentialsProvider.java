@@ -30,8 +30,7 @@ import javax.inject.Inject;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +40,10 @@ import java.security.KeyStore;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 
 public class BasicV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
     public static final String BOUNCY_CASTLE_PROVIDER_NAME = "BC";
@@ -48,6 +51,7 @@ public class BasicV2CertificateCredentialsProvider implements V2CertificateCrede
     public static final String CERTIFICATE = "certificate";
     public static final String PRIVATE_KEY = "private-key";
     public static final String TLSV1_2 = "TLSv1.2";
+    public static final String AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE = "AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE";
     public static final String AWS_CREDENTIAL_PROVIDER_URL = "AWS_CREDENTIAL_PROVIDER_URL";
     public static final String AWS_THING_NAME = "AWS_THING_NAME";
     public static final String AWS_ROLE_ALIAS = "AWS_ROLE_ALIAS";
@@ -68,16 +72,31 @@ public class BasicV2CertificateCredentialsProvider implements V2CertificateCrede
 
     @Override
     public AwsCredentials resolveCredentials() {
-        HashMap<String, String> systemPropertiesHashMap = System.getProperties().entrySet().stream()
-                .collect(HashMap.collector(e -> (String) e.getKey(), e -> (String) e.getValue()));
+        HashMap<String, String> properties = toHashMap(System.getProperties().entrySet());
+        HashMap<String, String> environment = toHashMap(System.getenv().entrySet());
 
-        String credentialProviderUrlString = systemPropertiesHashMap.get(AWS_CREDENTIAL_PROVIDER_URL).getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(AWS_CREDENTIAL_PROVIDER_URL));
-        String thingNameString = systemPropertiesHashMap.get(AWS_THING_NAME).getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(AWS_THING_NAME));
-        String roleAliasString = systemPropertiesHashMap.get(AWS_ROLE_ALIAS).getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(AWS_ROLE_ALIAS));
-        String caCertFilenameString = systemPropertiesHashMap.get(AWS_CA_CERT_FILENAME).getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(AWS_CA_CERT_FILENAME));
-        String clientCertFilenameString = systemPropertiesHashMap.get(AWS_CLIENT_CERT_FILENAME).getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(AWS_CLIENT_CERT_FILENAME));
-        String clientPrivateKeyFilenameString = systemPropertiesHashMap.get(AWS_CLIENT_PRIVATE_KEY_FILENAME).getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(AWS_CLIENT_PRIVATE_KEY_FILENAME));
-        Option<String> clientPrivateKeyPasswordOption = systemPropertiesHashMap.get(AWS_CLIENT_PRIVATE_KEY_PASSWORD);
+        Option<String> maybeCredentialProviderPropertiesFile = getOptionFromPropertiesOrEnvironment(properties, environment, AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE);
+
+        if (maybeCredentialProviderPropertiesFile.isDefined()) {
+            Properties propertiesFromFile = new Properties();
+
+            File credentialsProviderPropertiesFile = new File(maybeCredentialProviderPropertiesFile.get());
+
+            Optional<Properties> optionalProperties = Try.of(() -> loadProperties(credentialsProviderPropertiesFile, propertiesFromFile)).get();
+
+            if (optionalProperties.isPresent()) {
+                // Got the values as we expected, use these instead of the original properties
+                properties = toHashMap(propertiesFromFile.entrySet());
+            }
+        }
+
+        String credentialProviderUrlString = getFromPropertiesOrEnvironment(properties, environment, AWS_CREDENTIAL_PROVIDER_URL);
+        String thingNameString = getFromPropertiesOrEnvironment(properties, environment, AWS_THING_NAME);
+        String roleAliasString = getFromPropertiesOrEnvironment(properties, environment, AWS_ROLE_ALIAS);
+        String caCertFilenameString = getFromPropertiesOrEnvironment(properties, environment, AWS_CA_CERT_FILENAME);
+        String clientCertFilenameString = getFromPropertiesOrEnvironment(properties, environment, AWS_CLIENT_CERT_FILENAME);
+        String clientPrivateKeyFilenameString = getFromPropertiesOrEnvironment(properties, environment, AWS_CLIENT_PRIVATE_KEY_FILENAME);
+        Option<String> maybeClientPrivateKeyPassword = getOptionFromPropertiesOrEnvironment(properties, environment, AWS_CLIENT_PRIVATE_KEY_PASSWORD);
 
         ImmutableCredentialProviderUrl credentialProviderUrl = ImmutableCredentialProviderUrl.builder().credentialProviderUrl(credentialProviderUrlString).build();
         ImmutableThingName thingName = ImmutableThingName.builder().name(thingNameString).build();
@@ -87,13 +106,67 @@ public class BasicV2CertificateCredentialsProvider implements V2CertificateCrede
         ImmutableClientPrivateKeyFilename clientPrivateKeyFilename = ImmutableClientPrivateKeyFilename.builder().clientPrivateKeyFilename(clientPrivateKeyFilenameString).build();
         ImmutablePassword.Builder passwordBuilder = ImmutablePassword.builder();
 
-        clientPrivateKeyPasswordOption
+        maybeClientPrivateKeyPassword
                 .map(String::toCharArray)
                 .map(passwordBuilder::password);
 
         ImmutablePassword password = passwordBuilder.build();
 
         return resolveCredentials(credentialProviderUrl, thingName, roleAlias, caCertFilename, clientCertFilename, clientPrivateKeyFilename, password);
+    }
+
+    private <U, V> HashMap<String, String> toHashMap(Set<Map.Entry<U, V>> entrySet) {
+        return entrySet.stream()
+                .collect(HashMap.collector(e -> (String) e.getKey(), e -> (String) e.getValue()));
+    }
+
+    private Optional<Properties> loadProperties(File credentialProviderPropertiesFile, Properties properties) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(credentialProviderPropertiesFile);
+        properties.load(fileInputStream);
+
+        String caCertFilenameString = properties.getProperty(AWS_CA_CERT_FILENAME);
+
+        if (caCertFilenameString == null) {
+            // Missing file, give up
+            return Optional.empty();
+        }
+
+        String clientCertFilenameString = properties.getProperty(AWS_CLIENT_CERT_FILENAME);
+
+        if (clientCertFilenameString == null) {
+            // Missing file, give up
+            return Optional.empty();
+        }
+
+        String clientPrivateKeyFilenameString = properties.getProperty(AWS_CLIENT_PRIVATE_KEY_FILENAME);
+
+        if (clientPrivateKeyFilenameString == null) {
+            // Missing file, give up
+            return Optional.empty();
+        }
+
+        // All file names are present, make them relative to the properties file
+        Path credentialProviderPropertiesPath = credentialProviderPropertiesFile.toPath().getParent();
+        caCertFilenameString = credentialProviderPropertiesPath.resolve(caCertFilenameString).toAbsolutePath().toString();
+        clientCertFilenameString = credentialProviderPropertiesPath.resolve(clientCertFilenameString).toAbsolutePath().toString();
+        clientPrivateKeyFilenameString = credentialProviderPropertiesPath.resolve(clientPrivateKeyFilenameString).toAbsolutePath().toString();
+
+        // Put them back into the properties object with their absolute paths
+        properties.setProperty(AWS_CA_CERT_FILENAME, caCertFilenameString);
+        properties.setProperty(AWS_CLIENT_CERT_FILENAME, clientCertFilenameString);
+        properties.setProperty(AWS_CLIENT_PRIVATE_KEY_FILENAME, clientPrivateKeyFilenameString);
+
+        return Optional.of(properties);
+    }
+
+    private String getFromPropertiesOrEnvironment(HashMap<String, String> properties, HashMap<String, String> environment, String name) {
+        return getOptionFromPropertiesOrEnvironment(properties, environment, name)
+                .getOrElseThrow(() -> throwRuntimeExceptionOnMissingEnvironmentVariable(name));
+    }
+
+    private Option<String> getOptionFromPropertiesOrEnvironment(HashMap<String, String> properties, HashMap<String, String> environment, String name) {
+        return properties.get(name)
+                .orElse(environment.get(name));
     }
 
     private RuntimeException throwRuntimeExceptionOnMissingEnvironmentVariable(String environmentVariableName) {

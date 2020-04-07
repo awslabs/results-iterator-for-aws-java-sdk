@@ -5,6 +5,7 @@ import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
+import io.vavr.control.Try;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,14 +17,22 @@ import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.utils.StringInputStream;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Security;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 import static com.awslabs.resultsiterator.v2.implementations.BasicV2CertificateCredentialsProvider.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class BasicV2CertificateCredentialsProviderTest {
+    private final Logger log = LoggerFactory.getLogger(BasicV2CertificateCredentialsProvider.class);
     public static final String JUNK = "junk";
     public static final String JUNK_CORE = "junk_Core";
     public static final String ACCESS_KEY_ID = "accessKeyId";
@@ -165,8 +175,8 @@ public class BasicV2CertificateCredentialsProviderTest {
     }
 
     @Test
-    public void shouldGetCertificateCredentialsDirectlyWithLocalTestData() {
-        setupSystemPropertiesForCertificateCredentialsProvider();
+    public void shouldGetCertificateCredentialsDirectlyWithLocalTestDataInSystemProperties() {
+        setupSystemPropertiesForCertificateCredentialsProviderFromFile();
 
         AwsCredentials awsCredentials = v2CertificateCredentialsProvider.resolveCredentials();
 
@@ -175,8 +185,8 @@ public class BasicV2CertificateCredentialsProviderTest {
     }
 
     @Test
-    public void shouldGetCertificateCredentialsFromChainWithLocalTestData() {
-        setupSystemPropertiesForCertificateCredentialsProvider();
+    public void shouldGetCertificateCredentialsFromChainWithLocalTestDataInSystemProperties() {
+        setupSystemPropertiesForCertificateCredentialsProviderFromFile();
 
         AwsCredentials awsCredentials = awsCredentialsProvider.resolveCredentials();
 
@@ -184,13 +194,74 @@ public class BasicV2CertificateCredentialsProviderTest {
         assertThat(awsCredentials, isA(AwsSessionCredentials.class));
     }
 
-    private void setupSystemPropertiesForCertificateCredentialsProvider() {
-        System.setProperty(AWS_CREDENTIAL_PROVIDER_URL, immutableCredentialProviderUrl.getCredentialProviderUrl());
-        System.setProperty(AWS_THING_NAME, immutableThingName.getName());
-        System.setProperty(AWS_ROLE_ALIAS, "Greengrass_CoreRoleAlias");
-        System.setProperty(AWS_CA_CERT_FILENAME, "src/test/resources/root.ca.pem");
-        System.setProperty(AWS_CLIENT_CERT_FILENAME, "src/test/resources/certificate.pem");
-        System.setProperty(AWS_CLIENT_PRIVATE_KEY_FILENAME, "src/test/resources/private.key");
+    @Test
+    public void shouldGetCertificateCredentialsDirectlyWithLocalTestDataInEnvironment() {
+        setupEnvironmentForCertificateCredentialsProviderFromFile();
+
+        AwsCredentials awsCredentials = v2CertificateCredentialsProvider.resolveCredentials();
+
+        // AWS credentials returned are session credentials
+        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+    }
+
+    @Test
+    public void shouldGetCertificateCredentialsFromChainWithLocalTestDataInEnvironment() {
+        setupEnvironmentForCertificateCredentialsProviderFromFile();
+
+        AwsCredentials awsCredentials = awsCredentialsProvider.resolveCredentials();
+
+        // AWS credentials returned are session credentials
+        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+    }
+
+    private void setupSystemPropertiesForCertificateCredentialsProviderFromStaticValues() {
+        sharedSetterForStaticValues(System::setProperty);
+    }
+
+    private void setupEnvironmentForCertificateCredentialsProviderFromStaticValues() {
+        sharedSetterForStaticValues(this::setEnv);
+    }
+
+    private void setupSystemPropertiesForCertificateCredentialsProviderFromFile() {
+        sharedSetterForFile(System::setProperty);
+    }
+
+    private void setupEnvironmentForCertificateCredentialsProviderFromFile() {
+        sharedSetterForFile(this::setEnv);
+    }
+
+    // Guidance from: https://stackoverflow.com/a/40682052/796579
+    // Setting the environment isn't possible in Java directly since the map returned from getenv() isn't modifiable
+    private String setEnv(String key, String value) {
+        Map<String, String> env = System.getenv();
+        Class<?> cl = env.getClass();
+        Field field = Try.of(() -> cl.getDeclaredField("m")).get();
+        field.setAccessible(true);
+        Map<String, String> writableEnv = Try.of(() -> (Map<String, String>) field.get(env)).get();
+        return writableEnv.put(key, value);
+    }
+
+    private void sharedSetterForFile(BiFunction<String, String, String> setter) {
+        String propertiesFileName = Try.of(() -> Files.walk(Paths.get("../../aws-greengrass-lambda-functions/credentials/"))
+                .map(Path::toFile)
+                .filter(file -> "iotcp.properties".equals(file.getName()))
+                .map(File::getAbsolutePath)
+                .findFirst())
+                // Rethrow any exceptions
+                .get()
+                // Force getting the optional value
+                .get();
+
+        setter.apply(AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE, propertiesFileName);
+    }
+
+    private void sharedSetterForStaticValues(BiFunction<String, String, String> setter) {
+        setter.apply(AWS_CREDENTIAL_PROVIDER_URL, immutableCredentialProviderUrl.getCredentialProviderUrl());
+        setter.apply(AWS_THING_NAME, immutableThingName.getName());
+        setter.apply(AWS_ROLE_ALIAS, "Greengrass_CoreRoleAlias");
+        setter.apply(AWS_CA_CERT_FILENAME, "src/test/resources/root.ca.pem");
+        setter.apply(AWS_CLIENT_CERT_FILENAME, "src/test/resources/certificate.pem");
+        setter.apply(AWS_CLIENT_PRIVATE_KEY_FILENAME, "src/test/resources/private.key");
     }
 
     private final String testCertificate = "-----BEGIN CERTIFICATE-----\n" +
