@@ -31,7 +31,7 @@ public interface V2GreengrassHelper {
 
     Stream<GroupInformation> getGroupInformationByName(GreengrassGroupName greengrassGroupName);
 
-    Stream<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId);
+    Optional<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId);
 
     Stream<GreengrassGroupId> getGroupIdByName(GreengrassGroupName greengrassGroupName);
 
@@ -62,4 +62,8 @@ public interface V2GreengrassHelper {
     boolean groupExistsByName(GreengrassGroupName greengrassGroupName);
 
     Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
+
+    Optional<CoreDefinitionVersion> getCoreDefinitionVersionByGroupInformation(GroupInformation groupInformation);
+
+    boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
 }

@@ -10,11 +10,15 @@ import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.*;
 
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BasicV2IotHelper implements V2IotHelper {
+    public static final String IMMUTABLE = "immutable";
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
 
     @Inject
@@ -119,6 +123,13 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public Optional<ThingArn> getThingArn(ThingName thingName) {
+        return describeThing(thingName)
+                // At this point our try should be successful, even if the resource wasn't found, but the result may be empty
+                .map(DescribeThingResponse::thingArn)
+                .map(thingArn -> ImmutableThingArn.builder().arn(thingArn).build());
+    }
+
+    public Optional<DescribeThingResponse> describeThing(ThingName thingName) {
         DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
                 .thingName(thingName.getName())
                 .build();
@@ -126,10 +137,7 @@ public class BasicV2IotHelper implements V2IotHelper {
         // DescribeThing will throw an exception if the thing does not exist
         return Try.of(() -> Optional.of(iotClient.describeThing(describeThingRequest)))
                 .recover(ResourceNotFoundException.class, throwable -> Optional.empty())
-                // At this point our try should be successful, even if the resource wasn't found, but the result may be empty
-                .get()
-                .map(DescribeThingResponse::thingArn)
-                .map(thingArn -> ImmutableThingArn.builder().arn(thingArn).build());
+                .get();
     }
 
     @Override
@@ -223,16 +231,32 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     private ImmutableThingArn recoverFromResourceAlreadyExistsException(ThingName thingName, ResourceAlreadyExistsException throwable) {
-        if (throwable.getMessage().contains("with different attributes")) {
-            log.info("The thing [" + thingName.getName() + "] already exists with different tags/attributes (e.g. immutable or other attributes)");
-
-            DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
-                    .thingName(thingName.getName())
-                    .build();
-
-            return ImmutableThingArn.builder().arn(iotClient.describeThing(describeThingRequest).thingArn()).build();
+        if (!throwable.getMessage().contains("with different attributes")) {
+            throw new RuntimeException(throwable);
         }
 
-        throw new RuntimeException(throwable);
+        log.info("The thing [" + thingName.getName() + "] already exists with different tags/attributes (e.g. immutable or other attributes)");
+
+        DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
+                .thingName(thingName.getName())
+                .build();
+
+        return ImmutableThingArn.builder().arn(iotClient.describeThing(describeThingRequest).thingArn()).build();
+    }
+
+    @Override
+    public boolean isThingImmutable(ThingName thingName) {
+        // Describe the thing by name
+        return describeThing(thingName)
+                // Extract the attributes
+                .map(DescribeThingResponse::attributes)
+                // Extract the keys from the attributes
+                .map(Map::keySet)
+                // Turn it into a stream
+                .map(Collection::stream)
+                // Use an empty stream if no values are present
+                .orElse(Stream.empty())
+                // Check if any of the keys are equal to the immutable string
+                .anyMatch(IMMUTABLE::equals);
     }
 }

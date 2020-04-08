@@ -38,4 +38,6 @@ public interface V2IotHelper {
     Optional<CertificatePem> getCertificatePem(CertificateId certificateId);
 
     ThingArn createThing(ThingName thingName);
+
+    boolean isThingImmutable(ThingName thingName);
 }

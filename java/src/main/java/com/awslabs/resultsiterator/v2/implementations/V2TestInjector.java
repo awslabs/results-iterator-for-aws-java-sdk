@@ -1,6 +1,7 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.general.helpers.interfaces.JsonHelper;
+import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.V2HelperModule;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
@@ -31,4 +32,6 @@ public interface V2TestInjector {
     AwsCredentialsProvider awsCredentialsProvider();
 
     V2IotHelper v2IotHelper();
+
+    V2GreengrassHelper v2GreengrassHelper();
 }

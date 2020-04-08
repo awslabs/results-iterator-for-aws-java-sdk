@@ -1,5 +1,6 @@
 package com.awslabs.resultsiterator;
 
+import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
@@ -44,6 +45,7 @@ public class TestV2ResultsIterator {
     private V2S3Helper v2S3Helper;
     private S3Client s3Client;
     private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
+    private V2GreengrassHelper v2GreengrassHelper;
 
     @Before
     public void setup() {
@@ -53,6 +55,7 @@ public class TestV2ResultsIterator {
         v2S3Helper = injector.v2S3Helper();
         s3Client = injector.s3Client();
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
+        v2GreengrassHelper = injector.v2GreengrassHelper();
 
         CreateThingRequest createThingRequest = CreateThingRequest.builder()
                 .thingName(JUNKFORTESTING_V2)

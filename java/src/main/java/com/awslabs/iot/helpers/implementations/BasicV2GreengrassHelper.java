@@ -2,7 +2,9 @@ package com.awslabs.iot.helpers.implementations;
 
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
+import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
+import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import software.amazon.awssdk.services.greengrass.model.*;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -25,6 +28,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     GreengrassIdExtractor greengrassIdExtractor;
     @Inject
     GreengrassClient greengrassClient;
+    @Inject
+    IotIdExtractor iotIdExtractor;
+    @Inject
+    V2IotHelper v2IotHelper;
 
     @Inject
     public BasicV2GreengrassHelper() {
@@ -88,9 +95,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId) {
+    public Optional<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId) {
         return getGroups()
-                .filter(getGroupIdMatchesPredicate(greengrassGroupId));
+                .filter(getGroupIdMatchesPredicate(greengrassGroupId))
+                .findFirst();
     }
 
     @Override
@@ -316,5 +324,54 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .filter(groupInformation -> groupInformation.latestVersion() != null)
                 .findFirst()
                 .flatMap(this::getLatestGroupVersionByGroupInformation);
+    }
+
+    @Override
+    public Optional<CoreDefinitionVersion> getCoreDefinitionVersionByGroupInformation(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
+
+        if (!optionalGroupVersion.isPresent()) {
+            return Optional.empty();
+        }
+
+        GroupVersion groupVersion = optionalGroupVersion.get();
+
+        String coreDefinitionVersionArn = groupVersion.coreDefinitionVersionArn();
+
+        GetCoreDefinitionVersionRequest getCoreDefinitionVersionRequest = GetCoreDefinitionVersionRequest.builder()
+                .coreDefinitionId(greengrassIdExtractor.extractId(coreDefinitionVersionArn))
+                .coreDefinitionVersionId(greengrassIdExtractor.extractVersionId(coreDefinitionVersionArn))
+                .build();
+
+        // This method throws an exception if the definition does not exist
+        GetCoreDefinitionVersionResponse getCoreDefinitionVersionResponse = Try.of(() -> greengrassClient.getCoreDefinitionVersion(getCoreDefinitionVersionRequest))
+                .getOrNull();
+
+        return Optional.ofNullable(getCoreDefinitionVersionResponse)
+                .map(GetCoreDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
+        // Get the group information by group ID
+        return getGroupInformationById(greengrassGroupId)
+                // Get the latest core definition version (flatMap to get rid of Optional<Optional<...>> result
+                .flatMap(this::getCoreDefinitionVersionByGroupInformation)
+                // Get the list of cores
+                .map(CoreDefinitionVersion::cores)
+                // Convert it to a stream
+                .map(Collection::stream)
+                // Use an empty stream if no cores exist
+                .orElse(Stream.empty())
+                .findFirst()
+                // Get the thing ARN
+                .map(Core::thingArn)
+                .map(thingArn -> ImmutableThingArn.builder().arn(thingArn).build())
+                // Extract the thing name
+                .map(iotIdExtractor::extractThingName)
+                // Check if the thing is immutable
+                .map(v2IotHelper::isThingImmutable)
+                // If the thing wasn't found, return false. Otherwise use the result from the immutability check.
+                .orElse(false);
     }
 }

@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 public class BasicV1ThingHelper implements V1ThingHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1ThingHelper.class);
+    public static final String IMMUTABLE = "immutable";
     @Inject
     AWSIotClient awsIotClient;
     @Inject
@@ -171,7 +172,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
 
         DescribeThingResult describeThingResult = awsIotClient.describeThing(describeThingRequest);
 
-        return describeThingResult.getAttributes().containsKey("immutable");
+        return describeThingResult.getAttributes().containsKey(IMMUTABLE);
     }
 
     @Override

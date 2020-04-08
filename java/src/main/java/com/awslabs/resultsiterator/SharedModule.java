@@ -3,7 +3,9 @@ package com.awslabs.resultsiterator;
 import com.awslabs.general.helpers.implementations.*;
 import com.awslabs.general.helpers.interfaces.*;
 import com.awslabs.iot.helpers.implementations.BasicGreengrassIdExtractor;
+import com.awslabs.iot.helpers.implementations.BasicIotIdExtractor;
 import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
+import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
 import dagger.Module;
 import dagger.Provides;
 
@@ -20,8 +22,13 @@ public class SharedModule {
     }
 
     @Provides
-    public GreengrassIdExtractor greengrassIdExtractor(BasicGreengrassIdExtractor basicSharedGreengrassIdExtractor) {
-        return basicSharedGreengrassIdExtractor;
+    public GreengrassIdExtractor greengrassIdExtractor(BasicGreengrassIdExtractor basicGreengrassIdExtractor) {
+        return basicGreengrassIdExtractor;
+    }
+
+    @Provides
+    public IotIdExtractor iotIdExtractor(BasicIotIdExtractor basicIotIdExtractor) {
+        return basicIotIdExtractor;
     }
 
     @Provides
