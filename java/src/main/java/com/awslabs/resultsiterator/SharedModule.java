@@ -10,32 +10,32 @@ import dagger.Provides;
 @Module
 public class SharedModule {
     @Provides
-    public JsonHelper provideJsonHelper(BasicJsonHelper basicJsonHelper) {
+    public JsonHelper jsonHelper(BasicJsonHelper basicJsonHelper) {
         return basicJsonHelper;
     }
 
     @Provides
-    public IoHelper provideIoHelper(BasicIoHelper basicIoHelper) {
+    public IoHelper ioHelper(BasicIoHelper basicIoHelper) {
         return basicIoHelper;
     }
 
     @Provides
-    public GreengrassIdExtractor provideGreengrassIdExtractor(BasicGreengrassIdExtractor basicSharedGreengrassIdExtractor) {
+    public GreengrassIdExtractor greengrassIdExtractor(BasicGreengrassIdExtractor basicSharedGreengrassIdExtractor) {
         return basicSharedGreengrassIdExtractor;
     }
 
     @Provides
-    public AwsHelper provideAwsHelper(BasicAwsHelper basicAwsHelper) {
+    public AwsHelper awsHelper(BasicAwsHelper basicAwsHelper) {
         return basicAwsHelper;
     }
 
     @Provides
-    public LambdaPackagingHelper provideLambdaPackagingHelper(BasicLambdaPackagingHelper basicLambdaPackagingHelper) {
+    public LambdaPackagingHelper lambdaPackagingHelper(BasicLambdaPackagingHelper basicLambdaPackagingHelper) {
         return basicLambdaPackagingHelper;
     }
 
     @Provides
-    public ProcessHelper provideProcessHelper(BasicProcessHelper basicProcessHelper) {
+    public ProcessHelper processHelper(BasicProcessHelper basicProcessHelper) {
         return basicProcessHelper;
     }
 }

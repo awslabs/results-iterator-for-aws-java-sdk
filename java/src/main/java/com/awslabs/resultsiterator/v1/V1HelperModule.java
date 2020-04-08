@@ -27,112 +27,112 @@ import dagger.Provides;
 @Module(includes = {SharedModule.class})
 public class V1HelperModule {
     @Provides
-    public AWSCredentialsProvider provideAWSCredentialsProvider() {
+    public AWSCredentialsProvider awsCredentialsProvider() {
         return DefaultAWSCredentialsProviderChain.getInstance();
     }
 
     @Provides
-    public AwsRegionProviderChain provideAwsRegionProviderChain() {
+    public AwsRegionProviderChain awsRegionProviderChain() {
         return new DefaultAwsRegionProviderChain();
     }
 
     @Provides
-    public AmazonEC2ClientBuilder provideAmazonEC2ClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+    public AmazonEC2ClientBuilder amazonEC2ClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
         return AmazonEC2ClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AmazonEC2Client provideAmazonEC2Client(AmazonEC2ClientBuilder amazonEC2ClientBuilder) {
+    public AmazonEC2Client amazonEC2Client(AmazonEC2ClientBuilder amazonEC2ClientBuilder) {
         return (AmazonEC2Client) amazonEC2ClientBuilder.build();
     }
 
     @Provides
-    public AWSIotClientBuilder provideAwsIotClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+    public AWSIotClientBuilder awsIotClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
         return AWSIotClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AWSIotClient provideAwsIotClient(AWSIotClientBuilder awsIotClientBuilder) {
+    public AWSIotClient awsIotClient(AWSIotClientBuilder awsIotClientBuilder) {
         return (AWSIotClient) awsIotClientBuilder.build();
     }
 
     @Provides
-    public AmazonS3ClientBuilder provideAmazonS3ClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+    public AmazonS3ClientBuilder amazonS3ClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
         return AmazonS3ClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AmazonS3Client provideAmazonS3Client(AmazonS3ClientBuilder amazonS3ClientBuilder) {
+    public AmazonS3Client amazonS3Client(AmazonS3ClientBuilder amazonS3ClientBuilder) {
         return (AmazonS3Client) amazonS3ClientBuilder.build();
     }
 
     @Provides
-    public AWSIotDataClientBuilder provideAwsIotDataClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+    public AWSIotDataClientBuilder awsIotDataClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
         return AWSIotDataClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AWSIotDataClient provideAwsIotDataClient(AWSIotDataClientBuilder awsIotDataClientBuilder) {
+    public AWSIotDataClient awsIotDataClient(AWSIotDataClientBuilder awsIotDataClientBuilder) {
         return (AWSIotDataClient) awsIotDataClientBuilder.build();
     }
 
     @Provides
-    public AmazonIdentityManagementClientBuilder provideAmazonIdentityManagementClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+    public AmazonIdentityManagementClientBuilder amazonIdentityManagementClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
         return AmazonIdentityManagementClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AmazonIdentityManagementClient provideAmazonIdentityManagementClient(AmazonIdentityManagementClientBuilder amazonIdentityManagementClientBuilder) {
+    public AmazonIdentityManagementClient amazonIdentityManagementClient(AmazonIdentityManagementClientBuilder amazonIdentityManagementClientBuilder) {
         return (AmazonIdentityManagementClient) amazonIdentityManagementClientBuilder.build();
     }
 
     @Provides
-    public AWSGreengrassClientBuilder provideAwsGreengrassClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
+    public AWSGreengrassClientBuilder awsGreengrassClientBuilder(AWSCredentialsProvider awsCredentialsProvider) {
         return AWSGreengrassClientBuilder.standard().withCredentials(awsCredentialsProvider);
     }
 
     @Provides
-    public AWSGreengrassClient provideAwsGreengrassClient(AWSGreengrassClientBuilder awsGreengrassClientBuilder) {
+    public AWSGreengrassClient awsGreengrassClient(AWSGreengrassClientBuilder awsGreengrassClientBuilder) {
         return (AWSGreengrassClient) awsGreengrassClientBuilder.build();
     }
 
     @Provides
-    public V1Ec2Helper provideV1Ec2Helper(BasicV1Ec2Helper basicV1Ec2Helper) {
+    public V1Ec2Helper v1Ec2Helper(BasicV1Ec2Helper basicV1Ec2Helper) {
         return basicV1Ec2Helper;
     }
 
     @Provides
-    public V1GreengrassHelper provideV1GreengrassHelper(BasicV1GreengrassHelper basicV1GreengrassHelper) {
+    public V1GreengrassHelper v1GreengrassHelper(BasicV1GreengrassHelper basicV1GreengrassHelper) {
         return basicV1GreengrassHelper;
     }
 
     @Provides
-    public V1CertificateHelper provideV1CertificateHelper(BasicV1CertificateHelper basicV1CertificateHelper) {
+    public V1CertificateHelper v1CertificateHelper(BasicV1CertificateHelper basicV1CertificateHelper) {
         return basicV1CertificateHelper;
     }
 
     @Provides
-    public V1ThingHelper provideV1ThingHelper(BasicV1ThingHelper basicV1ThingHelper) {
+    public V1ThingHelper v1ThingHelper(BasicV1ThingHelper basicV1ThingHelper) {
         return basicV1ThingHelper;
     }
 
     @Provides
-    public V1PolicyHelper provideV1PolicyHelper(BasicV1PolicyHelper basicV1PolicyHelper) {
+    public V1PolicyHelper v1PolicyHelper(BasicV1PolicyHelper basicV1PolicyHelper) {
         return basicV1PolicyHelper;
     }
 
     @Provides
-    public V1ThingGroupHelper provideV1ThingGroupHelper(BasicV1ThingGroupHelper basicV1ThingGroupHelper) {
+    public V1ThingGroupHelper v1ThingGroupHelper(BasicV1ThingGroupHelper basicV1ThingGroupHelper) {
         return basicV1ThingGroupHelper;
     }
 
     @Provides
-    public V1IamHelper provideV1IamHelper(BasicV1IamHelper basicV1IamHelper) {
+    public V1IamHelper v1IamHelper(BasicV1IamHelper basicV1IamHelper) {
         return basicV1IamHelper;
     }
 
     @Provides
-    public V1RuleHelper provideV1RuleHelper(BasicV1RuleHelper basicV1RuleHelper) {
+    public V1RuleHelper v1RuleHelper(BasicV1RuleHelper basicV1RuleHelper) {
         return basicV1RuleHelper;
     }
 }
