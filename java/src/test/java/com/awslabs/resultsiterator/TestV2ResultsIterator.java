@@ -8,6 +8,7 @@ import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvide
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import com.google.gson.Gson;
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -16,6 +17,8 @@ import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.GroupInformation;
 import software.amazon.awssdk.services.greengrass.model.ListGroupsRequest;
 import software.amazon.awssdk.services.iot.IotClient;
+import software.amazon.awssdk.services.iot.model.CreateThingRequest;
+import software.amazon.awssdk.services.iot.model.DeleteThingRequest;
 import software.amazon.awssdk.services.iot.model.ListThingsRequest;
 import software.amazon.awssdk.services.iot.model.ThingAttribute;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -34,6 +37,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 public class TestV2ResultsIterator {
+    public static final String JUNKFORTESTING_V2 = "JUNKFORTESTINGv2";
     private final Logger log = LoggerFactory.getLogger(TestV2ResultsIterator.class);
     private IotClient iotClient;
     private GreengrassClient greengrassClient;
@@ -49,6 +53,19 @@ public class TestV2ResultsIterator {
         v2S3Helper = injector.v2S3Helper();
         s3Client = injector.s3Client();
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
+
+        CreateThingRequest createThingRequest = CreateThingRequest.builder()
+                .thingName(JUNKFORTESTING_V2)
+                .build();
+        iotClient.createThing(createThingRequest);
+    }
+
+    @After
+    public void tearDown() {
+        DeleteThingRequest deleteThingRequest = DeleteThingRequest.builder()
+                .thingName(JUNKFORTESTING_V2)
+                .build();
+        iotClient.deleteThing(deleteThingRequest);
     }
 
     @Test
