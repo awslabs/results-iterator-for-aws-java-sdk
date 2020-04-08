@@ -53,7 +53,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesById(GreengrassGroupId greengrassGroupId) {
+    public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityProperties(GreengrassGroupId greengrassGroupId) {
         ListGroupCertificateAuthoritiesRequest listGroupCertificateAuthoritiesRequest = ListGroupCertificateAuthoritiesRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
                 .build();
@@ -62,8 +62,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesByGroupInformation(GroupInformation groupInformation) {
-        return getGroupCertificateAuthorityPropertiesById(ImmutableGreengrassGroupId.builder().groupId(groupInformation.id()).build());
+    public Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityProperties(GroupInformation groupInformation) {
+        return getGroupCertificateAuthorityProperties(ImmutableGreengrassGroupId.builder().groupId(groupInformation.id()).build());
     }
 
     @Override
@@ -89,20 +89,20 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<GroupInformation> getGroupInformationByName(GreengrassGroupName greengrassGroupName) {
+    public Stream<GroupInformation> getGroupInformation(GreengrassGroupName greengrassGroupName) {
         return getGroups()
                 .filter(getGroupNameMatchesPredicate(greengrassGroupName));
     }
 
     @Override
-    public Optional<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId) {
+    public Optional<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId) {
         return getGroups()
                 .filter(getGroupIdMatchesPredicate(greengrassGroupId))
                 .findFirst();
     }
 
     @Override
-    public Stream<GreengrassGroupId> getGroupIdByName(GreengrassGroupName greengrassGroupName) {
+    public Stream<GreengrassGroupId> getGroupId(GreengrassGroupName greengrassGroupName) {
         return getGroups()
                 .filter(getGroupNameMatchesPredicate(greengrassGroupName))
                 .map(GroupInformation::id)
@@ -131,14 +131,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<GreengrassGroupId> getGroupIdByGroupInformation(GroupInformation groupInformation) {
+    public Optional<GreengrassGroupId> getGroupId(GroupInformation groupInformation) {
         return getGroupVersionResponse(groupInformation)
                 .map(GetGroupVersionResponse::id)
                 .map(groupId -> ImmutableGreengrassGroupId.builder().groupId(groupId).build());
     }
 
     @Override
-    public Optional<GroupVersion> getLatestGroupVersionByGroupInformation(GroupInformation groupInformation) {
+    public Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation) {
         return getGroupVersionResponse(groupInformation)
                 .map(GetGroupVersionResponse::definition);
     }
@@ -155,16 +155,17 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<List<Function>> getFunctionsByGroupInformation(GroupInformation groupInformation) {
+    public Optional<List<Function>> getFunctions(GroupInformation groupInformation) {
         // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
-        return getFunctionDefinitionVersionByGroupInformation(groupInformation)
+        return getFunctionDefinitionVersion(groupInformation)
                 .map(FunctionDefinitionVersion::functions)
+                // Put the functions in an array list so the consumer of the list can modify it
                 .map(ArrayList::new);
     }
 
     @Override
-    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersionByGroupInformation(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
+    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
             return Optional.empty();
@@ -188,8 +189,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<List<Device>> getDevicesByGroupInformation(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
+    public Optional<List<Device>> getDevices(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
             return Optional.empty();
@@ -216,8 +217,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<List<Subscription>> getSubscriptionsByGroupInformation(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
+    public Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
             return Optional.empty();
@@ -244,8 +245,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponseByGroupInformation(GroupInformation groupInformation) {
-        List<GroupCertificateAuthorityProperties> groupCertificateAuthorityPropertiesList = getGroupCertificateAuthorityPropertiesByGroupInformation(groupInformation).collect(Collectors.toList());
+    public Optional<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation) {
+        List<GroupCertificateAuthorityProperties> groupCertificateAuthorityPropertiesList = getGroupCertificateAuthorityProperties(groupInformation).collect(Collectors.toList());
 
         if (groupCertificateAuthorityPropertiesList.size() != 1) {
             log.error("Currently we do not support multiple group CAs");
@@ -265,8 +266,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<FunctionIsolationMode> getDefaultIsolationModeByGroupInformation(GroupInformation groupInformation) {
-        Optional<FunctionDefinitionVersion> optionalFunctionDefinitionVersion = getFunctionDefinitionVersionByGroupInformation(groupInformation);
+    public Optional<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation) {
+        Optional<FunctionDefinitionVersion> optionalFunctionDefinitionVersion = getFunctionDefinitionVersion(groupInformation);
 
         return optionalFunctionDefinitionVersion
                 .map(FunctionDefinitionVersion::defaultConfig)
@@ -275,8 +276,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
+    public Optional<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
             return Optional.empty();
@@ -284,11 +285,11 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
         GroupVersion groupVersion = optionalGroupVersion.get();
 
-        return getCoreCertificateArnByGroupVersion(groupVersion);
+        return getCoreCertificateArn(groupVersion);
     }
 
     @Override
-    public Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupVersion groupVersion) {
+    public Optional<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion) {
         String coreDefinitionVersionArn = groupVersion.coreDefinitionVersionArn();
         String coreDefinitionVersionId = greengrassIdExtractor.extractVersionId(coreDefinitionVersionArn);
         String coreDefinitionId = greengrassIdExtractor.extractId(coreDefinitionVersionArn);
@@ -312,8 +313,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public boolean groupExistsByName(GreengrassGroupName greengrassGroupName) {
-        return getGroupIdByName(greengrassGroupName)
+    public boolean groupExists(GreengrassGroupName greengrassGroupName) {
+        return getGroupId(greengrassGroupName)
                 .findAny()
                 .isPresent();
     }
@@ -323,12 +324,12 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         return getGroupInformationByNameOrId(groupNameOrGroupId)
                 .filter(groupInformation -> groupInformation.latestVersion() != null)
                 .findFirst()
-                .flatMap(this::getLatestGroupVersionByGroupInformation);
+                .flatMap(this::getLatestGroupVersion);
     }
 
     @Override
-    public Optional<CoreDefinitionVersion> getCoreDefinitionVersionByGroupInformation(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersionByGroupInformation(groupInformation);
+    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
 
         if (!optionalGroupVersion.isPresent()) {
             return Optional.empty();
@@ -354,9 +355,9 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
         // Get the group information by group ID
-        return getGroupInformationById(greengrassGroupId)
+        return getGroupInformation(greengrassGroupId)
                 // Get the latest core definition version (flatMap to get rid of Optional<Optional<...>> result
-                .flatMap(this::getCoreDefinitionVersionByGroupInformation)
+                .flatMap(this::getCoreDefinitionVersion)
                 // Get the list of cores
                 .map(CoreDefinitionVersion::cores)
                 // Convert it to a stream

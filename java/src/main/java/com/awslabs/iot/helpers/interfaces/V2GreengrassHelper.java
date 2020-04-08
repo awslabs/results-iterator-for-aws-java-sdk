@@ -17,9 +17,9 @@ public interface V2GreengrassHelper {
 
     Stream<DefinitionInformation> getDeviceDefinitions();
 
-    Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesById(GreengrassGroupId greengrassGroupId);
+    Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityProperties(GreengrassGroupId greengrassGroupId);
 
-    Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityPropertiesByGroupInformation(GroupInformation groupInformation);
+    Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityProperties(GroupInformation groupInformation);
 
     Predicate<GroupInformation> getGroupNameMatchesPredicate(GreengrassGroupName greengrassGroupName);
 
@@ -29,41 +29,41 @@ public interface V2GreengrassHelper {
 
     Stream<GroupInformation> getGroupInformationByNameOrId(String groupNameOrGroupId);
 
-    Stream<GroupInformation> getGroupInformationByName(GreengrassGroupName greengrassGroupName);
+    Stream<GroupInformation> getGroupInformation(GreengrassGroupName greengrassGroupName);
 
-    Optional<GroupInformation> getGroupInformationById(GreengrassGroupId greengrassGroupId);
+    Optional<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId);
 
-    Stream<GreengrassGroupId> getGroupIdByName(GreengrassGroupName greengrassGroupName);
+    Stream<GreengrassGroupId> getGroupId(GreengrassGroupName greengrassGroupName);
 
     Optional<String> getCoreDefinitionIdByName(String coreDefinitionName);
 
     Optional<String> getDeviceDefinitionIdByName(String deviceDefinitionName);
 
-    Optional<GreengrassGroupId> getGroupIdByGroupInformation(GroupInformation groupInformation);
+    Optional<GreengrassGroupId> getGroupId(GroupInformation groupInformation);
 
-    Optional<GroupVersion> getLatestGroupVersionByGroupInformation(GroupInformation groupInformation);
+    Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation);
 
-    Optional<List<Function>> getFunctionsByGroupInformation(GroupInformation groupInformation);
+    Optional<List<Function>> getFunctions(GroupInformation groupInformation);
 
-    Optional<FunctionDefinitionVersion> getFunctionDefinitionVersionByGroupInformation(GroupInformation groupInformation);
+    Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<List<Device>> getDevicesByGroupInformation(GroupInformation groupInformation);
+    Optional<List<Device>> getDevices(GroupInformation groupInformation);
 
-    Optional<List<Subscription>> getSubscriptionsByGroupInformation(GroupInformation groupInformation);
+    Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation);
 
-    Optional<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponseByGroupInformation(GroupInformation groupInformation);
+    Optional<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation);
 
-    Optional<FunctionIsolationMode> getDefaultIsolationModeByGroupInformation(GroupInformation groupInformation);
+    Optional<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation);
 
-    Optional<CertificateArn> getCoreCertificateArnByGroupInformation(GroupInformation groupInformation);
+    Optional<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation);
 
-    Optional<CertificateArn> getCoreCertificateArnByGroupVersion(GroupVersion groupVersion);
+    Optional<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion);
 
-    boolean groupExistsByName(GreengrassGroupName greengrassGroupName);
+    boolean groupExists(GreengrassGroupName greengrassGroupName);
 
     Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
 
-    Optional<CoreDefinitionVersion> getCoreDefinitionVersionByGroupInformation(GroupInformation groupInformation);
+    Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation);
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
 }
