@@ -9,7 +9,7 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
-import com.awslabs.resultsiterator.v2.implementations.BasicV2CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.V2SafeProvider;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
@@ -49,8 +49,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public V2CertificateCredentialsProvider provideV2CertificateCredentialsProvider(BasicV2CertificateCredentialsProvider basicV2CertificateCredentialsProvider) {
-        return basicV2CertificateCredentialsProvider;
+    public V2CertificateCredentialsProvider provideV2CertificateCredentialsProvider(BouncyCastleV2CertificateCredentialsProvider bouncyCastleV2CertificateCredentialsProvider) {
+        return bouncyCastleV2CertificateCredentialsProvider;
     }
 
     // Centralized error handling for V2 SDK errors

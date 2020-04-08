@@ -1,6 +1,6 @@
 package com.awslabs.resultsiterator;
 
-import com.awslabs.resultsiterator.v2.implementations.BasicV2CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
@@ -135,6 +135,6 @@ public class TestV2ResultsIterator {
     @Test
     public void shouldThrowExceptionWhenThingNameNotPresent() {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> v2CertificateCredentialsProvider.resolveCredentials());
-        assertTrue(exception.getMessage().contains(BasicV2CertificateCredentialsProvider.AWS_CREDENTIAL_PROVIDER_URL));
+        assertTrue(exception.getMessage().contains(BouncyCastleV2CertificateCredentialsProvider.AWS_CREDENTIAL_PROVIDER_URL));
     }
 }

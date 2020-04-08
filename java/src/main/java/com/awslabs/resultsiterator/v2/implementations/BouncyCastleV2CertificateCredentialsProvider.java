@@ -45,21 +45,12 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
-public class BasicV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
+public class BouncyCastleV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
     public static final String BOUNCY_CASTLE_PROVIDER_NAME = "BC";
     public static final String CA_CERTIFICATE = "ca-certificate";
     public static final String CERTIFICATE = "certificate";
     public static final String PRIVATE_KEY = "private-key";
     public static final String TLSV1_2 = "TLSv1.2";
-    public static final String AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE = "AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE";
-    public static final String AWS_CREDENTIAL_PROVIDER_URL = "AWS_CREDENTIAL_PROVIDER_URL";
-    public static final String AWS_THING_NAME = "AWS_THING_NAME";
-    public static final String AWS_ROLE_ALIAS = "AWS_ROLE_ALIAS";
-    public static final String AWS_CA_CERT_FILENAME = "AWS_CA_CERT_FILENAME";
-    public static final String AWS_CLIENT_CERT_FILENAME = "AWS_CLIENT_CERT_FILENAME";
-    public static final String AWS_CLIENT_PRIVATE_KEY_FILENAME = "AWS_CLIENT_PRIVATE_KEY_FILENAME";
-    public static final String AWS_CLIENT_PRIVATE_KEY_PASSWORD = "AWS_CLIENT_PRIVATE_KEY_PASSWORD";
-    public static final String X_AMZN_IOT_THINGNAME = "x-amzn-iot-thingname";
 
     @Inject
     IoHelper ioHelper;
@@ -67,7 +58,7 @@ public class BasicV2CertificateCredentialsProvider implements V2CertificateCrede
     JsonHelper jsonHelper;
 
     @Inject
-    public BasicV2CertificateCredentialsProvider() {
+    public BouncyCastleV2CertificateCredentialsProvider() {
     }
 
     @Override

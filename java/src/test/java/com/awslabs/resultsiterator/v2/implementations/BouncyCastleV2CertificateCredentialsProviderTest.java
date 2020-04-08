@@ -34,7 +34,7 @@ import java.security.Security;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import static com.awslabs.resultsiterator.v2.implementations.BasicV2CertificateCredentialsProvider.*;
+import static com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.Is.isA;
@@ -42,14 +42,14 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class BasicV2CertificateCredentialsProviderTest {
-    private final Logger log = LoggerFactory.getLogger(BasicV2CertificateCredentialsProvider.class);
+public class BouncyCastleV2CertificateCredentialsProviderTest {
+    private final Logger log = LoggerFactory.getLogger(BouncyCastleV2CertificateCredentialsProvider.class);
     public static final String JUNK = "junk";
     public static final String JUNK_CORE = "junk_Core";
     public static final String ACCESS_KEY_ID = "accessKeyId";
     public static final String SESSION_TOKEN = "sessionToken";
     public static final String SECRET_ACCESS_KEY = "secretAccessKey";
-    private BasicV2CertificateCredentialsProvider basicV2CertificateCredentialsProvider;
+    private BouncyCastleV2CertificateCredentialsProvider bouncyCastleV2CertificateCredentialsProvider;
     private JsonHelper jsonHelper;
     private ImmutableCredentialProviderUrl immutableCredentialProviderUrl;
     private ImmutableThingName immutableThingName;
@@ -73,7 +73,7 @@ public class BasicV2CertificateCredentialsProviderTest {
         Security.addProvider(new BouncyCastleProvider());
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
         awsCredentialsProvider = injector.awsCredentialsProvider();
-        basicV2CertificateCredentialsProvider = mock(BasicV2CertificateCredentialsProvider.class);
+        bouncyCastleV2CertificateCredentialsProvider = mock(BouncyCastleV2CertificateCredentialsProvider.class);
 
         immutableCredentialProviderUrl = ImmutableCredentialProviderUrl.builder().credentialProviderUrl(v2IotHelper.getCredentialProviderUrl()).build();
         immutableThingName = ImmutableThingName.builder().name(JUNK_CORE).build();
@@ -95,44 +95,44 @@ public class BasicV2CertificateCredentialsProviderTest {
 
     @Test
     public void shouldProduceAnX509CertificateHolderFromCertificateFile() {
-        when(basicV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
-        Object objectFromParser = basicV2CertificateCredentialsProvider.getObjectFromParser(testCertificate.getBytes());
+        when(bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
+        Object objectFromParser = bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(testCertificate.getBytes());
         assertThat(objectFromParser, isA(X509CertificateHolder.class));
     }
 
     @Test
     public void shouldProduceAPemKeyPairFromPrivateKeyFile() {
-        when(basicV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
-        Object objectFromParser = basicV2CertificateCredentialsProvider.getObjectFromParser(testPrivateKey.getBytes());
+        when(bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
+        Object objectFromParser = bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(testPrivateKey.getBytes());
         assertThat(objectFromParser, isA(PEMKeyPair.class));
     }
 
     @Test
     public void shouldProduceAPemEncryptedKeyPairFromEncryptedPrivateKeyFile() {
-        when(basicV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
-        Object objectFromParser = basicV2CertificateCredentialsProvider.getObjectFromParser(testEncryptedPrivateKey.getBytes());
+        when(bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
+        Object objectFromParser = bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(testEncryptedPrivateKey.getBytes());
         assertThat(objectFromParser, isA(PEMEncryptedKeyPair.class));
     }
 
     @Test
     public void shouldGetKeyPairFromPrivateKeyFile() {
-        when(basicV2CertificateCredentialsProvider.getKeyPair(any(), any())).thenCallRealMethod();
-        when(basicV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
-        basicV2CertificateCredentialsProvider.getKeyPair(testPrivateKey.getBytes(), ImmutablePassword.builder().build());
+        when(bouncyCastleV2CertificateCredentialsProvider.getKeyPair(any(), any())).thenCallRealMethod();
+        when(bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
+        bouncyCastleV2CertificateCredentialsProvider.getKeyPair(testPrivateKey.getBytes(), ImmutablePassword.builder().build());
     }
 
     @Test
     public void shouldNotGetKeyPairFromPrivateKeyFileWithWrongPassword() {
-        when(basicV2CertificateCredentialsProvider.getKeyPair(any(), any())).thenCallRealMethod();
-        when(basicV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
-        assertThrows(EncryptionException.class, () -> basicV2CertificateCredentialsProvider.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("fake".toCharArray()).build()));
+        when(bouncyCastleV2CertificateCredentialsProvider.getKeyPair(any(), any())).thenCallRealMethod();
+        when(bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
+        assertThrows(EncryptionException.class, () -> bouncyCastleV2CertificateCredentialsProvider.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("fake".toCharArray()).build()));
     }
 
     @Test
     public void shouldGetKeyPairFromPrivateKeyFileWithCorrectPassword() {
-        when(basicV2CertificateCredentialsProvider.getKeyPair(any(), any())).thenCallRealMethod();
-        when(basicV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
-        basicV2CertificateCredentialsProvider.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("password".toCharArray()).build());
+        when(bouncyCastleV2CertificateCredentialsProvider.getKeyPair(any(), any())).thenCallRealMethod();
+        when(bouncyCastleV2CertificateCredentialsProvider.getObjectFromParser(any())).thenCallRealMethod();
+        bouncyCastleV2CertificateCredentialsProvider.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("password".toCharArray()).build());
     }
 
     @Test
@@ -146,22 +146,22 @@ public class BasicV2CertificateCredentialsProviderTest {
         String json = jsonHelper.toJson(immutableIotCredentialsProviderCredentials);
 
         // Normal wiring
-        basicV2CertificateCredentialsProvider.jsonHelper = jsonHelper;
+        bouncyCastleV2CertificateCredentialsProvider.jsonHelper = jsonHelper;
 
         // Mock wiring
-        when(basicV2CertificateCredentialsProvider.getHttpClient(immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword)).thenReturn(mockHttpClient);
-        when(basicV2CertificateCredentialsProvider.resolveCredentials(any(), any(), any(), any(), any(), any(), any())).thenCallRealMethod();
+        when(bouncyCastleV2CertificateCredentialsProvider.getHttpClient(immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword)).thenReturn(mockHttpClient);
+        when(bouncyCastleV2CertificateCredentialsProvider.resolveCredentials(any(), any(), any(), any(), any(), any(), any())).thenCallRealMethod();
 
         when(mockEntity.getContent()).thenReturn(new StringInputStream(json));
         when(mockResponse.getEntity()).thenReturn(mockEntity);
         when(mockHttpClient.execute(any())).thenReturn(mockResponse);
 
         // Invocation
-        AwsCredentials awsCredentials = basicV2CertificateCredentialsProvider.resolveCredentials(immutableCredentialProviderUrl, immutableThingName, immutableRoleAlias, immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword);
+        AwsCredentials awsCredentials = bouncyCastleV2CertificateCredentialsProvider.resolveCredentials(immutableCredentialProviderUrl, immutableThingName, immutableRoleAlias, immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword);
 
         // Assertions
         // Thing name matches what was provided
-        verify(mockHttpClient).execute(argThat((HttpGet httpGet) -> httpGet.getHeaders(BasicV2CertificateCredentialsProvider.X_AMZN_IOT_THINGNAME)[0].getValue().equals(immutableThingName.getName())));
+        verify(mockHttpClient).execute(argThat((HttpGet httpGet) -> httpGet.getHeaders(BouncyCastleV2CertificateCredentialsProvider.X_AMZN_IOT_THINGNAME)[0].getValue().equals(immutableThingName.getName())));
 
         // AWS credentials returned are session credentials
         assertThat(awsCredentials, isA(AwsSessionCredentials.class));
