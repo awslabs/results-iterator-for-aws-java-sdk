@@ -1,6 +1,8 @@
 package com.awslabs.resultsiterator;
 
 import com.amazonaws.services.iot.AWSIotClient;
+import com.amazonaws.services.iot.model.CreateThingRequest;
+import com.amazonaws.services.iot.model.DeleteThingRequest;
 import com.amazonaws.services.iot.model.ListThingsRequest;
 import com.amazonaws.services.iot.model.ThingAttribute;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -9,7 +11,8 @@ import com.amazonaws.services.s3.model.ListBucketsRequest;
 import com.awslabs.resultsiterator.v1.implementations.DaggerV1TestInjector;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
 import com.awslabs.resultsiterator.v1.implementations.V1TestInjector;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -22,6 +25,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
 public class TestV1ResultsIterator {
+    public static final String JUNKFORTESTING_V1 = "JUNKFORTESTINGv1";
     private final Logger log = LoggerFactory.getLogger(TestV1ResultsIterator.class);
     private AWSIotClient awsIotClient;
     private AmazonS3Client amazonS3Client;
@@ -31,6 +35,16 @@ public class TestV1ResultsIterator {
         V1TestInjector injector = DaggerV1TestInjector.create();
         awsIotClient = injector.awsIotClient();
         amazonS3Client = injector.amazonS3Client();
+        CreateThingRequest createThingRequest = new CreateThingRequest()
+                .withThingName(JUNKFORTESTING_V1);
+        awsIotClient.createThing(createThingRequest);
+    }
+
+    @After
+    public void tearDown() {
+        DeleteThingRequest deleteThingRequest = new DeleteThingRequest()
+                .withThingName(JUNKFORTESTING_V1);
+        awsIotClient.deleteThing(deleteThingRequest);
     }
 
     @Test
@@ -40,7 +54,7 @@ public class TestV1ResultsIterator {
         Stream<ThingAttribute> thingAttributes = v1ResultsIterator.stream();
         thingAttributes.forEach(System.out::println);
         thingAttributes = v1ResultsIterator.stream();
-        Assert.assertThat(thingAttributes.count(), greaterThan(0L));
+        MatcherAssert.assertThat(thingAttributes.count(), greaterThan(0L));
     }
 
     @Test
@@ -49,7 +63,7 @@ public class TestV1ResultsIterator {
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
         Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.stream();
         Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.stream();
-        Assert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
+        MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
     @Test

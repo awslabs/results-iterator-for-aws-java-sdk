@@ -9,8 +9,10 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
+import com.awslabs.resultsiterator.v2.implementations.BasicV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.V2SafeProvider;
+import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.interfaces.V2SdkErrorHandler;
 import com.awslabs.s3.helpers.implementations.BasicV2S3Helper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
@@ -18,6 +20,7 @@ import dagger.Module;
 import dagger.Provides;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
@@ -36,13 +39,18 @@ import software.amazon.awssdk.services.sts.StsClientBuilder;
 @Module(includes = {SharedModule.class})
 public class V2HelperModule {
     @Provides
-    public AwsCredentialsProvider provideAwsCredentialsProvider() {
-        return new V2SafeProvider<>(DefaultCredentialsProvider::create).get();
+    public AwsCredentialsProvider provideAwsCredentialsProvider(V2CertificateCredentialsProvider v2CertificateCredentialsProvider) {
+        return new V2SafeProvider<>(() -> AwsCredentialsProviderChain.of(v2CertificateCredentialsProvider, DefaultCredentialsProvider.create())).get();
     }
 
     @Provides
     public AwsRegionProviderChain provideAwsRegionProviderChain() {
         return new V2SafeProvider<>(DefaultAwsRegionProviderChain::new).get();
+    }
+
+    @Provides
+    public V2CertificateCredentialsProvider provideV2CertificateCredentialsProvider(BasicV2CertificateCredentialsProvider basicV2CertificateCredentialsProvider) {
+        return basicV2CertificateCredentialsProvider;
     }
 
     // Centralized error handling for V2 SDK errors

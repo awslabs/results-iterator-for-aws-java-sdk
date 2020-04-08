@@ -33,6 +33,7 @@ def commonsTextVersion = '1.8'
 def commonsIoVersion = '2.6'
 def ztZipVersion = '1.14'
 def mockitoVersion = '3.3.3'
+def bouncyCastleVersion = '1.54'
 
 group = 'com.awslabs.aws.iot.resultsiterator'
 version = '0.1'
@@ -109,15 +110,19 @@ dependencies {
     api "com.amazonaws:aws-java-sdk-ec2:$awsSdkVersion"
     api "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
 
-    testCompile "junit:junit:$junitVersion"
-    testCompile "software.amazon.awssdk:iot:$awsSdk2Version"
-    testCompile "software.amazon.awssdk:s3:$awsSdk2Version"
-    testCompile "com.amazonaws:aws-java-sdk-iot:$awsSdkVersion"
-    testCompile "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
-    testCompile "software.amazon.awssdk:greengrass:$awsSdk2Version"
-    testCompile "org.hamcrest:hamcrest:$hamcrestVersion"
-    testCompile "com.jcabi:jcabi-log:$jcabiVersion"
-    testCompile "org.mockito:mockito-core:$mockitoVersion"
+    // For certificate based authentication
+    implementation "org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion"
+    implementation "org.bouncycastle:bcpkix-jdk15on:$bouncyCastleVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation "software.amazon.awssdk:iot:$awsSdk2Version"
+    testImplementation "software.amazon.awssdk:s3:$awsSdk2Version"
+    testImplementation "com.amazonaws:aws-java-sdk-iot:$awsSdkVersion"
+    testImplementation "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
+    testImplementation "software.amazon.awssdk:greengrass:$awsSdk2Version"
+    testImplementation "org.hamcrest:hamcrest:$hamcrestVersion"
+    testImplementation "com.jcabi:jcabi-log:$jcabiVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
 // From: https://gist.github.com/matthiasbalke/3c9ecccbea1d460ee4c3fbc5843ede4a

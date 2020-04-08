@@ -3,3 +3,6 @@
 /java/build
 /java/out
 generated
+/java/src/test/resources/private.key
+/java/src/test/resources/certificate.pem
+*.swp
