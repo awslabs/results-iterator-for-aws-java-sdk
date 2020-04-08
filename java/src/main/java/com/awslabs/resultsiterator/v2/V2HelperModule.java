@@ -31,6 +31,8 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.IamClientBuilder;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.IotClientBuilder;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.LambdaClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -99,6 +101,16 @@ public class V2HelperModule {
     @Provides
     public GreengrassClient greengrassClient(GreengrassClientBuilder greengrassClientBuilder) {
         return new V2SafeProvider<>(greengrassClientBuilder::build).get();
+    }
+
+    @Provides
+    public LambdaClientBuilder lambdaClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return LambdaClient.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public LambdaClient lambdaClient(LambdaClientBuilder lambdaClientBuilder) {
+        return new V2SafeProvider<>(lambdaClientBuilder::build).get();
     }
 
     // Clients that need special configuration
