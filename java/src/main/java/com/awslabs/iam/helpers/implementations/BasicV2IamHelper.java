@@ -1,5 +1,6 @@
 package com.awslabs.iam.helpers.implementations;
 
+import com.awslabs.iam.data.*;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -25,8 +26,8 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public Optional<Role> getRole(String name) {
-        GetRoleRequest getRoleRequest = GetRoleRequest.builder().roleName(name).build();
+    public Optional<Role> getRole(RoleName roleName) {
+        GetRoleRequest getRoleRequest = GetRoleRequest.builder().roleName(roleName.getName()).build();
 
         return Optional.ofNullable(Try.of(() -> iamClient.getRole(getRoleRequest).role())
                 .recover(NoSuchEntityException.class, throwable -> null)
@@ -34,24 +35,28 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public Role createRoleIfNecessary(String name, Optional<String> optionalAssumeRolePolicyDocument) {
-        Optional<Role> optionalExistingRole = getRole(name);
+    public Role createRoleIfNecessary(RoleName roleName, Optional<AssumeRolePolicyDocument> optionalAssumeRolePolicyDocument) {
+        Optional<Role> optionalExistingRole = getRole(roleName);
 
         if (optionalExistingRole.isPresent()) {
-            log.info("Updating assume role policy for existing role [" + name + "]");
+            log.info("Updating assume role policy for existing role [" + roleName + "]");
             UpdateAssumeRolePolicyRequest.Builder updateAssumeRolePolicyRequestBuilder = UpdateAssumeRolePolicyRequest.builder();
-            updateAssumeRolePolicyRequestBuilder.roleName(name);
-            optionalAssumeRolePolicyDocument.ifPresent(updateAssumeRolePolicyRequestBuilder::policyDocument);
+            updateAssumeRolePolicyRequestBuilder.roleName(roleName.getName());
+            optionalAssumeRolePolicyDocument
+                    .map(AssumeRolePolicyDocument::getDocument)
+                    .ifPresent(updateAssumeRolePolicyRequestBuilder::policyDocument);
 
             iamClient.updateAssumeRolePolicy(updateAssumeRolePolicyRequestBuilder.build());
 
             return optionalExistingRole.get();
         }
 
-        log.info("Creating new role [" + name + "]");
+        log.info("Creating new role [" + roleName + "]");
         CreateRoleRequest.Builder createRoleRequestBuilder = CreateRoleRequest.builder();
-        createRoleRequestBuilder.roleName(name);
-        optionalAssumeRolePolicyDocument.ifPresent(createRoleRequestBuilder::assumeRolePolicyDocument);
+        createRoleRequestBuilder.roleName(roleName.getName());
+        optionalAssumeRolePolicyDocument
+                .map(AssumeRolePolicyDocument::getDocument)
+                .ifPresent(createRoleRequestBuilder::assumeRolePolicyDocument);
 
         CreateRoleResponse createRoleResponse = iamClient.createRole(createRoleRequestBuilder.build());
 
@@ -59,22 +64,22 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public void attachRolePolicies(Role role, Optional<List<String>> optionalManagedPolicyArns) {
+    public void attachRolePolicies(Role role, Optional<List<ManagedPolicyArn>> optionalManagedPolicyArns) {
         optionalManagedPolicyArns
                 .ifPresent(policies -> policies.forEach(policy -> attachRolePolicy(role, policy)));
     }
 
     @Override
-    public void putInlinePolicy(Role role, String inlinePolicyName, Optional<String> optionalInlinePolicy) {
+    public void putInlinePolicy(Role role, PolicyName policyName, Optional<InlinePolicy> optionalInlinePolicy) {
         if (!optionalInlinePolicy.isPresent()) {
             return;
         }
 
-        String inlinePolicy = optionalInlinePolicy.get();
+        InlinePolicy inlinePolicy = optionalInlinePolicy.get();
 
         PutRolePolicyRequest putRolePolicyRequest = PutRolePolicyRequest.builder()
-                .policyDocument(inlinePolicy)
-                .policyName(inlinePolicyName)
+                .policyDocument(inlinePolicy.getPolicy())
+                .policyName(policyName.getName())
                 .roleName(role.roleName())
                 .build();
 
@@ -82,17 +87,24 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public void attachRolePolicy(Role role, String policyArn) {
+    public void attachRolePolicy(Role role, ManagedPolicyArn managedPolicyArn) {
+        attachRolePolicy(role, ImmutablePolicyArn.builder().arn(managedPolicyArn.getArn()).build());
+    }
+
+    @Override
+    public void attachRolePolicy(Role role, PolicyArn policyArn) {
         AttachRolePolicyRequest attachRolePolicyRequest = AttachRolePolicyRequest.builder()
                 .roleName(role.roleName())
-                .policyArn(policyArn)
+                .policyArn(policyArn.getArn())
                 .build();
 
         iamClient.attachRolePolicy(attachRolePolicyRequest);
     }
 
     @Override
-    public String getAccountId() {
-        return stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).account();
+    public AccountId getAccountId() {
+        return ImmutableAccountId.builder()
+                .id(stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).account())
+                .build();
     }
 }

@@ -1,20 +1,23 @@
 package com.awslabs.iam.helpers.interfaces;
 
+import com.awslabs.iam.data.*;
 import software.amazon.awssdk.services.iam.model.Role;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface V2IamHelper {
-    Optional<Role> getRole(String name);
+    Optional<Role> getRole(RoleName roleName);
 
-    Role createRoleIfNecessary(String name, Optional<String> optionalAssumeRolePolicyDocument);
+    Role createRoleIfNecessary(RoleName roleName, Optional<AssumeRolePolicyDocument> optionalAssumeRolePolicyDocument);
 
-    void attachRolePolicies(Role role, Optional<List<String>> optionalManagedPolicyArns);
+    void attachRolePolicies(Role role, Optional<List<ManagedPolicyArn>> optionalManagedPolicyArns);
 
-    void putInlinePolicy(Role role, String inlinePolicyName, Optional<String> optionalInlinePolicy);
+    void putInlinePolicy(Role role, PolicyName policyName, Optional<InlinePolicy> optionalInlinePolicy);
 
-    void attachRolePolicy(Role role, String policyArn);
+    void attachRolePolicy(Role role, ManagedPolicyArn managedPolicyArn);
 
-    String getAccountId();
+    void attachRolePolicy(Role role, PolicyArn policyArn);
+
+    AccountId getAccountId();
 }
