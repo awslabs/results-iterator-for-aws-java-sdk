@@ -4,9 +4,9 @@ A library that handles iterating over results from the AWS Java SDK with minimal
 
 ## Highlights
 
-### IoT Credential Provider support
+### [IoT Credential Provider support](docs/CREDENTIAL_PROVIDER.md)
 
-[AWS allows applications to use certificates registered in AWS IoT to make direct calls to AWS services](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html). [Using this requires a small amount of setup](docs/CREDENTIAL_PROVIDER.md) but it is the best way to make sure hard-coded IAM credentials are not being shared.
+[AWS allows applications to use certificates registered in AWS IoT to make direct calls to AWS services](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html). Using this requires [a small amount of setup](docs/CREDENTIAL_PROVIDER.md) but it is the best way to make sure hard-coded IAM credentials are not being shared.
 
 ### SDK v1 and SDK v2 support
 
