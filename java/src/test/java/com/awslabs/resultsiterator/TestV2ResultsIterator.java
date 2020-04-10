@@ -1,5 +1,6 @@
 package com.awslabs.resultsiterator;
 
+import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
@@ -7,7 +8,6 @@ import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
-import com.google.gson.Gson;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
@@ -46,6 +46,7 @@ public class TestV2ResultsIterator {
     private S3Client s3Client;
     private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
     private V2GreengrassHelper v2GreengrassHelper;
+    private JsonHelper jsonHelper;
 
     @Before
     public void setup() {
@@ -56,6 +57,7 @@ public class TestV2ResultsIterator {
         s3Client = injector.s3Client();
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
         v2GreengrassHelper = injector.v2GreengrassHelper();
+        jsonHelper = injector.jsonHelper();
 
         CreateThingRequest createThingRequest = CreateThingRequest.builder()
                 .thingName(JUNKFORTESTING_V2)
@@ -106,7 +108,17 @@ public class TestV2ResultsIterator {
     public void shouldListGreengrassGroupsAndNotThrowAnException() {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
         List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
-        groupInformationList.forEach(groupInformation -> log.info(new Gson().toJson(groupInformation)));
+        groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
+    }
+
+    @Test
+    public void shouldListGreengrassGroupSubscriptionsAndNotThrowAnException() {
+        V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
+        List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
+
+        groupInformationList.stream()
+                .map(groupInformation -> v2GreengrassHelper.getSubscriptions(groupInformation))
+                .forEach(subscriptions -> log.info(jsonHelper.toJson(subscriptions)));
     }
 
     @Test

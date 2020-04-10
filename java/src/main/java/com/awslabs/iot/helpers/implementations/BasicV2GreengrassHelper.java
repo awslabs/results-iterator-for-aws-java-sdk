@@ -237,11 +237,11 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .map(GetFunctionDefinitionVersionResponse::definition);
     }
 
-    private <T extends GreengrassResponse> T getResults(String versionArn, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
+    private <T extends GreengrassResponse> T getResults(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
         AwsRequest.Builder builder = V2ResultsIterator.getNewRequestBuilder(greengrassRequest);
 
-        builder = setDeviceDefinitionId(builder, greengrassIdExtractor.extractId(versionArn));
-        builder = setDeviceDefinitionVersionId(builder, greengrassIdExtractor.extractVersionId(versionArn));
+        builder = setDefinitionId(builder, prefix, greengrassIdExtractor.extractId(versionArn));
+        builder = setDefinitionVersionId(builder, prefix, greengrassIdExtractor.extractVersionId(versionArn));
 
         AwsRequest request = builder.build();
 
@@ -261,7 +261,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public Optional<List<Device>> getDevices(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> getResults(groupVersion.deviceDefinitionVersionArn(), GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class))
+                .map(groupVersion -> getResults(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class))
                 .map(GetDeviceDefinitionVersionResponse::definition)
                 .map(DeviceDefinitionVersion::devices)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
@@ -271,7 +271,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> getResults(groupVersion.subscriptionDefinitionVersionArn(), GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class))
+                .map(groupVersion -> getResults(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class))
                 .map(GetSubscriptionDefinitionVersionResponse::definition)
                 .map(SubscriptionDefinitionVersion::subscriptions)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
@@ -441,17 +441,26 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .orElse(false);
     }
 
-    private AwsRequest.Builder setDeviceDefinitionId(AwsRequest.Builder builder, String deviceDefinitionId) {
-        return callMethod(builder, "deviceDefinitionId", deviceDefinitionId);
+    private AwsRequest.Builder setDefinitionId(AwsRequest.Builder builder, String prefix, String definitionId) {
+        return callMethod(builder, String.join("", prefix, "DefinitionId"), definitionId);
     }
 
-    private AwsRequest.Builder setDeviceDefinitionVersionId(AwsRequest.Builder builder, String deviceDefinitionId) {
-        return callMethod(builder, "deviceDefinitionVersionId", deviceDefinitionId);
+    private AwsRequest.Builder setDefinitionVersionId(AwsRequest.Builder builder, String prefix, String definitionVersionId) {
+        return callMethod(builder, String.join("", prefix, "DefinitionVersionId"), definitionVersionId);
     }
 
     private AwsRequest.Builder callMethod(AwsRequest.Builder builder, String methodName, String input) {
-        return (AwsRequest.Builder) Try.of(() -> builder.getClass().getMethod(methodName))
-                .mapTry(method -> method.invoke(input))
+        // This is necessary because these methods are not accessible by default
+        return (AwsRequest.Builder) Try.of(() -> builder.getClass().getMethod(methodName, String.class))
+                .mapTry(this::setAccessible)
+                .mapTry(method -> method.invoke(builder, input))
                 .get();
+    }
+
+    private Method setAccessible(Method method) {
+        // This is necessary because these methods are not accessible by default
+        method.setAccessible(true);
+
+        return method;
     }
 }
