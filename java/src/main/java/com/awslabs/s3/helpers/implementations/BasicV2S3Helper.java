@@ -1,6 +1,7 @@
 package com.awslabs.s3.helpers.implementations;
 
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import io.vavr.control.Try;
 import software.amazon.awssdk.regions.Region;

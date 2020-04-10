@@ -9,10 +9,12 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
+import com.awslabs.resultsiterator.v2.implementations.BasicV2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.V2SafeProvider;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.interfaces.V2SdkErrorHandler;
 import com.awslabs.s3.helpers.implementations.BasicV2S3Helper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
@@ -153,5 +155,10 @@ public class V2HelperModule {
     @Provides
     public V2IotHelper v2IotHelper(BasicV2IotHelper basicV2IotHelper) {
         return basicV2IotHelper;
+    }
+
+    @Provides
+    public V2ReflectionHelper v2ReflectionHelper(BasicV2ReflectionHelper basicV2ReflectionHelper) {
+        return basicV2ReflectionHelper;
     }
 }
