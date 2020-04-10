@@ -1,7 +1,12 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
+import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
+import io.vavr.control.Try;
 import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.services.greengrass.GreengrassClient;
+import software.amazon.awssdk.services.greengrass.model.GreengrassRequest;
+import software.amazon.awssdk.services.greengrass.model.GreengrassResponse;
 
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
@@ -14,6 +19,11 @@ import java.util.Optional;
 
 public class BasicV2ReflectionHelper implements V2ReflectionHelper {
     private final List<String> methodsToIgnore = new ArrayList<>(Arrays.asList("sdkFields", "commonPrefixes"));
+
+    @Inject
+    GreengrassIdExtractor greengrassIdExtractor;
+    @Inject
+    GreengrassClient greengrassClient;
 
     @Inject
     public BasicV2ReflectionHelper() {
@@ -100,5 +110,55 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
         }
+    }
+
+    @Override
+    public <T extends GreengrassResponse> T getSingleGreengrassResult(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
+        AwsRequest.Builder builder = getNewRequestBuilder(greengrassRequest);
+
+        builder = setDefinitionId(builder, prefix, greengrassIdExtractor.extractId(versionArn));
+        builder = setDefinitionVersionId(builder, prefix, greengrassIdExtractor.extractVersionId(versionArn));
+
+        AwsRequest request = builder.build();
+
+        Optional<Method> optionalClientMethodReturningResult = getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
+
+        if (!optionalClientMethodReturningResult.isPresent()) {
+            throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
+        }
+
+        Method clientMethodReturningResult = optionalClientMethodReturningResult.get();
+
+        // This method throws an exception if the definition does not exist
+        return (T) Try.of(() -> callMethod(greengrassClient, clientMethodReturningResult, request))
+                .getOrNull();
+    }
+
+    private AwsRequest.Builder setDefinitionId(AwsRequest.Builder builder, String prefix, String definitionId) {
+        return callMethod(builder, String.join("", prefix, "DefinitionId"), definitionId);
+    }
+
+    private AwsRequest.Builder setDefinitionVersionId(AwsRequest.Builder builder, String prefix, String definitionVersionId) {
+        return callMethod(builder, String.join("", prefix, "DefinitionVersionId"), definitionVersionId);
+    }
+
+    private AwsRequest.Builder callMethod(AwsRequest.Builder builder, String methodName, String input) {
+        return (AwsRequest.Builder) Try.of(() -> builder.getClass().getMethod(methodName, String.class))
+                .mapTry(method -> callMethod(builder, method, input))
+                .get();
+    }
+
+    private Object callMethod(Object instance, Method method, Object input) {
+        return Try.of(() -> setAccessible(method))
+                // This is necessary because these methods are not accessible by default
+                .mapTry(accessibleMethod -> accessibleMethod.invoke(instance, input))
+                .get();
+    }
+
+    private Method setAccessible(Method method) {
+        // This is necessary because these methods are not accessible by default
+        method.setAccessible(true);
+
+        return method;
     }
 }

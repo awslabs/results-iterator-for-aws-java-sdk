@@ -10,12 +10,10 @@ import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.*;
 
 import javax.inject.Inject;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,6 +43,11 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public Stream<GroupInformation> getGroups() {
         return new V2ResultsIterator<GroupInformation>(greengrassClient, ListGroupsRequest.class).stream();
+    }
+
+    @Override
+    public Stream<Deployment> getDeployments() {
+        return new V2ResultsIterator<Deployment>(greengrassClient, ListDeploymentsRequest.class).stream();
     }
 
     @Override
@@ -199,38 +202,17 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .map(FunctionDefaultExecutionConfig::isolationMode);
     }
 
-    private <T extends GreengrassResponse> T getResults(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
-        AwsRequest.Builder builder = v2ReflectionHelper.getNewRequestBuilder(greengrassRequest);
-
-        builder = setDefinitionId(builder, prefix, greengrassIdExtractor.extractId(versionArn));
-        builder = setDefinitionVersionId(builder, prefix, greengrassIdExtractor.extractVersionId(versionArn));
-
-        AwsRequest request = builder.build();
-
-        Optional<Method> optionalClientMethodReturningResult = v2ReflectionHelper.getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
-
-        if (!optionalClientMethodReturningResult.isPresent()) {
-            throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
-        }
-
-        Method clientMethodReturningResult = optionalClientMethodReturningResult.get();
-
-        // This method throws an exception if the definition does not exist
-        return (T) Try.of(() -> callMethod(greengrassClient, clientMethodReturningResult, request))
-                .getOrNull();
-    }
-
     @Override
     public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> getResults(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class))
+                .map(groupVersion -> v2ReflectionHelper.getSingleGreengrassResult(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class))
                 .map(GetFunctionDefinitionVersionResponse::definition);
     }
 
     @Override
     public Optional<List<Device>> getDevices(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> getResults(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class))
+                .map(groupVersion -> v2ReflectionHelper.getSingleGreengrassResult(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class))
                 .map(GetDeviceDefinitionVersionResponse::definition)
                 .map(DeviceDefinitionVersion::devices)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
@@ -240,7 +222,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> getResults(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class))
+                .map(groupVersion -> v2ReflectionHelper.getSingleGreengrassResult(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class))
                 .map(GetSubscriptionDefinitionVersionResponse::definition)
                 .map(SubscriptionDefinitionVersion::subscriptions)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
@@ -286,7 +268,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(getResults(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class))
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class))
                 .map(GetCoreDefinitionVersionResponse::definition);
     }
 
@@ -298,7 +280,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(getResults(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class))
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class))
                 .map(GetConnectorDefinitionVersionResponse::definition);
     }
 
@@ -310,7 +292,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(getResults(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class))
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class))
                 .map(GetResourceDefinitionVersionResponse::definition);
     }
 
@@ -322,7 +304,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(getResults(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class))
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class))
                 .map(GetLoggerDefinitionVersionResponse::definition);
     }
 
@@ -348,33 +330,5 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .map(v2IotHelper::isThingImmutable)
                 // If the thing wasn't found, return false. Otherwise use the result from the immutability check.
                 .orElse(false);
-    }
-
-    private AwsRequest.Builder setDefinitionId(AwsRequest.Builder builder, String prefix, String definitionId) {
-        return callMethod(builder, String.join("", prefix, "DefinitionId"), definitionId);
-    }
-
-    private AwsRequest.Builder setDefinitionVersionId(AwsRequest.Builder builder, String prefix, String definitionVersionId) {
-        return callMethod(builder, String.join("", prefix, "DefinitionVersionId"), definitionVersionId);
-    }
-
-    private AwsRequest.Builder callMethod(AwsRequest.Builder builder, String methodName, String input) {
-        return (AwsRequest.Builder) Try.of(() -> builder.getClass().getMethod(methodName, String.class))
-                .mapTry(method -> callMethod(builder, method, input))
-                .get();
-    }
-
-    private Object callMethod(Object instance, Method method, Object input) {
-        return Try.of(() -> setAccessible(method))
-                // This is necessary because these methods are not accessible by default
-                .mapTry(accessibleMethod -> accessibleMethod.invoke(instance, input))
-                .get();
-    }
-
-    private Method setAccessible(Method method) {
-        // This is necessary because these methods are not accessible by default
-        method.setAccessible(true);
-
-        return method;
     }
 }

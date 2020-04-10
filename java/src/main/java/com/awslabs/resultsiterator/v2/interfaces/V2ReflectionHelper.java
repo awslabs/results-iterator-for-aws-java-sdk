@@ -1,6 +1,8 @@
 package com.awslabs.resultsiterator.v2.interfaces;
 
 import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.services.greengrass.model.GreengrassRequest;
+import software.amazon.awssdk.services.greengrass.model.GreengrassResponse;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -16,4 +18,6 @@ public interface V2ReflectionHelper {
     AwsRequest getNewRequest(Class<? extends AwsRequest> awsRequestClass);
 
     <T extends AwsRequest> T.Builder getNewRequestBuilder(Class<T> awsRequestClass);
+
+    <T extends GreengrassResponse> T getSingleGreengrassResult(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse);
 }

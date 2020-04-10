@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 public interface V2GreengrassHelper {
     Stream<GroupInformation> getGroups();
 
+    Stream<Deployment> getDeployments();
+
     Stream<DefinitionInformation> getCoreDefinitions();
 
     Stream<DefinitionInformation> getDeviceDefinitions();
