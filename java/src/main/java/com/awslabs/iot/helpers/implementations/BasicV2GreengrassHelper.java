@@ -200,7 +200,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     private <T extends GreengrassResponse> T getResults(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
-        AwsRequest.Builder builder = V2ResultsIterator.getNewRequestBuilder(greengrassRequest);
+        AwsRequest.Builder builder = v2ReflectionHelper.getNewRequestBuilder(greengrassRequest);
 
         builder = setDefinitionId(builder, prefix, greengrassIdExtractor.extractId(versionArn));
         builder = setDefinitionVersionId(builder, prefix, greengrassIdExtractor.extractVersionId(versionArn));

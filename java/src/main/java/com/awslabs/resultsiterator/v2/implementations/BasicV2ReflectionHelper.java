@@ -1,8 +1,10 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
+import software.amazon.awssdk.awscore.AwsRequest;
 
 import javax.inject.Inject;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -81,5 +83,22 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
         }
 
         return Optional.ofNullable(returnMethod);
+    }
+
+    @Override
+    public AwsRequest getNewRequest(Class<? extends AwsRequest> awsRequestClass) {
+        return getNewRequestBuilder(awsRequestClass).build();
+    }
+
+    @Override
+    public <T extends AwsRequest> T.Builder getNewRequestBuilder(Class<T> awsRequestClass) {
+        try {
+            // Get a new request object.  If this can't be done without parameters it will fail.
+            Method method = awsRequestClass.getMethod("builder");
+            return (T.Builder) method.invoke(null);
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new UnsupportedOperationException(e);
+        }
     }
 }

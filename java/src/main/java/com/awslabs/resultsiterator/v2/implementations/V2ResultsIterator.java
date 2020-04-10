@@ -131,22 +131,7 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
             return originalAwsRequest.toBuilder().build();
         }
 
-        return getNewRequest(awsRequestClass);
-    }
-
-    private AwsRequest getNewRequest(Class<? extends AwsRequest> awsRequestClass) {
-        return getNewRequestBuilder(awsRequestClass).build();
-    }
-
-    public static <T extends AwsRequest> T.Builder getNewRequestBuilder(Class<T> awsRequestClass) {
-        try {
-            // Get a new request object.  If this can't be done without parameters it will fail.
-            Method method = awsRequestClass.getMethod("builder");
-            return (T.Builder) method.invoke(null);
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
-            throw new UnsupportedOperationException(e);
-        }
+        return v2ReflectionHelper.getNewRequest(awsRequestClass);
     }
 
     private AwsResponse queryNextResults(AwsRequest request) {
