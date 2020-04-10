@@ -353,6 +353,31 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
+
+        if (!optionalGroupVersion.isPresent()) {
+            return Optional.empty();
+        }
+
+        GroupVersion groupVersion = optionalGroupVersion.get();
+
+        String connectorDefinitionVersionArn = groupVersion.connectorDefinitionVersionArn();
+
+        GetConnectorDefinitionVersionRequest getConnectorDefinitionVersionRequest = GetConnectorDefinitionVersionRequest.builder()
+                .connectorDefinitionId(greengrassIdExtractor.extractId(connectorDefinitionVersionArn))
+                .connectorDefinitionVersionId(greengrassIdExtractor.extractVersionId(connectorDefinitionVersionArn))
+                .build();
+
+        // This method throws an exception if the definition does not exist
+        GetConnectorDefinitionVersionResponse getConnectorDefinitionVersionResponse = Try.of(() -> greengrassClient.getConnectorDefinitionVersion(getConnectorDefinitionVersionRequest))
+                .getOrNull();
+
+        return Optional.ofNullable(getConnectorDefinitionVersionResponse)
+                .map(GetConnectorDefinitionVersionResponse::definition);
+    }
+
+    @Override
     public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
         // Get the group information by group ID
         return getGroupInformation(greengrassGroupId)
