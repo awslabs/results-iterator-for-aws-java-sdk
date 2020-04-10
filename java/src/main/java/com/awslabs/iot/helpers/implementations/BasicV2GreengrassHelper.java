@@ -199,44 +199,6 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .map(FunctionDefaultExecutionConfig::isolationMode);
     }
 
-    @Override
-    public Optional<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
-
-        if (!optionalGroupVersion.isPresent()) {
-            return Optional.empty();
-        }
-
-        GroupVersion groupVersion = optionalGroupVersion.get();
-
-        return getCoreCertificateArn(groupVersion);
-    }
-
-    @Override
-    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
-
-        if (!optionalGroupVersion.isPresent()) {
-            return Optional.empty();
-        }
-
-        GroupVersion groupVersion = optionalGroupVersion.get();
-
-        String functionDefinitionVersionArn = groupVersion.functionDefinitionVersionArn();
-
-        GetFunctionDefinitionVersionRequest getFunctionDefinitionVersionRequest = GetFunctionDefinitionVersionRequest.builder()
-                .functionDefinitionId(greengrassIdExtractor.extractId(functionDefinitionVersionArn))
-                .functionDefinitionVersionId(greengrassIdExtractor.extractVersionId(functionDefinitionVersionArn))
-                .build();
-
-        // This method throws an exception if the definition does not exist
-        GetFunctionDefinitionVersionResponse getFunctionDefinitionVersionResponse = Try.of(() -> greengrassClient.getFunctionDefinitionVersion(getFunctionDefinitionVersionRequest))
-                .getOrNull();
-
-        return Optional.ofNullable(getFunctionDefinitionVersionResponse)
-                .map(GetFunctionDefinitionVersionResponse::definition);
-    }
-
     private <T extends GreengrassResponse> T getResults(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
         AwsRequest.Builder builder = V2ResultsIterator.getNewRequestBuilder(greengrassRequest);
 
@@ -254,8 +216,15 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         Method clientMethodReturningResult = optionalClientMethodReturningResult.get();
 
         // This method throws an exception if the definition does not exist
-        return (T) Try.of(() -> clientMethodReturningResult.invoke(request))
+        return (T) Try.of(() -> callMethod(greengrassClient, clientMethodReturningResult, request))
                 .getOrNull();
+    }
+
+    @Override
+    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .map(groupVersion -> getResults(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class))
+                .map(GetFunctionDefinitionVersionResponse::definition);
     }
 
     @Override
@@ -279,22 +248,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Optional<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getCoreCertificateArn);
+    }
+
+    @Override
     public Optional<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion) {
-        String coreDefinitionVersionArn = groupVersion.coreDefinitionVersionArn();
-        String coreDefinitionVersionId = greengrassIdExtractor.extractVersionId(coreDefinitionVersionArn);
-        String coreDefinitionId = greengrassIdExtractor.extractId(coreDefinitionVersionArn);
-
-        GetCoreDefinitionVersionRequest getCoreDefinitionVersionRequest = GetCoreDefinitionVersionRequest.builder()
-                .coreDefinitionVersionId(coreDefinitionVersionId)
-                .coreDefinitionId(coreDefinitionId)
-                .build();
-
-        // This method throws an exception if the definition does not exist
-        GetCoreDefinitionVersionResponse coreDefinitionVersionResponse = Try.of(() -> greengrassClient.getCoreDefinitionVersion(getCoreDefinitionVersionRequest))
-                .getOrNull();
-
-        return Optional.ofNullable(coreDefinitionVersionResponse)
-                .map(GetCoreDefinitionVersionResponse::definition)
+        return getCoreDefinitionVersion(groupVersion)
                 .map(CoreDefinitionVersion::cores)
                 .filter(list -> list.size() != 0)
                 .map(list -> list.get(0))
@@ -319,101 +280,49 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getCoreDefinitionVersion);
+    }
 
-        if (!optionalGroupVersion.isPresent()) {
-            return Optional.empty();
-        }
-
-        GroupVersion groupVersion = optionalGroupVersion.get();
-
-        String coreDefinitionVersionArn = groupVersion.coreDefinitionVersionArn();
-
-        GetCoreDefinitionVersionRequest getCoreDefinitionVersionRequest = GetCoreDefinitionVersionRequest.builder()
-                .coreDefinitionId(greengrassIdExtractor.extractId(coreDefinitionVersionArn))
-                .coreDefinitionVersionId(greengrassIdExtractor.extractVersionId(coreDefinitionVersionArn))
-                .build();
-
-        // This method throws an exception if the definition does not exist
-        GetCoreDefinitionVersionResponse getCoreDefinitionVersionResponse = Try.of(() -> greengrassClient.getCoreDefinitionVersion(getCoreDefinitionVersionRequest))
-                .getOrNull();
-
-        return Optional.ofNullable(getCoreDefinitionVersionResponse)
+    @Override
+    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
+        return Optional.ofNullable(getResults(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class))
                 .map(GetCoreDefinitionVersionResponse::definition);
     }
 
     @Override
     public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getConnectorDefinitionVersion);
+    }
 
-        if (!optionalGroupVersion.isPresent()) {
-            return Optional.empty();
-        }
-
-        GroupVersion groupVersion = optionalGroupVersion.get();
-
-        String connectorDefinitionVersionArn = groupVersion.connectorDefinitionVersionArn();
-
-        GetConnectorDefinitionVersionRequest getConnectorDefinitionVersionRequest = GetConnectorDefinitionVersionRequest.builder()
-                .connectorDefinitionId(greengrassIdExtractor.extractId(connectorDefinitionVersionArn))
-                .connectorDefinitionVersionId(greengrassIdExtractor.extractVersionId(connectorDefinitionVersionArn))
-                .build();
-
-        // This method throws an exception if the definition does not exist
-        GetConnectorDefinitionVersionResponse getConnectorDefinitionVersionResponse = Try.of(() -> greengrassClient.getConnectorDefinitionVersion(getConnectorDefinitionVersionRequest))
-                .getOrNull();
-
-        return Optional.ofNullable(getConnectorDefinitionVersionResponse)
+    @Override
+    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion) {
+        return Optional.ofNullable(getResults(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class))
                 .map(GetConnectorDefinitionVersionResponse::definition);
     }
 
     @Override
     public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getResourceDefinitionVersion);
+    }
 
-        if (!optionalGroupVersion.isPresent()) {
-            return Optional.empty();
-        }
-
-        GroupVersion groupVersion = optionalGroupVersion.get();
-
-        String resourceDefinitionVersionArn = groupVersion.resourceDefinitionVersionArn();
-
-        GetResourceDefinitionVersionRequest getResourceDefinitionVersionRequest = GetResourceDefinitionVersionRequest.builder()
-                .resourceDefinitionId(greengrassIdExtractor.extractId(resourceDefinitionVersionArn))
-                .resourceDefinitionVersionId(greengrassIdExtractor.extractVersionId(resourceDefinitionVersionArn))
-                .build();
-
-        // This method throws an exception if the definition does not exist
-        GetResourceDefinitionVersionResponse getResourceDefinitionVersionResponse = Try.of(() -> greengrassClient.getResourceDefinitionVersion(getResourceDefinitionVersionRequest))
-                .getOrNull();
-
-        return Optional.ofNullable(getResourceDefinitionVersionResponse)
+    @Override
+    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion) {
+        return Optional.ofNullable(getResults(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class))
                 .map(GetResourceDefinitionVersionResponse::definition);
     }
 
     @Override
     public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation) {
-        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getLoggerDefinitionVersion);
+    }
 
-        if (!optionalGroupVersion.isPresent()) {
-            return Optional.empty();
-        }
-
-        GroupVersion groupVersion = optionalGroupVersion.get();
-
-        String loggerDefinitionVersionArn = groupVersion.loggerDefinitionVersionArn();
-
-        GetLoggerDefinitionVersionRequest getLoggerDefinitionVersionRequest = GetLoggerDefinitionVersionRequest.builder()
-                .loggerDefinitionId(greengrassIdExtractor.extractId(loggerDefinitionVersionArn))
-                .loggerDefinitionVersionId(greengrassIdExtractor.extractVersionId(loggerDefinitionVersionArn))
-                .build();
-
-        // This method throws an exception if the definition does not exist
-        GetLoggerDefinitionVersionResponse getLoggerDefinitionVersionResponse = Try.of(() -> greengrassClient.getLoggerDefinitionVersion(getLoggerDefinitionVersionRequest))
-                .getOrNull();
-
-        return Optional.ofNullable(getLoggerDefinitionVersionResponse)
+    @Override
+    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
+        return Optional.ofNullable(getResults(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class))
                 .map(GetLoggerDefinitionVersionResponse::definition);
     }
 
@@ -450,10 +359,15 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     private AwsRequest.Builder callMethod(AwsRequest.Builder builder, String methodName, String input) {
-        // This is necessary because these methods are not accessible by default
         return (AwsRequest.Builder) Try.of(() -> builder.getClass().getMethod(methodName, String.class))
-                .mapTry(this::setAccessible)
-                .mapTry(method -> method.invoke(builder, input))
+                .mapTry(method -> callMethod(builder, method, input))
+                .get();
+    }
+
+    private Object callMethod(Object instance, Method method, Object input) {
+        return Try.of(() -> setAccessible(method))
+                // This is necessary because these methods are not accessible by default
+                .mapTry(accessibleMethod -> accessibleMethod.invoke(instance, input))
                 .get();
     }
 

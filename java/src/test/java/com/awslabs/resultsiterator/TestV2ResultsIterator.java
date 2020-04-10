@@ -76,10 +76,12 @@ public class TestV2ResultsIterator {
     @Test
     public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
-        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributes = v2ResultsIterator.stream();
+        V2ResultsIterator<ThingAttribute> thingAttributesIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        assertTrue(testNotMeaningfulWithout("things"), streamNotEmpty(thingAttributesIterator.stream()));
+
+        Stream<ThingAttribute> thingAttributes = thingAttributesIterator.stream();
         thingAttributes.map(ThingAttribute::toString).forEach(log::info);
-        thingAttributes = v2ResultsIterator.stream();
+        thingAttributes = thingAttributesIterator.stream();
         long count = thingAttributes.count();
         log.info("Thing attribute count: " + count);
         MatcherAssert.assertThat(count, greaterThan(0L));
@@ -88,10 +90,12 @@ public class TestV2ResultsIterator {
     @Test
     public void shouldListBucketsAndNotThrowAnException() {
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        V2ResultsIterator<Bucket> v2ResultsIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
-        Stream<Bucket> buckets = v2ResultsIterator.stream();
+        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+        assertTrue(testNotMeaningfulWithout("buckets"), streamNotEmpty(bucketIterator.stream()));
+
+        Stream<Bucket> buckets = bucketIterator.stream();
         buckets.forEach(System.out::println);
-        buckets = v2ResultsIterator.stream();
+        buckets = bucketIterator.stream();
         System.out.println("Bucket count: " + buckets.count());
     }
 
@@ -99,14 +103,21 @@ public class TestV2ResultsIterator {
     public void shouldListObjectsAndNotThrowAnException() {
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
         V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+        assertTrue(testNotMeaningfulWithout("buckets"), streamNotEmpty(bucketIterator.stream()));
+
         Stream<Bucket> buckets = bucketIterator.stream();
 
-        buckets.forEach(this::listAll);
+        Long totalNumberOfObjects = buckets.map(this::listAll)
+                .reduce(0L, Long::sum);
+
+        assertTrue(testNotMeaningfulWithout("S3 objects"), totalNumberOfObjects > 0);
     }
 
     @Test
     public void shouldListGreengrassGroupsAndNotThrowAnException() {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
+        assertTrue(testNotMeaningfulWithout("Greengrass groups"), streamNotEmpty(groupInformationIterator.stream()));
+
         List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
         groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
     }
@@ -114,6 +125,8 @@ public class TestV2ResultsIterator {
     @Test
     public void shouldListGreengrassGroupSubscriptionsAndNotThrowAnException() {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
+        assertTrue(testNotMeaningfulWithout("Greengrass groups"), streamNotEmpty(groupInformationIterator.stream()));
+
         List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
 
         groupInformationList.stream()
@@ -124,13 +137,15 @@ public class TestV2ResultsIterator {
     @Test
     public void streamShouldWorkTwice() {
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
-        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributesStream1 = v2ResultsIterator.stream();
-        Stream<ThingAttribute> thingAttributesStream2 = v2ResultsIterator.stream();
+        V2ResultsIterator<ThingAttribute> thingAttributesIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        assertTrue(testNotMeaningfulWithout("things"), streamNotEmpty(thingAttributesIterator.stream()));
+
+        Stream<ThingAttribute> thingAttributesStream1 = thingAttributesIterator.stream();
+        Stream<ThingAttribute> thingAttributesStream2 = thingAttributesIterator.stream();
         MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
-    private void listAll(Bucket bucket) {
+    private long listAll(Bucket bucket) {
         // NOTE: Setting the useArnRegionEnabled value does not automatically make cross-region requests. Below is some code to deal with that.
         System.out.println(bucket.name());
 
@@ -141,15 +156,27 @@ public class TestV2ResultsIterator {
                 .build();
 
         V2ResultsIterator<S3Object> s3ObjectIterator = new V2ResultsIterator<>(regionSpecificS3Client, listObjectsRequest);
+
         Stream<S3Object> s3Objects = s3ObjectIterator.stream();
         s3Objects.map(S3Object::toString).forEach(log::info);
         s3Objects = s3ObjectIterator.stream();
-        log.info("Object count: " + s3Objects.count());
+        long count = s3Objects.count();
+        log.info("Object count: " + count);
+
+        return count;
     }
 
     @Test
     public void shouldThrowExceptionWhenThingNameNotPresent() {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> v2CertificateCredentialsProvider.resolveCredentials());
         assertTrue(exception.getMessage().contains(BouncyCastleV2CertificateCredentialsProvider.AWS_CREDENTIAL_PROVIDER_URL));
+    }
+
+    private String testNotMeaningfulWithout(String nameOfRequiredObjects) {
+        return String.join(" ", "This test is not meaningful unless one or more", nameOfRequiredObjects, "are defined");
+    }
+
+    private boolean streamNotEmpty(Stream stream) {
+        return stream.findFirst().isPresent();
     }
 }
