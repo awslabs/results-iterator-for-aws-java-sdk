@@ -69,5 +69,7 @@ public interface V2GreengrassHelper {
 
     Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation);
 
+    Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation);
+
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
 }

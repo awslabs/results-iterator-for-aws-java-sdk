@@ -403,6 +403,31 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation) {
+        Optional<GroupVersion> optionalGroupVersion = getLatestGroupVersion(groupInformation);
+
+        if (!optionalGroupVersion.isPresent()) {
+            return Optional.empty();
+        }
+
+        GroupVersion groupVersion = optionalGroupVersion.get();
+
+        String loggerDefinitionVersionArn = groupVersion.loggerDefinitionVersionArn();
+
+        GetLoggerDefinitionVersionRequest getLoggerDefinitionVersionRequest = GetLoggerDefinitionVersionRequest.builder()
+                .loggerDefinitionId(greengrassIdExtractor.extractId(loggerDefinitionVersionArn))
+                .loggerDefinitionVersionId(greengrassIdExtractor.extractVersionId(loggerDefinitionVersionArn))
+                .build();
+
+        // This method throws an exception if the definition does not exist
+        GetLoggerDefinitionVersionResponse getLoggerDefinitionVersionResponse = Try.of(() -> greengrassClient.getLoggerDefinitionVersion(getLoggerDefinitionVersionRequest))
+                .getOrNull();
+
+        return Optional.ofNullable(getLoggerDefinitionVersionResponse)
+                .map(GetLoggerDefinitionVersionResponse::definition);
+    }
+
+    @Override
     public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
         // Get the group information by group ID
         return getGroupInformation(greengrassGroupId)
