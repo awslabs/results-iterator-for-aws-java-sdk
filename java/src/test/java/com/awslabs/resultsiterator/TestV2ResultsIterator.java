@@ -87,8 +87,7 @@ public class TestV2ResultsIterator {
 
     @Test
     public void shouldListBucketsAndNotThrowAnException() {
-        ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, ListBucketsRequest.class);
         testNotMeaningfulWithout("buckets", bucketIterator.stream());
 
         Stream<Bucket> buckets = bucketIterator.stream();
@@ -99,8 +98,7 @@ public class TestV2ResultsIterator {
 
     @Test
     public void shouldListObjectsAndNotThrowAnException() {
-        ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, ListBucketsRequest.class);
         testNotMeaningfulWithout("buckets", bucketIterator.stream());
 
         Stream<Bucket> buckets = bucketIterator.stream();
