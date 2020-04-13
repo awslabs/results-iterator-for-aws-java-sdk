@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 public interface V2GreengrassHelper {
     Stream<GroupInformation> getGroups();
 
-    Stream<Deployment> getDeployments();
-
     Stream<DefinitionInformation> getCoreDefinitions();
 
     Stream<DefinitionInformation> getDeviceDefinitions();
@@ -80,6 +78,8 @@ public interface V2GreengrassHelper {
     Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation);
 
     Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion);
+
+    Stream<Deployment> getDeployments(GroupInformation groupInformation);
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
 }

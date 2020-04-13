@@ -46,11 +46,6 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Stream<Deployment> getDeployments() {
-        return new V2ResultsIterator<Deployment>(greengrassClient, ListDeploymentsRequest.class).stream();
-    }
-
-    @Override
     public Stream<DefinitionInformation> getCoreDefinitions() {
         return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListCoreDefinitionsRequest.class).stream();
     }
@@ -306,6 +301,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
         return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class))
                 .map(GetLoggerDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Stream<Deployment> getDeployments(GroupInformation groupInformation) {
+        ListDeploymentsRequest listDeploymentsRequest = ListDeploymentsRequest.builder()
+                .groupId(groupInformation.id())
+                .build();
+        return new V2ResultsIterator<Deployment>(greengrassClient, listDeploymentsRequest).stream();
     }
 
     @Override

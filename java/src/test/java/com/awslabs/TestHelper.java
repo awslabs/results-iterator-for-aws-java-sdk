@@ -4,6 +4,7 @@ import com.awslabs.general.helpers.implementations.BasicJsonHelper;
 import com.awslabs.general.helpers.interfaces.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.greengrass.model.Deployment;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,16 +32,31 @@ public class TestHelper {
     }
 
     public static <T> long logAndCount(Optional<List<T>> optionalObjects) {
-        JsonHelper jsonHelper = new BasicJsonHelper();
-
         if (!optionalObjects.isPresent()) {
             return 0;
         }
 
-        List<T> objects = optionalObjects.get();
+        return logObjects(optionalObjects.get());
+    }
+
+    private static <T> long logObjects(List<T> objects) {
+        JsonHelper jsonHelper = new BasicJsonHelper();
 
         log.info(jsonHelper.toJson(objects));
 
         return objects.size();
+    }
+
+    private static <T> long logObject(T object) {
+        JsonHelper jsonHelper = new BasicJsonHelper();
+
+        log.info(jsonHelper.toJson(object));
+
+        return 1;
+    }
+
+    public static <T> long logAndCount(Stream<T> stream) {
+        return stream.map(TestHelper::logObject)
+                .reduce(0L, Long::sum);
     }
 }

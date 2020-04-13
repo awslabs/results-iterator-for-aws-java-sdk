@@ -38,8 +38,11 @@ public class BasicV2GreengrassHelperTests {
         Callable<Stream<GroupInformation>> getStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getStream.call());
 
-        List<GroupInformation> groupInformationList = getStream.call().collect(Collectors.toList());
-        groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
+        logStreamData(getStream);
+    }
+
+    private <T> void logStreamData(Callable<Stream<T>> getStream) throws Exception {
+        getStream.call().forEach(object -> log.info(jsonHelper.toJson(object)));
     }
 
     @Test
@@ -55,5 +58,18 @@ public class BasicV2GreengrassHelperTests {
                 .reduce(0L, Long::sum);
 
         testNotMeaningfulWithout("subscriptions", numberOfSubscriptions);
+    }
+
+    @Test
+    public void shouldListGreengrassDeploymentsAndNotThrowAnException() throws Exception {
+        Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
+        testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
+
+        Long numberOfDeployments = getGroupInformationStream.call()
+                .map(groupInformation -> v2GreengrassHelper.getDeployments(groupInformation))
+                .map(TestHelper::logAndCount)
+                .reduce(0L, Long::sum);
+
+        testNotMeaningfulWithout("Greengrass deployments", numberOfDeployments);
     }
 }
