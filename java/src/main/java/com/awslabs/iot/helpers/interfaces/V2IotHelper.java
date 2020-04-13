@@ -44,4 +44,6 @@ public interface V2IotHelper {
     boolean isThingImmutable(ThingName thingName);
 
     Stream<Certificate> getCertificates();
+
+    Stream<ThingName> getAttachedThings(CertificateArn certificateArn);
 }

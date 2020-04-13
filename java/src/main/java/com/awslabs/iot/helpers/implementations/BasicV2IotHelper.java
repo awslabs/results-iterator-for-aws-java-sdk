@@ -265,4 +265,14 @@ public class BasicV2IotHelper implements V2IotHelper {
     public Stream<Certificate> getCertificates() {
         return new V2ResultsIterator<Certificate>(iotClient, ListCertificatesRequest.class).stream();
     }
+
+    @Override
+    public Stream<ThingName> getAttachedThings(CertificateArn certificateArn) {
+        ListPrincipalThingsRequest listPrincipalThingsRequest = ListPrincipalThingsRequest.builder()
+                .principal(certificateArn.getArn())
+                .build();
+
+        return new V2ResultsIterator<String>(iotClient, listPrincipalThingsRequest).stream()
+                .map(thingName -> ImmutableThingName.builder().name(thingName).build());
+    }
 }
