@@ -51,11 +51,17 @@ public interface V2IotHelper {
 
     Stream<Certificate> getCertificates();
 
+    Stream<Certificate> getCaCertificates();
+
     Stream<ThingName> getAttachedThings(CertificateArn certificateArn);
 
     Stream<Policy> getAttachedPolicies(CertificateArn certificateArn);
 
+    boolean isCaCertificate(CertificateArn certificateArn);
+
     void recursiveDelete(Certificate certificate);
 
     void recursiveDelete(CertificateArn certificateArn);
+
+    void deleteCaCertificate(CertificateArn certificateArn);
 }

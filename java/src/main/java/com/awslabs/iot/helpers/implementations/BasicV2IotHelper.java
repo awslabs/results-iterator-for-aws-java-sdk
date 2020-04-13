@@ -198,9 +198,9 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public Optional<CertificatePem> getCertificatePem(CertificateArn certificateArn) {
-        String certificateId = certificateArn.getArn().split("/")[1];
+        CertificateId certificateId = getCertificateId(certificateArn);
 
-        return getCertificatePem(ImmutableCertificateId.builder().id(certificateId).build());
+        return getCertificatePem(certificateId);
     }
 
     @Override
@@ -274,6 +274,12 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public Stream<Certificate> getCaCertificates() {
+        return getCertificates()
+                .filter(certificate -> isCaCertificate(certificate.certificateArn()));
+    }
+
+    @Override
     public Stream<ThingName> getAttachedThings(CertificateArn certificateArn) {
         ListPrincipalThingsRequest listPrincipalThingsRequest = ListPrincipalThingsRequest.builder()
                 .principal(certificateArn.getArn())
@@ -295,7 +301,7 @@ public class BasicV2IotHelper implements V2IotHelper {
     private CertificateId getCertificateId(CertificateArn certificateArn) {
         String principal = certificateArn.getArn();
 
-        String certificateId = principal.substring(principal.lastIndexOf('/') + 1);
+        String certificateId = certificateArn.getArn().split("/")[1];
 
         return ImmutableCertificateId.builder().id(certificateId).build();
     }
@@ -304,7 +310,8 @@ public class BasicV2IotHelper implements V2IotHelper {
         return principal.contains(CACERT_IDENTIFIER);
     }
 
-    private boolean isCaCertificate(CertificateArn certificateArn) {
+    @Override
+    public boolean isCaCertificate(CertificateArn certificateArn) {
         return isCaCertificate(certificateArn.getArn());
     }
 
@@ -315,21 +322,24 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public void recursiveDelete(CertificateArn certificateArn) {
-        if (isAnyThingImmutable(getAttachedThings(certificateArn))) {
-            log.info("Skipping deletion of [" + certificateArn.getArn() + "] because it is attached to at least one immutable thing");
-            return;
+        if (isCaCertificate(certificateArn)) {
+            throw new RuntimeException("Recursive delete is not supported for CA certificates");
         }
 
-        if (isCaCertificate(certificateArn)) {
-            recursiveDeleteCaCertificate(certificateArn);
-
+        if (isAnyThingImmutable(getAttachedThings(certificateArn))) {
+            log.info("Skipping deletion of [" + certificateArn.getArn() + "] because it is attached to at least one immutable thing");
             return;
         }
 
         recursiveDeleteNonCaCertificate(certificateArn);
     }
 
-    private void recursiveDeleteCaCertificate(CertificateArn certificateArn) {
+    @Override
+    public void deleteCaCertificate(CertificateArn certificateArn) {
+        if (!isCaCertificate(certificateArn)) {
+            throw new RuntimeException("Delete CA certificate can not be called with the certificate ARN of a non-CA certificate");
+        }
+
         // This is a CA certificate, it just needs to be deactivated and removed
         CertificateId certificateId = getCertificateId(certificateArn);
 
