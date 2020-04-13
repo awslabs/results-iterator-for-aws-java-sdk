@@ -335,6 +335,11 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public void deleteCaCertificate(Certificate certificate) {
+        deleteCaCertificate(ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build());
+    }
+
+    @Override
     public void deleteCaCertificate(CertificateArn certificateArn) {
         if (!isCaCertificate(certificateArn)) {
             throw new RuntimeException("Delete CA certificate can not be called with the certificate ARN of a non-CA certificate");

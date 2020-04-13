@@ -63,5 +63,7 @@ public interface V2IotHelper {
 
     void recursiveDelete(CertificateArn certificateArn);
 
+    void deleteCaCertificate(Certificate certificate);
+
     void deleteCaCertificate(CertificateArn certificateArn);
 }
