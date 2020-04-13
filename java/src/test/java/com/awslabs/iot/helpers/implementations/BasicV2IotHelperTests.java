@@ -45,4 +45,18 @@ public class BasicV2IotHelperTests {
 
         testNotMeaningfulWithout("things attached to certificates", numberOfAttachedThings);
     }
+
+    @Test
+    public void shouldListAttachedPoliciesWithHelperAndNotThrowAnException() throws Exception {
+        Callable<Stream<Certificate>> getCertificatesStream = () -> v2IotHelper.getCertificates();
+        testNotMeaningfulWithout("certificates", getCertificatesStream.call());
+
+        Long numberOfAttachedThings = getCertificatesStream.call()
+                .map(certificate -> ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build())
+                .map(v2IotHelper::getAttachedPolicies)
+                .map(TestHelper::logAndCount)
+                .reduce(0L, Long::sum);
+
+        testNotMeaningfulWithout("policies attached to certificates", numberOfAttachedThings);
+    }
 }

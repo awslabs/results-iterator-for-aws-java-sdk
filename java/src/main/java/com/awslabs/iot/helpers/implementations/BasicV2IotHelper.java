@@ -262,6 +262,13 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public boolean isAnyThingImmutable(Stream<ThingName> thingName) {
+        return thingName.map(this::isThingImmutable)
+                .findAny()
+                .orElse(false);
+    }
+
+    @Override
     public Stream<Certificate> getCertificates() {
         return new V2ResultsIterator<Certificate>(iotClient, ListCertificatesRequest.class).stream();
     }
@@ -274,5 +281,133 @@ public class BasicV2IotHelper implements V2IotHelper {
 
         return new V2ResultsIterator<String>(iotClient, listPrincipalThingsRequest).stream()
                 .map(thingName -> ImmutableThingName.builder().name(thingName).build());
+    }
+
+    @Override
+    public Stream<Policy> getAttachedPolicies(CertificateArn certificateArn) {
+        ListAttachedPoliciesRequest listAttachedPoliciesRequest = ListAttachedPoliciesRequest.builder()
+                .target(certificateArn.getArn())
+                .build();
+
+        return new V2ResultsIterator<Policy>(iotClient, listAttachedPoliciesRequest).stream();
+    }
+
+    private CertificateId getCertificateId(CertificateArn certificateArn) {
+        String principal = certificateArn.getArn();
+
+        String certificateId = principal.substring(principal.lastIndexOf('/') + 1);
+
+        return ImmutableCertificateId.builder().id(certificateId).build();
+    }
+
+    private boolean isCaCertificate(String principal) {
+        return principal.contains(CACERT_IDENTIFIER);
+    }
+
+    private boolean isCaCertificate(CertificateArn certificateArn) {
+        return isCaCertificate(certificateArn.getArn());
+    }
+
+    @Override
+    public void recursiveDelete(CertificateArn certificateArn) {
+        if (isAnyThingImmutable(getAttachedThings(certificateArn))) {
+            log.info("Skipping deletion of [" + certificateArn.getArn() + "] because it is attached to at least one immutable thing");
+            return;
+        }
+
+        if (isCaCertificate(certificateArn)) {
+            recursiveDeleteCaCertificate(certificateArn);
+
+            return;
+        }
+
+        recursiveDeleteNonCaCertificate(certificateArn);
+    }
+
+    private void recursiveDeleteCaCertificate(CertificateArn certificateArn) {
+        // This is a CA certificate, it just needs to be deactivated and removed
+        CertificateId certificateId = getCertificateId(certificateArn);
+
+        UpdateCaCertificateRequest updateCaCertificateRequest = UpdateCaCertificateRequest.builder()
+                .certificateId(certificateId.getId())
+                .newStatus(CACertificateStatus.INACTIVE)
+                .build();
+
+        log.info("Attempting to mark CA certificate inactive [" + certificateId.getId() + "]");
+        iotClient.updateCACertificate(updateCaCertificateRequest);
+
+        DeleteCaCertificateRequest deleteCaCertificateRequest = DeleteCaCertificateRequest.builder()
+                .certificateId(certificateId.getId())
+                .build();
+
+        log.info("Attempting to delete CA certificate [" + certificateId.getId() + "]");
+        iotClient.deleteCACertificate(deleteCaCertificateRequest);
+    }
+
+    private void delete(Policy policy) {
+        DeletePolicyRequest deletePolicyRequest = DeletePolicyRequest.builder()
+                .policyName(policy.policyName())
+                .build();
+
+        iotClient.deletePolicy(deletePolicyRequest);
+    }
+
+    private void detach(CertificateArn certificateArn, Policy policy) {
+        DetachPolicyRequest detachPolicyRequest = DetachPolicyRequest.builder()
+                .target(certificateArn.getArn())
+                .policyName(policy.policyName())
+                .build();
+
+        iotClient.detachPolicy(detachPolicyRequest);
+    }
+
+    private void detach(CertificateArn certificateArn, ThingName thingName) {
+        DetachThingPrincipalRequest detachThingPrincipalRequest = DetachThingPrincipalRequest.builder()
+                .principal(certificateArn.getArn())
+                .thingName(thingName.getName())
+                .build();
+
+        iotClient.detachThingPrincipal(detachThingPrincipalRequest);
+    }
+
+    private void delete(ThingName thingName) {
+        DeleteThingRequest deleteThingRequest = DeleteThingRequest.builder()
+                .thingName(thingName.getName())
+                .build();
+
+        iotClient.deleteThing(deleteThingRequest);
+    }
+
+    private void recursiveDeleteNonCaCertificate(CertificateArn certificateArn) {
+        // This is a regular certificate
+        CertificateId certificateId = getCertificateId(certificateArn);
+
+        // Detach all policies from it
+        getAttachedPolicies(certificateArn).forEach(policy -> detach(certificateArn, policy));
+
+        // Delete the policies that were attached but aren't shared with other certificates (ignores failures)
+        // getAttachedPolicies(certificateArn).forEach(policy -> Try.run(() -> delete(policy)));
+
+        // Detach all things from it
+        getAttachedThings(certificateArn).forEach(thingName -> detach(certificateArn, thingName));
+
+        // Delete the things that were attached but aren't shared with other certificates (ignores failures)
+        // getAttachedThings(certificateArn).forEach(thingName -> Try.run(() -> delete(thingName)));
+
+        // Mark the certificate as inactive
+        UpdateCertificateRequest updateCertificateRequest = UpdateCertificateRequest.builder()
+                .certificateId(certificateId.getId())
+                .newStatus(CertificateStatus.INACTIVE)
+                .build();
+
+        log.info("Attempting to mark certificate inactive [" + certificateId.getId() + "]");
+        iotClient.updateCertificate(updateCertificateRequest);
+
+        DeleteCertificateRequest deleteCertificateRequest = DeleteCertificateRequest.builder()
+                .certificateId(certificateId.getId())
+                .build();
+
+        log.info("Attempting to delete certificate [" + certificateId + "]");
+        iotClient.deleteCertificate(deleteCertificateRequest);
     }
 }
