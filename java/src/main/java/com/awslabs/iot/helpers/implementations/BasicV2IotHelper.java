@@ -2,6 +2,7 @@ package com.awslabs.iot.helpers.implementations;
 
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
+import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -258,5 +259,10 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .orElse(Stream.empty())
                 // Check if any of the keys are equal to the immutable string
                 .anyMatch(IMMUTABLE::equals);
+    }
+
+    @Override
+    public Stream<Certificate> getCertificates() {
+        return new V2ResultsIterator<Certificate>(iotClient, ListCertificatesRequest.class).stream();
     }
 }
