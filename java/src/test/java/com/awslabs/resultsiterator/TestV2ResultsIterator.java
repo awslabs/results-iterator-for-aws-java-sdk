@@ -1,7 +1,6 @@
 package com.awslabs.resultsiterator;
 
 import com.awslabs.general.helpers.interfaces.JsonHelper;
-import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThrows;
@@ -45,7 +45,6 @@ public class TestV2ResultsIterator {
     private V2S3Helper v2S3Helper;
     private S3Client s3Client;
     private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
-    private V2GreengrassHelper v2GreengrassHelper;
     private JsonHelper jsonHelper;
 
     @Before
@@ -56,7 +55,6 @@ public class TestV2ResultsIterator {
         v2S3Helper = injector.v2S3Helper();
         s3Client = injector.s3Client();
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
-        v2GreengrassHelper = injector.v2GreengrassHelper();
         jsonHelper = injector.jsonHelper();
 
         CreateThingRequest createThingRequest = CreateThingRequest.builder()
@@ -77,7 +75,7 @@ public class TestV2ResultsIterator {
     public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
         V2ResultsIterator<ThingAttribute> thingAttributesIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        assertTrue(testNotMeaningfulWithout("things"), streamNotEmpty(thingAttributesIterator.stream()));
+        testNotMeaningfulWithout("things", thingAttributesIterator.stream());
 
         Stream<ThingAttribute> thingAttributes = thingAttributesIterator.stream();
         thingAttributes.map(ThingAttribute::toString).forEach(log::info);
@@ -91,7 +89,7 @@ public class TestV2ResultsIterator {
     public void shouldListBucketsAndNotThrowAnException() {
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
         V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
-        assertTrue(testNotMeaningfulWithout("buckets"), streamNotEmpty(bucketIterator.stream()));
+        testNotMeaningfulWithout("buckets", bucketIterator.stream());
 
         Stream<Bucket> buckets = bucketIterator.stream();
         buckets.forEach(System.out::println);
@@ -103,42 +101,30 @@ public class TestV2ResultsIterator {
     public void shouldListObjectsAndNotThrowAnException() {
         ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
         V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
-        assertTrue(testNotMeaningfulWithout("buckets"), streamNotEmpty(bucketIterator.stream()));
+        testNotMeaningfulWithout("buckets", bucketIterator.stream());
 
         Stream<Bucket> buckets = bucketIterator.stream();
 
         Long totalNumberOfObjects = buckets.map(this::listAll)
                 .reduce(0L, Long::sum);
 
-        assertTrue(testNotMeaningfulWithout("S3 objects"), totalNumberOfObjects > 0);
+        testNotMeaningfulWithout("S3 objects", totalNumberOfObjects);
     }
 
     @Test
     public void shouldListGreengrassGroupsAndNotThrowAnException() {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
-        assertTrue(testNotMeaningfulWithout("Greengrass groups"), streamNotEmpty(groupInformationIterator.stream()));
+        testNotMeaningfulWithout("Greengrass groups", groupInformationIterator.stream());
 
         List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
         groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
     }
 
     @Test
-    public void shouldListGreengrassGroupSubscriptionsAndNotThrowAnException() {
-        V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
-        assertTrue(testNotMeaningfulWithout("Greengrass groups"), streamNotEmpty(groupInformationIterator.stream()));
-
-        List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
-
-        groupInformationList.stream()
-                .map(groupInformation -> v2GreengrassHelper.getSubscriptions(groupInformation))
-                .forEach(subscriptions -> log.info(jsonHelper.toJson(subscriptions)));
-    }
-
-    @Test
     public void streamShouldWorkTwice() {
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
         V2ResultsIterator<ThingAttribute> thingAttributesIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        assertTrue(testNotMeaningfulWithout("things"), streamNotEmpty(thingAttributesIterator.stream()));
+        testNotMeaningfulWithout("things", thingAttributesIterator.stream());
 
         Stream<ThingAttribute> thingAttributesStream1 = thingAttributesIterator.stream();
         Stream<ThingAttribute> thingAttributesStream2 = thingAttributesIterator.stream();
@@ -170,13 +156,5 @@ public class TestV2ResultsIterator {
     public void shouldThrowExceptionWhenThingNameNotPresent() {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> v2CertificateCredentialsProvider.resolveCredentials());
         assertTrue(exception.getMessage().contains(BouncyCastleV2CertificateCredentialsProvider.AWS_CREDENTIAL_PROVIDER_URL));
-    }
-
-    private String testNotMeaningfulWithout(String nameOfRequiredObjects) {
-        return String.join(" ", "This test is not meaningful unless one or more", nameOfRequiredObjects, "are defined");
-    }
-
-    private boolean streamNotEmpty(Stream stream) {
-        return stream.findFirst().isPresent();
     }
 }
