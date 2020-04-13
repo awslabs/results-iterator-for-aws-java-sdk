@@ -55,5 +55,7 @@ public interface V2IotHelper {
 
     Stream<Policy> getAttachedPolicies(CertificateArn certificateArn);
 
+    void recursiveDelete(Certificate certificate);
+
     void recursiveDelete(CertificateArn certificateArn);
 }

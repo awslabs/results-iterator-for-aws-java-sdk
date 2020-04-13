@@ -309,6 +309,11 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public void recursiveDelete(Certificate certificate) {
+        recursiveDelete(ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build());
+    }
+
+    @Override
     public void recursiveDelete(CertificateArn certificateArn) {
         if (isAnyThingImmutable(getAttachedThings(certificateArn))) {
             log.info("Skipping deletion of [" + certificateArn.getArn() + "] because it is attached to at least one immutable thing");
