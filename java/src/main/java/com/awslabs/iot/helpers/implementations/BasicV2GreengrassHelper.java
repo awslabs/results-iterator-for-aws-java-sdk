@@ -312,6 +312,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Stream<Deployment> getDeployments(GreengrassGroupId greengrassGroupId) {
+        return getGroupInformation(greengrassGroupId)
+                .map(this::getDeployments)
+                .orElse(Stream.empty());
+    }
+
+    @Override
     public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
         // Get the group information by group ID
         return getGroupInformation(greengrassGroupId)
