@@ -347,13 +347,26 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public GetDeploymentStatusResponse getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment) {
+    public Optional<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment) {
         GetDeploymentStatusRequest getDeploymentStatusRequest = GetDeploymentStatusRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
                 .deploymentId(deployment.deploymentId())
                 .build();
 
-        return greengrassClient.getDeploymentStatus(getDeploymentStatusRequest);
+        return Try.of(() -> greengrassClient.getDeploymentStatus(getDeploymentStatusRequest))
+                .recover(GreengrassException.class, throwable -> handleDoesNotExistException(throwable, "deployment", deployment.deploymentId()))
+                .map(Optional::ofNullable)
+                .get();
+    }
+
+    private <T> T handleDoesNotExistException(GreengrassException greengrassException, String type, String value) {
+        if (!greengrassException.getMessage().contains("does not exist")) {
+            throw new RuntimeException(greengrassException);
+        }
+
+        log.info("The " + type + " [" + value + "] does not exist");
+
+        return null;
     }
 
     @Override
