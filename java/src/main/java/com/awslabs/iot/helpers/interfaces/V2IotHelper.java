@@ -3,10 +3,7 @@ package com.awslabs.iot.helpers.interfaces;
 import com.awslabs.iot.data.*;
 import io.vavr.control.Try;
 import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.iot.model.Certificate;
-import software.amazon.awssdk.services.iot.model.CreateRoleAliasResponse;
-import software.amazon.awssdk.services.iot.model.Policy;
-import software.amazon.awssdk.services.iot.model.ThingAttribute;
+import software.amazon.awssdk.services.iot.model.*;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -52,6 +49,8 @@ public interface V2IotHelper {
     Stream<Certificate> getCertificates();
 
     Stream<Policy> getPolicies();
+
+    Stream<TopicRuleListItem> getTopicRules();
 
     Stream<Certificate> getCaCertificates();
 

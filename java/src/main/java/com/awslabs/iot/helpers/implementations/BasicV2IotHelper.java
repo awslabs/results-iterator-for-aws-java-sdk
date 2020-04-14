@@ -269,6 +269,11 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public Stream<TopicRuleListItem> getTopicRules() {
+        return new V2ResultsIterator<TopicRuleListItem>(iotClient, ListTopicRulesRequest.class).stream();
+    }
+
+    @Override
     public Stream<Certificate> getCaCertificates() {
         return getCertificates()
                 .filter(certificate -> isCaCertificate(certificate.certificateArn()));
