@@ -386,7 +386,8 @@ public class BasicV2IotHelper implements V2IotHelper {
         iotClient.deleteCACertificate(deleteCaCertificateRequest);
     }
 
-    private void delete(Policy policy) {
+    @Override
+    public void delete(Policy policy) {
         DeletePolicyRequest deletePolicyRequest = DeletePolicyRequest.builder()
                 .policyName(policy.policyName())
                 .build();

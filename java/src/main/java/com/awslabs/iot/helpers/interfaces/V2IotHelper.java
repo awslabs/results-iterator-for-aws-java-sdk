@@ -74,6 +74,8 @@ public interface V2IotHelper {
 
     void deleteCaCertificate(CertificateArn certificateArn);
 
+    void delete(Policy policy);
+
     void delete(ThingName thingName);
 
     void delete(Certificate certificate);
