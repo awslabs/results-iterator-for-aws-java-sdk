@@ -206,7 +206,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Optional<Deployment> getLatestDeployment(String groupId) {
         // Get the last deployment or return NULL if there aren't any deployments
         return listDeployments(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())));
+                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli()));
     }
 
     @Override
