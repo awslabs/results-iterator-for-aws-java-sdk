@@ -8,7 +8,6 @@ import software.amazon.awssdk.services.iot.model.CreateRoleAliasResponse;
 import software.amazon.awssdk.services.iot.model.Policy;
 import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -28,7 +27,7 @@ public interface V2IotHelper {
 
     void attachThingPrincipal(ThingName thingName, CertificateArn certificateArn);
 
-    Optional<List<ThingPrincipal>> getThingPrincipals(ThingName thingName);
+    Stream<ThingPrincipal> getThingPrincipals(ThingName thingName);
 
     Optional<ThingArn> getThingArn(ThingName thingName);
 

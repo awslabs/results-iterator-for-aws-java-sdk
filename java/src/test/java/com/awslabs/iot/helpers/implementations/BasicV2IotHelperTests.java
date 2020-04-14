@@ -3,6 +3,7 @@ package com.awslabs.iot.helpers.implementations;
 import com.awslabs.TestHelper;
 import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.data.ImmutableCertificateArn;
+import com.awslabs.iot.data.ImmutableThingName;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.Certificate;
+import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -58,5 +60,19 @@ public class BasicV2IotHelperTests {
                 .reduce(0L, Long::sum);
 
         testNotMeaningfulWithout("policies attached to certificates", numberOfAttachedThings);
+    }
+
+    @Test
+    public void shouldListThingPrincipalsWithHelperAndNotThrowAnException() throws Exception {
+        Callable<Stream<ThingAttribute>> getThingsStream = () -> v2IotHelper.getThings();
+        testNotMeaningfulWithout("things", getThingsStream.call());
+
+        Long numberOfThingPrincipals = getThingsStream.call()
+                .map(thingAttribute -> ImmutableThingName.builder().name(thingAttribute.thingName()).build())
+                .map(v2IotHelper::getThingPrincipals)
+                .map(TestHelper::logAndCount)
+                .reduce(0L, Long::sum);
+
+        testNotMeaningfulWithout("principals attached to things", numberOfThingPrincipals);
     }
 }

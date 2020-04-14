@@ -12,10 +12,8 @@ import software.amazon.awssdk.services.iot.model.*;
 
 import javax.inject.Inject;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BasicV2IotHelper implements V2IotHelper {
@@ -99,27 +97,19 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public Optional<List<ThingPrincipal>> getThingPrincipals(ThingName thingName) {
+    public Stream<ThingPrincipal> getThingPrincipals(ThingName thingName) {
         ListThingPrincipalsRequest listThingPrincipalsRequest = ListThingPrincipalsRequest.builder()
                 .thingName(thingName.getName())
                 .build();
 
         // ListThingPrincipals will throw an exception if the thing does not exist
-        return Optional.ofNullable(
-                // Try to list the principals
-                Try.of(() -> IotClient.create().listThingPrincipals(listThingPrincipalsRequest))
-                        // ResourceNotFoundException is OK, other exceptions are not
-                        .recover(ResourceNotFoundException.class, throwable -> null)
-                        // Throw all other exceptions here
-                        .get())
-                // Get the principals
-                .map(ListThingPrincipalsResponse::principals)
-                // Get a stream from the principal list
-                .map(principals -> principals.stream()
-                        // Convert the principals to the correct static type
-                        .map(principal -> ImmutableThingPrincipal.builder().principal(principal).build())
-                        // Collect the principals to a list
-                        .collect(Collectors.toList()));
+        return Try.of(() -> new V2ResultsIterator<String>(iotClient, listThingPrincipalsRequest).stream())
+                // ResourceNotFoundException is OK, other exceptions are not
+                .recover(ResourceNotFoundException.class, throwable -> Stream.empty())
+                // Throw all other exceptions here
+                .get()
+                // Convert the principals to the correct static type
+                .map(principal -> ImmutableThingPrincipal.builder().principal(principal).build());
     }
 
     @Override
