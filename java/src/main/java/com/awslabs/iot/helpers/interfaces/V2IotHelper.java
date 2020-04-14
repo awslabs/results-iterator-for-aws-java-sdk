@@ -51,6 +51,8 @@ public interface V2IotHelper {
 
     Stream<Certificate> getCertificates();
 
+    Stream<Policy> getPolicies();
+
     Stream<Certificate> getCaCertificates();
 
     Stream<ThingName> getAttachedThings(CertificateArn certificateArn);

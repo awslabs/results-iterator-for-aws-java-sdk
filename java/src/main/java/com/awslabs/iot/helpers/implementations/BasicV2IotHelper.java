@@ -264,6 +264,11 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public Stream<Policy> getPolicies() {
+        return new V2ResultsIterator<Policy>(iotClient, ListPoliciesRequest.class).stream();
+    }
+
+    @Override
     public Stream<Certificate> getCaCertificates() {
         return getCertificates()
                 .filter(certificate -> isCaCertificate(certificate.certificateArn()));
