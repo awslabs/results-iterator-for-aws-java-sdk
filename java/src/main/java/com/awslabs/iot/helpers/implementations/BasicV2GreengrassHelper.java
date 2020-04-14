@@ -143,8 +143,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public Optional<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId) {
         return getGroupInformation(greengrassGroupId)
-                .flatMap(this::getGroupVersionResponse)
-                .map(GetGroupVersionResponse::definition);
+                .flatMap(this::getLatestGroupVersion);
     }
 
     @Override
@@ -154,14 +153,36 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     private Optional<GetGroupVersionResponse> getGroupVersionResponse(GroupInformation groupInformation) {
+        return getGroupVersionResponse(ImmutableGreengrassGroupId.builder().groupId(groupInformation.id()).build(), groupInformation.latestVersion());
+    }
+
+    private Optional<GetGroupVersionResponse> getGroupVersionResponse(GreengrassGroupId greengrassGroupId, String versionId) {
         GetGroupVersionRequest getGroupVersionRequest = GetGroupVersionRequest.builder()
-                .groupId(groupInformation.id())
-                .groupVersionId(groupInformation.latestVersion())
+                .groupId(greengrassGroupId.getGroupId())
+                .groupVersionId(versionId)
                 .build();
 
         // This method throws an exception if the definition does not exist
         return Optional.ofNullable(Try.of(() -> greengrassClient.getGroupVersion(getGroupVersionRequest))
                 .getOrNull());
+    }
+
+    @Override
+    public Stream<VersionInformation> getVersionInformation(GreengrassGroupId greengrassGroupId) {
+        ListGroupVersionsRequest listGroupVersionsRequest = ListGroupVersionsRequest.builder()
+                .groupId(greengrassGroupId.getGroupId())
+                .build();
+
+        return new V2ResultsIterator<VersionInformation>(greengrassClient, listGroupVersionsRequest).stream();
+    }
+
+    @Override
+    public Stream<GroupVersion> getGroupVersions(GreengrassGroupId greengrassGroupId) {
+        return getVersionInformation(greengrassGroupId)
+                .map(versionInformation -> getGroupVersionResponse(greengrassGroupId, versionInformation.version()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(GetGroupVersionResponse::definition);
     }
 
     @Override

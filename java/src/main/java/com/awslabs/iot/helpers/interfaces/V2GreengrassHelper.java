@@ -45,6 +45,10 @@ public interface V2GreengrassHelper {
 
     Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation);
 
+    Stream<VersionInformation> getVersionInformation(GreengrassGroupId greengrassGroupId);
+
+    Stream<GroupVersion> getGroupVersions(GreengrassGroupId greengrassGroupId);
+
     Optional<List<Function>> getFunctions(GroupInformation groupInformation);
 
     Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation);
