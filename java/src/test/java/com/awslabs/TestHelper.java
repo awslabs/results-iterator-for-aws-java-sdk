@@ -4,7 +4,6 @@ import com.awslabs.general.helpers.implementations.BasicJsonHelper;
 import com.awslabs.general.helpers.interfaces.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.greengrass.model.Deployment;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,12 +18,20 @@ public class TestHelper {
         return String.join(" ", "This test is not meaningful unless one or more", nameOfRequiredObjects, "are defined");
     }
 
+    public static String testNotMeaningfulWithoutAtLeastError(String nameOfRequiredObjects, long count) {
+        return String.join(" ", "This test is not meaningful unless " + count + " or more", nameOfRequiredObjects, "are defined");
+    }
+
     public static boolean streamNotEmpty(Stream stream) {
         return stream.findFirst().isPresent();
     }
 
     public static <T> void testNotMeaningfulWithout(String nameOfRequiredObjects, Stream<T> stream) {
         assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), streamNotEmpty(stream));
+    }
+
+    public static <T> void testNotMeaningfulWithoutAtLeast(String nameOfRequiredObjects, Stream<T> stream, long count) {
+        assertTrue(testNotMeaningfulWithoutAtLeastError(nameOfRequiredObjects, count), stream.count() >= count);
     }
 
     public static <T> void testNotMeaningfulWithout(String nameOfRequiredObjects, long itemCount) {

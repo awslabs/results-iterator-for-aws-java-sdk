@@ -89,6 +89,10 @@ public interface V2GreengrassHelper {
 
     Stream<Deployment> getDeployments(GreengrassGroupId greengrassGroupId);
 
+    Optional<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId);
+
+    Optional<Deployment> getLatestDeployment(GroupInformation groupInformation);
+
     Optional<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment);
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);

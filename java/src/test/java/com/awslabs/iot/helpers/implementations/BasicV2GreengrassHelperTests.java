@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.Deployment;
 import software.amazon.awssdk.services.greengrass.model.GroupInformation;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
+import static com.awslabs.TestHelper.testNotMeaningfulWithoutAtLeast;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -41,7 +43,7 @@ public class BasicV2GreengrassHelperTests {
     }
 
     @Test
-    public void shouldListGreengrassGroupsWithHelperAndNotThrowAnException() throws Exception {
+    public void shouldListGreengrassGroupsAndNotThrowAnException() throws Exception {
         Callable<Stream<GroupInformation>> getStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getStream.call());
 
@@ -122,5 +124,35 @@ public class BasicV2GreengrassHelperTests {
                 .get();
 
         assertThat(v2GreengrassHelper.getDeploymentStatusResponse(groupId, deployment), is(not(Optional.empty())));
+    }
+
+    @Test
+    public void shouldReturnLatestDeployment() throws Exception {
+        Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
+        testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
+
+        GreengrassGroupId groupId = getGroupInformationStream.call()
+                .findFirst()
+                .map(GroupInformation::id)
+                .map(id -> ImmutableGreengrassGroupId.builder().groupId(id).build())
+                .get();
+
+        Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
+        testNotMeaningfulWithoutAtLeast("Greengrass deployments", getDeploymentsStream.call(), 2);
+
+        Long latestDeploymentCreatedAt = v2GreengrassHelper.getLatestDeployment(groupId)
+                .map(Deployment::createdAt)
+                .map(Instant::parse)
+                .map(Instant::toEpochMilli)
+                .get();
+
+        Long maxCreatedAt = v2GreengrassHelper.getDeployments(groupId)
+                .map(Deployment::createdAt)
+                .map(Instant::parse)
+                .map(Instant::toEpochMilli)
+                .max(Long::compareTo)
+                .get();
+
+        assertThat(latestDeploymentCreatedAt, is(maxCreatedAt));
     }
 }

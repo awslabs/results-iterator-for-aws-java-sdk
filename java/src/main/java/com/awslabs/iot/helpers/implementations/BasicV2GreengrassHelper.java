@@ -14,10 +14,8 @@ import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.*;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -344,6 +342,18 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         return getGroupInformation(greengrassGroupId)
                 .map(this::getDeployments)
                 .orElse(Stream.empty());
+    }
+
+    @Override
+    public Optional<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId) {
+        return getGroupInformation(greengrassGroupId)
+                .flatMap(this::getLatestDeployment);
+    }
+
+    @Override
+    public Optional<Deployment> getLatestDeployment(GroupInformation groupInformation) {
+        return getDeployments(groupInformation)
+                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.createdAt()).toEpochMilli()));
     }
 
     @Override
