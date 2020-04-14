@@ -141,6 +141,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Optional<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId) {
+        return getGroupInformation(greengrassGroupId)
+                .flatMap(this::getGroupVersionResponse)
+                .map(GetGroupVersionResponse::definition);
+    }
+
+    @Override
     public Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation) {
         return getGroupVersionResponse(groupInformation)
                 .map(GetGroupVersionResponse::definition);
@@ -183,7 +190,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .build();
 
         // This method throws an exception if the definition does not exist
-        return Optional.ofNullable(Try.of(() -> greengrassClient.getGroupCertificateAuthority(getGroupCertificateAuthorityRequest))
+        return Optional.of(Try.of(() -> greengrassClient.getGroupCertificateAuthority(getGroupCertificateAuthorityRequest))
                 .getOrNull());
     }
 

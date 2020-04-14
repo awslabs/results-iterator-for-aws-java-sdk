@@ -41,6 +41,8 @@ public interface V2GreengrassHelper {
 
     Optional<GreengrassGroupId> getGroupId(GroupInformation groupInformation);
 
+    Optional<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId);
+
     Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation);
 
     Optional<List<Function>> getFunctions(GroupInformation groupInformation);
