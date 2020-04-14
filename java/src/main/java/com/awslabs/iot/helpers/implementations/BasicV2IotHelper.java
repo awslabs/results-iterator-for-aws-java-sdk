@@ -253,14 +253,26 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public boolean isAnyThingImmutable(Stream<ThingName> thingName) {
-        return thingName.map(this::isThingImmutable)
-                .findAny()
-                .orElse(false);
+        return thingName.anyMatch(this::isThingImmutable);
     }
 
     @Override
     public Stream<Certificate> getCertificates() {
         return new V2ResultsIterator<Certificate>(iotClient, ListCertificatesRequest.class).stream();
+    }
+
+    @Override
+    public Stream<Certificate> getUnattachedCertificates() {
+        return new V2ResultsIterator<Certificate>(iotClient, ListCertificatesRequest.class).stream()
+                .filter(certificate -> !hasAttachedThings(certificate) && !hasAttachedPolicies(certificate));
+    }
+
+    private boolean hasAttachedThings(Certificate certificate) {
+        return getAttachedThings(certificate).findAny().isPresent();
+    }
+
+    private boolean hasAttachedPolicies(Certificate certificate) {
+        return getAttachedPolicies(certificate).findAny().isPresent();
     }
 
     @Override
@@ -280,6 +292,11 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
+    public Stream<ThingName> getAttachedThings(Certificate certificate) {
+        return getAttachedThings(ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build());
+    }
+
+    @Override
     public Stream<ThingName> getAttachedThings(CertificateArn certificateArn) {
         ListPrincipalThingsRequest listPrincipalThingsRequest = ListPrincipalThingsRequest.builder()
                 .principal(certificateArn.getArn())
@@ -287,6 +304,11 @@ public class BasicV2IotHelper implements V2IotHelper {
 
         return new V2ResultsIterator<String>(iotClient, listPrincipalThingsRequest).stream()
                 .map(thingName -> ImmutableThingName.builder().name(thingName).build());
+    }
+
+    @Override
+    public Stream<Policy> getAttachedPolicies(Certificate certificate) {
+        return getAttachedPolicies(ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build());
     }
 
     @Override

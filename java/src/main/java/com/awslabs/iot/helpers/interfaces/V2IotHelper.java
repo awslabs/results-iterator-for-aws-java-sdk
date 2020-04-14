@@ -48,13 +48,19 @@ public interface V2IotHelper {
 
     Stream<Certificate> getCertificates();
 
+    Stream<Certificate> getUnattachedCertificates();
+
     Stream<Policy> getPolicies();
 
     Stream<TopicRuleListItem> getTopicRules();
 
     Stream<Certificate> getCaCertificates();
 
+    Stream<ThingName> getAttachedThings(Certificate certificate);
+
     Stream<ThingName> getAttachedThings(CertificateArn certificateArn);
+
+    Stream<Policy> getAttachedPolicies(Certificate certificate);
 
     Stream<Policy> getAttachedPolicies(CertificateArn certificateArn);
 
