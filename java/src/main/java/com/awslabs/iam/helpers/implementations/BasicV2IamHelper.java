@@ -2,6 +2,7 @@ package com.awslabs.iam.helpers.implementations;
 
 import com.awslabs.iam.data.*;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
+import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class BasicV2IamHelper implements V2IamHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2IamHelper.class);
@@ -106,5 +108,16 @@ public class BasicV2IamHelper implements V2IamHelper {
         return ImmutableAccountId.builder()
                 .id(stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).account())
                 .build();
+    }
+
+    @Override
+    public Stream<Role> getRoles() {
+        return new V2ResultsIterator<Role>(iamClient, ListRolesRequest.class).stream();
+    }
+
+    @Override
+    public Stream<ImmutableRoleName> getRoleNames() {
+        return getRoles()
+                .map(role -> ImmutableRoleName.builder().name(role.roleName()).build());
     }
 }
