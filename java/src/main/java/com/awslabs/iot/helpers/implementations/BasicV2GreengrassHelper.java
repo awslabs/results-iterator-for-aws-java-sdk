@@ -402,4 +402,24 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 // If the thing wasn't found, return false. Otherwise use the result from the immutability check.
                 .orElse(false);
     }
+
+    @Override
+    public void deleteGroup(GreengrassGroupId greengrassGroupId) {
+        ResetDeploymentsRequest resetDeploymentsRequest = ResetDeploymentsRequest.builder()
+                .groupId(greengrassGroupId.getGroupId())
+                .build();
+
+        greengrassClient.resetDeployments(resetDeploymentsRequest);
+
+        log.info("Reset deployments for group [" + greengrassGroupId.getGroupId() + "]");
+
+        DeleteGroupRequest deleteGroupRequest = DeleteGroupRequest.builder()
+                .groupId(greengrassGroupId.getGroupId())
+                .build();
+
+        greengrassClient.deleteGroup(deleteGroupRequest);
+
+        log.info("Deleted group [" + greengrassGroupId.getGroupId() + "]");
+    }
+
 }

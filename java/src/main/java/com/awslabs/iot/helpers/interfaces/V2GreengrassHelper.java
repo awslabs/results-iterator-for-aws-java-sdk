@@ -96,4 +96,6 @@ public interface V2GreengrassHelper {
     Optional<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment);
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
+
+    void deleteGroup(GreengrassGroupId greengrassGroupId);
 }
