@@ -24,5 +24,5 @@ public interface V2IamHelper {
 
     Stream<Role> getRoles();
 
-    Stream<ImmutableRoleName> getRoleNames();
+    Stream<RoleName> getRoleNames();
 }

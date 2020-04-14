@@ -116,7 +116,7 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public Stream<ImmutableRoleName> getRoleNames() {
+    public Stream<RoleName> getRoleNames() {
         return getRoles()
                 .map(role -> ImmutableRoleName.builder().name(role.roleName()).build());
     }
