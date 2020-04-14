@@ -473,4 +473,23 @@ public class BasicV2IotHelper implements V2IotHelper {
     public Stream<ThingAttribute> getThings() {
         return new V2ResultsIterator<ThingAttribute>(iotClient, ListThingsRequest.class).stream();
     }
+
+    @Override
+    public Stream<GroupNameAndArn> getThingGroups() {
+        return new V2ResultsIterator<GroupNameAndArn>(iotClient, ListThingGroupsRequest.class).stream();
+    }
+
+    @Override
+    public void delete(GroupNameAndArn groupNameAndArn) {
+        delete(ImmutableThingGroup.builder().name(groupNameAndArn.groupName()).build());
+    }
+
+    @Override
+    public void delete(ThingGroup thingGroup) {
+        DeleteThingGroupRequest deleteThingGroupRequest = DeleteThingGroupRequest.builder()
+                .thingGroupName(thingGroup.getName())
+                .build();
+
+        iotClient.deleteThingGroup(deleteThingGroupRequest);
+    }
 }

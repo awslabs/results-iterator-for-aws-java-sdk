@@ -83,4 +83,10 @@ public interface V2IotHelper {
     void delete(CertificateId certificateId);
 
     Stream<ThingAttribute> getThings();
+
+    Stream<GroupNameAndArn> getThingGroups();
+
+    void delete(GroupNameAndArn groupNameAndArn);
+
+    void delete(ThingGroup thingGroup);
 }
