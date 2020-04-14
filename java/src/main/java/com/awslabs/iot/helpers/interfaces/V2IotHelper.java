@@ -68,6 +68,8 @@ public interface V2IotHelper {
 
     void deleteCaCertificate(CertificateArn certificateArn);
 
+    void delete(ThingName thingName);
+
     void delete(Certificate certificate);
 
     void delete(CertificateArn certificateArn);

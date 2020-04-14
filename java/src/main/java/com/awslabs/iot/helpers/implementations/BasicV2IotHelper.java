@@ -390,7 +390,8 @@ public class BasicV2IotHelper implements V2IotHelper {
         iotClient.detachThingPrincipal(detachThingPrincipalRequest);
     }
 
-    private void delete(ThingName thingName) {
+    @Override
+    public void delete(ThingName thingName) {
         DeleteThingRequest deleteThingRequest = DeleteThingRequest.builder()
                 .thingName(thingName.getName())
                 .build();
