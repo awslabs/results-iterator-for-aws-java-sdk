@@ -76,6 +76,8 @@ public interface V2IotHelper {
 
     void delete(Policy policy);
 
+    void delete(PolicyName policyName);
+
     void delete(ThingName thingName);
 
     void delete(Certificate certificate);

@@ -388,8 +388,13 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public void delete(Policy policy) {
+        delete(ImmutablePolicyName.builder().name(policy.policyName()).build());
+    }
+
+    @Override
+    public void delete(PolicyName policyName) {
         DeletePolicyRequest deletePolicyRequest = DeletePolicyRequest.builder()
-                .policyName(policy.policyName())
+                .policyName(policyName.getName())
                 .build();
 
         iotClient.deletePolicy(deletePolicyRequest);
