@@ -2,6 +2,7 @@ package com.awslabs.iot.helpers.interfaces;
 
 import com.awslabs.iot.data.*;
 import io.vavr.control.Try;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.model.*;
 
@@ -95,4 +96,10 @@ public interface V2IotHelper {
     void delete(ThingGroup thingGroup);
 
     void createTopicRule(RuleName ruleName, TopicRulePayload topicRulePayload);
+
+    void publish(TopicName topicName, Qos qos, String payload);
+
+    void publish(TopicName topicName, Qos qos, byte[] payload);
+
+    void publish(TopicName topicName, Qos qos, SdkBytes payload);
 }

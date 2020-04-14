@@ -33,6 +33,8 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.IamClientBuilder;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.IotClientBuilder;
+import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
+import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClientBuilder;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.LambdaClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -93,6 +95,16 @@ public class V2HelperModule {
     @Provides
     public IotClient iotClient(IotClientBuilder iotClientBuilder) {
         return new V2SafeProvider<>(iotClientBuilder::build).get();
+    }
+
+    @Provides
+    public IotDataPlaneClientBuilder iotDataPlaneClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return IotDataPlaneClient.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public IotDataPlaneClient iotDataPlaneClient(IotDataPlaneClientBuilder iotDataPlaneClientBuilder) {
+        return new V2SafeProvider<>(iotDataPlaneClientBuilder::build).get();
     }
 
     @Provides

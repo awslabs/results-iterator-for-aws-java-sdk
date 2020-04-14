@@ -6,11 +6,15 @@ import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.*;
+import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
+import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 
 import javax.inject.Inject;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +26,8 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Inject
     IotClient iotClient;
+    @Inject
+    IotDataPlaneClient iotDataPlaneClient;
 
     @Inject
     public BasicV2IotHelper() {
@@ -507,5 +513,30 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .build();
 
         iotClient.createTopicRule(createTopicRuleRequest);
+    }
+
+    @Override
+    public void publish(TopicName topicName, Qos qos, String payload) {
+        SdkBytes sdkBytes = SdkBytes.fromString(payload, Charset.defaultCharset());
+
+        publish(topicName, qos, sdkBytes);
+    }
+
+    @Override
+    public void publish(TopicName topicName, Qos qos, byte[] payload) {
+        SdkBytes sdkBytes = SdkBytes.fromByteArray(payload);
+
+        publish(topicName, qos, sdkBytes);
+    }
+
+    @Override
+    public void publish(TopicName topicName, Qos qos, SdkBytes payload) {
+        PublishRequest publishRequest = PublishRequest.builder()
+                .topic(topicName.getName())
+                .qos(qos.getLevel())
+                .payload(payload)
+                .build();
+
+        iotDataPlaneClient.publish(publishRequest);
     }
 }
