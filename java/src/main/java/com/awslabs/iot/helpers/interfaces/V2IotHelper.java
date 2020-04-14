@@ -93,4 +93,6 @@ public interface V2IotHelper {
     void delete(GroupNameAndArn groupNameAndArn);
 
     void delete(ThingGroup thingGroup);
+
+    void createTopicRule(RuleName ruleName, TopicRulePayload topicRulePayload);
 }

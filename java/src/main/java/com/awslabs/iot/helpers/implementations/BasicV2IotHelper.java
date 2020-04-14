@@ -498,4 +498,14 @@ public class BasicV2IotHelper implements V2IotHelper {
 
         iotClient.deleteThingGroup(deleteThingGroupRequest);
     }
+
+    @Override
+    public void createTopicRule(RuleName ruleName, TopicRulePayload topicRulePayload) {
+        CreateTopicRuleRequest createTopicRuleRequest = CreateTopicRuleRequest.builder()
+                .ruleName(ruleName.getName())
+                .topicRulePayload(topicRulePayload)
+                .build();
+
+        iotClient.createTopicRule(createTopicRuleRequest);
+    }
 }
