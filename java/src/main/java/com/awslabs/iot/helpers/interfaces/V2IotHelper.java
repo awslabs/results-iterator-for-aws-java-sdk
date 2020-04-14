@@ -68,5 +68,11 @@ public interface V2IotHelper {
 
     void deleteCaCertificate(CertificateArn certificateArn);
 
+    void delete(Certificate certificate);
+
+    void delete(CertificateArn certificateArn);
+
+    void delete(CertificateId certificateId);
+
     Stream<ThingAttribute> getThings();
 }

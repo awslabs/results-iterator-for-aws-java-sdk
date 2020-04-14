@@ -414,6 +414,21 @@ public class BasicV2IotHelper implements V2IotHelper {
         // Delete the things that were attached but aren't shared with other certificates (ignores failures)
         // getAttachedThings(certificateArn).forEach(thingName -> Try.run(() -> delete(thingName)));
 
+        delete(certificateId);
+    }
+
+    @Override
+    public void delete(Certificate certificate) {
+        delete(ImmutableCertificateId.builder().id(certificate.certificateId()).build());
+    }
+
+    @Override
+    public void delete(CertificateArn certificateArn) {
+        delete(getCertificateId(certificateArn));
+    }
+
+    @Override
+    public void delete(CertificateId certificateId) {
         // Mark the certificate as inactive
         UpdateCertificateRequest updateCertificateRequest = UpdateCertificateRequest.builder()
                 .certificateId(certificateId.getId())
