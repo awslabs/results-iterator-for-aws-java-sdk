@@ -97,5 +97,7 @@ public interface V2GreengrassHelper {
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
 
+    boolean isGroupImmutable(GroupInformation groupInformation);
+
     void deleteGroup(GreengrassGroupId greengrassGroupId);
 }

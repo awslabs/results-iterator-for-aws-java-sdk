@@ -383,6 +383,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
         // Get the group information by group ID
         return getGroupInformation(greengrassGroupId)
+                .map(this::isGroupImmutable)
+                .orElse(false);
+    }
+
+    @Override
+    public boolean isGroupImmutable(GroupInformation groupInformation) {
+        return Optional.of(groupInformation)
                 // Get the latest core definition version (flatMap to get rid of Optional<Optional<...>> result
                 .flatMap(this::getCoreDefinitionVersion)
                 // Get the list of cores
