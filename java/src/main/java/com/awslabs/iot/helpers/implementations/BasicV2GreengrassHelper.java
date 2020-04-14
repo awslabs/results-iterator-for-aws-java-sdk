@@ -347,6 +347,16 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public GetDeploymentStatusResponse getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment) {
+        GetDeploymentStatusRequest getDeploymentStatusRequest = GetDeploymentStatusRequest.builder()
+                .groupId(greengrassGroupId.getGroupId())
+                .deploymentId(deployment.deploymentId())
+                .build();
+
+        return greengrassClient.getDeploymentStatus(getDeploymentStatusRequest);
+    }
+
+    @Override
     public boolean isGroupImmutable(GreengrassGroupId greengrassGroupId) {
         // Get the group information by group ID
         return getGroupInformation(greengrassGroupId)
