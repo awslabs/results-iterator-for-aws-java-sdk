@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.model.Certificate;
 import software.amazon.awssdk.services.iot.model.CreateRoleAliasResponse;
 import software.amazon.awssdk.services.iot.model.Policy;
+import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
 import java.util.List;
 import java.util.Optional;
@@ -66,4 +67,6 @@ public interface V2IotHelper {
     void deleteCaCertificate(Certificate certificate);
 
     void deleteCaCertificate(CertificateArn certificateArn);
+
+    Stream<ThingAttribute> getThings();
 }

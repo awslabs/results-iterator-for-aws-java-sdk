@@ -430,4 +430,9 @@ public class BasicV2IotHelper implements V2IotHelper {
         log.info("Attempting to delete certificate [" + certificateId + "]");
         iotClient.deleteCertificate(deleteCertificateRequest);
     }
+
+    @Override
+    public Stream<ThingAttribute> getThings() {
+        return new V2ResultsIterator<ThingAttribute>(iotClient, ListThingsRequest.class).stream();
+    }
 }
