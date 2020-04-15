@@ -504,8 +504,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
         // Try to reset deployments
         Try.of(() -> greengrassClient.resetDeployments(resetDeploymentsRequest))
-                .recover(GreengrassException.class, greengrassException -> ignoreIfNotDeployedOrAlreadyReset(greengrassException, greengrassGroupId))
-                .onSuccess(response -> log.info(String.join("", "Reset deployments for group [", greengrassGroupId.getGroupId(), "]")));
+                .onSuccess(response -> log.info(String.join("", "Reset deployments for group [", greengrassGroupId.getGroupId(), "]")))
+                .recover(GreengrassException.class, greengrassException -> ignoreIfNotDeployedOrAlreadyReset(greengrassException, greengrassGroupId));
 
         DeleteGroupRequest deleteGroupRequest = DeleteGroupRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
