@@ -289,8 +289,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class))
+        return getCoreDefinitionVersionResponse(groupVersion)
                 .map(GetCoreDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
     }
 
     @Override

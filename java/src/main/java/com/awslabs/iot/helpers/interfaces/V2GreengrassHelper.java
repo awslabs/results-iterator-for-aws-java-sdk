@@ -73,6 +73,8 @@ public interface V2GreengrassHelper {
 
     Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion);
 
+    Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion);
+
     Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation);
 
     Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion);
