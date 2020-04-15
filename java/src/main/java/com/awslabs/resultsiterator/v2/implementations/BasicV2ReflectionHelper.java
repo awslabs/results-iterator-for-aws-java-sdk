@@ -114,6 +114,11 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
 
     @Override
     public <T extends GreengrassResponse> T getSingleGreengrassResult(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
+        if (versionArn == null) {
+            // If no version ARN is available then we need to exit early
+            return null;
+        }
+
         AwsRequest.Builder builder = getNewRequestBuilder(greengrassRequest);
 
         builder = setDefinitionId(builder, prefix, greengrassIdExtractor.extractId(versionArn));
