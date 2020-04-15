@@ -226,15 +226,125 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> v2ReflectionHelper.getSingleGreengrassResult(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class))
+                .flatMap(this::getFunctionDefinitionVersion);
+    }
+
+    @Override
+    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupVersion groupVersion) {
+        return getFunctionDefinitionVersionResponse(groupVersion)
                 .map(GetFunctionDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<List<Device>> getDevices(GroupInformation groupInformation) {
+    public Optional<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> v2ReflectionHelper.getSingleGreengrassResult(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class))
-                .map(GetDeviceDefinitionVersionResponse::definition)
+                .flatMap(this::getCoreDefinitionVersion);
+    }
+
+    @Override
+    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
+        return getCoreDefinitionVersionResponse(groupVersion)
+                .map(GetCoreDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getConnectorDefinitionVersion);
+    }
+
+    @Override
+    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion) {
+        return getConnectorDefinitionVersionResponse(groupVersion)
+                .map(GetConnectorDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getResourceDefinitionVersion);
+    }
+
+    @Override
+    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion) {
+        return getResourceDefinitionVersionResponse(groupVersion)
+                .map(GetResourceDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getLoggerDefinitionVersion);
+    }
+
+    @Override
+    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
+        return getLoggerDefinitionVersionResponse(groupVersion)
+                .map(GetLoggerDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getSubscriptionDefinitionVersion);
+    }
+
+    @Override
+    public Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupVersion groupVersion) {
+        return getSubscriptionDefinitionVersionResponse(groupVersion)
+                .map(GetSubscriptionDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupInformation groupInformation) {
+        return getLatestGroupVersion(groupInformation)
+                .flatMap(this::getDeviceDefinitionVersion);
+    }
+
+    @Override
+    public Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupVersion groupVersion) {
+        return getDeviceDefinitionVersionResponse(groupVersion)
+                .map(GetDeviceDefinitionVersionResponse::definition);
+    }
+
+    @Override
+    public Optional<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class));
+    }
+
+    @Override
+    public Optional<List<Device>> getDevices(GroupInformation groupInformation) {
+        return getDeviceDefinitionVersion(groupInformation)
                 .map(DeviceDefinitionVersion::devices)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
                 .map(ArrayList::new);
@@ -242,9 +352,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
-        return getLatestGroupVersion(groupInformation)
-                .map(groupVersion -> v2ReflectionHelper.getSingleGreengrassResult(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class))
-                .map(GetSubscriptionDefinitionVersionResponse::definition)
+        return getSubscriptionDefinitionVersion(groupInformation)
                 .map(SubscriptionDefinitionVersion::subscriptions)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
                 .map(ArrayList::new);
@@ -282,63 +390,11 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation) {
-        return getLatestGroupVersion(groupInformation)
-                .flatMap(this::getCoreDefinitionVersion);
-    }
-
-    @Override
-    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
-        return getCoreDefinitionVersionResponse(groupVersion)
-                .map(GetCoreDefinitionVersionResponse::definition);
-    }
-
-    @Override
-    public Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
-    }
-
-    @Override
-    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation) {
-        return getLatestGroupVersion(groupInformation)
-                .flatMap(this::getConnectorDefinitionVersion);
-    }
-
-    @Override
-    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class))
-                .map(GetConnectorDefinitionVersionResponse::definition);
-    }
-
-    @Override
-    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation) {
-        return getLatestGroupVersion(groupInformation)
-                .flatMap(this::getResourceDefinitionVersion);
-    }
-
-    @Override
-    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class))
-                .map(GetResourceDefinitionVersionResponse::definition);
-    }
-
-    @Override
-    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation) {
-        return getLatestGroupVersion(groupInformation)
-                .flatMap(this::getLoggerDefinitionVersion);
-    }
-
-    @Override
-    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class))
-                .map(GetLoggerDefinitionVersionResponse::definition);
-    }
-
-    @Override
     public Stream<Deployment> getDeployments(GroupInformation groupInformation) {
         ListDeploymentsRequest listDeploymentsRequest = ListDeploymentsRequest.builder()
                 .groupId(groupInformation.id())
                 .build();
+
         return new V2ResultsIterator<Deployment>(greengrassClient, listDeploymentsRequest).stream();
     }
 
@@ -434,4 +490,28 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         log.info("Deleted group [" + greengrassGroupId.getGroupId() + "]");
     }
 
+    @Override
+    public void deleteCoreDefinition(DefinitionInformation definitionInformation) {
+        DeleteCoreDefinitionRequest deleteCoreDefinitionRequest = DeleteCoreDefinitionRequest.builder()
+                .coreDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteCoreDefinition(deleteCoreDefinitionRequest);
+    }
+
+    public Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getCoreDefinitionVersionResponse);
+    }
+
+    private <
+            T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
+        return getGroups()
+                .filter(this::isGroupImmutable)
+                .map(this::getLatestGroupVersion)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(convertFromGroupVersion)
+                .filter(Optional::isPresent)
+                .map(Optional::get);
+    }
 }
