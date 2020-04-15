@@ -1,13 +1,12 @@
 package com.awslabs.resultsiterator;
 
-import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
+import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
-import com.google.gson.Gson;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThrows;
@@ -45,7 +45,7 @@ public class TestV2ResultsIterator {
     private V2S3Helper v2S3Helper;
     private S3Client s3Client;
     private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
-    private V2GreengrassHelper v2GreengrassHelper;
+    private JsonHelper jsonHelper;
 
     @Before
     public void setup() {
@@ -55,7 +55,7 @@ public class TestV2ResultsIterator {
         v2S3Helper = injector.v2S3Helper();
         s3Client = injector.s3Client();
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
-        v2GreengrassHelper = injector.v2GreengrassHelper();
+        jsonHelper = injector.jsonHelper();
 
         CreateThingRequest createThingRequest = CreateThingRequest.builder()
                 .thingName(JUNKFORTESTING_V2)
@@ -74,53 +74,64 @@ public class TestV2ResultsIterator {
     @Test
     public void shouldObtainThingAttributesStreamAndNotThrowAnException() {
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
-        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributes = v2ResultsIterator.stream();
+        V2ResultsIterator<ThingAttribute> thingAttributesIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        testNotMeaningfulWithout("things", thingAttributesIterator.stream());
+
+        Stream<ThingAttribute> thingAttributes = thingAttributesIterator.stream();
         thingAttributes.map(ThingAttribute::toString).forEach(log::info);
-        thingAttributes = v2ResultsIterator.stream();
+        thingAttributes = thingAttributesIterator.stream();
         long count = thingAttributes.count();
-        log.info("Thing attribute count: " + count);
+        log.info(String.join(" ", "Thing attribute count:", String.valueOf(count)));
         MatcherAssert.assertThat(count, greaterThan(0L));
     }
 
     @Test
     public void shouldListBucketsAndNotThrowAnException() {
-        ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        V2ResultsIterator<Bucket> v2ResultsIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
-        Stream<Bucket> buckets = v2ResultsIterator.stream();
-        buckets.forEach(System.out::println);
-        buckets = v2ResultsIterator.stream();
-        System.out.println("Bucket count: " + buckets.count());
+        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, ListBucketsRequest.class);
+        testNotMeaningfulWithout("buckets", bucketIterator.stream());
+
+        Stream<Bucket> buckets = bucketIterator.stream();
+        buckets.map(Bucket::toString).forEach(log::info);
+        buckets = bucketIterator.stream();
+        log.info(String.join(" ", "Bucket count:", String.valueOf(buckets.count())));
     }
 
     @Test
     public void shouldListObjectsAndNotThrowAnException() {
-        ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+        V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, ListBucketsRequest.class);
+        testNotMeaningfulWithout("buckets", bucketIterator.stream());
+
         Stream<Bucket> buckets = bucketIterator.stream();
 
-        buckets.forEach(this::listAll);
+        Long totalNumberOfObjects = buckets.map(this::listAll)
+                .reduce(0L, Long::sum);
+
+        testNotMeaningfulWithout("S3 objects", totalNumberOfObjects);
     }
 
     @Test
     public void shouldListGreengrassGroupsAndNotThrowAnException() {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
+        testNotMeaningfulWithout("Greengrass groups", groupInformationIterator.stream());
+
         List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
-        groupInformationList.forEach(groupInformation -> log.info(new Gson().toJson(groupInformation)));
+        groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
     }
 
     @Test
     public void streamShouldWorkTwice() {
         ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
-        V2ResultsIterator<ThingAttribute> v2ResultsIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
-        Stream<ThingAttribute> thingAttributesStream1 = v2ResultsIterator.stream();
-        Stream<ThingAttribute> thingAttributesStream2 = v2ResultsIterator.stream();
+        V2ResultsIterator<ThingAttribute> thingAttributesIterator = new V2ResultsIterator<>(iotClient, listThingsRequest);
+        testNotMeaningfulWithout("things", thingAttributesIterator.stream());
+
+        Stream<ThingAttribute> thingAttributesStream1 = thingAttributesIterator.stream();
+        Stream<ThingAttribute> thingAttributesStream2 = thingAttributesIterator.stream();
         MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
     }
 
-    private void listAll(Bucket bucket) {
+    private long listAll(Bucket bucket) {
         // NOTE: Setting the useArnRegionEnabled value does not automatically make cross-region requests. Below is some code to deal with that.
-        System.out.println(bucket.name());
+        log.info(bucket.name());
 
         S3Client regionSpecificS3Client = v2S3Helper.getRegionSpecificClientForBucket(bucket);
 
@@ -129,10 +140,14 @@ public class TestV2ResultsIterator {
                 .build();
 
         V2ResultsIterator<S3Object> s3ObjectIterator = new V2ResultsIterator<>(regionSpecificS3Client, listObjectsRequest);
+
         Stream<S3Object> s3Objects = s3ObjectIterator.stream();
         s3Objects.map(S3Object::toString).forEach(log::info);
         s3Objects = s3ObjectIterator.stream();
-        log.info("Object count: " + s3Objects.count());
+        long count = s3Objects.count();
+        log.info(String.join(" ", "Object count:", String.valueOf(count)));
+
+        return count;
     }
 
     @Test

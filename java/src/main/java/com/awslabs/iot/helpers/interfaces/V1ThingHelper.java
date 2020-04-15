@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V1ThingHelper {
+    String IMMUTABLE = "immutable";
+
     Stream<String> listThingNames();
 
     Stream<ThingAttribute> listThingAttributes();

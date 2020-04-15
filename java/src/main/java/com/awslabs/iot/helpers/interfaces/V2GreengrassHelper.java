@@ -13,9 +13,19 @@ import java.util.stream.Stream;
 public interface V2GreengrassHelper {
     Stream<GroupInformation> getGroups();
 
+    Stream<DefinitionInformation> getFunctionDefinitions();
+
     Stream<DefinitionInformation> getCoreDefinitions();
 
+    Stream<DefinitionInformation> getConnectorDefinitions();
+
     Stream<DefinitionInformation> getDeviceDefinitions();
+
+    Stream<DefinitionInformation> getResourceDefinitions();
+
+    Stream<DefinitionInformation> getLoggerDefinitions();
+
+    Stream<DefinitionInformation> getSubscriptionDefinitions();
 
     Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityProperties(GreengrassGroupId greengrassGroupId);
 
@@ -41,11 +51,57 @@ public interface V2GreengrassHelper {
 
     Optional<GreengrassGroupId> getGroupId(GroupInformation groupInformation);
 
+    Optional<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId);
+
     Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation);
+
+    Stream<VersionInformation> getVersionInformation(GreengrassGroupId greengrassGroupId);
+
+    Stream<GroupVersion> getGroupVersions(GreengrassGroupId greengrassGroupId);
 
     Optional<List<Function>> getFunctions(GroupInformation groupInformation);
 
+    Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion);
+
     Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion);
+
+    Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion);
+
+    Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion);
+
+    Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion);
+
+    Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion);
+
+    Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupInformation groupInformation);
+
+    Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupVersion groupVersion);
+
+    Optional<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion);
 
     Optional<List<Device>> getDevices(GroupInformation groupInformation);
 
@@ -63,9 +119,47 @@ public interface V2GreengrassHelper {
 
     Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
 
-    Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation);
+    Stream<Deployment> getDeployments(GroupInformation groupInformation);
 
-    Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation);
+    Stream<Deployment> getDeployments(GreengrassGroupId greengrassGroupId);
+
+    Optional<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId);
+
+    Optional<Deployment> getLatestDeployment(GroupInformation groupInformation);
+
+    Optional<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment);
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
+
+    boolean isGroupImmutable(GroupInformation groupInformation);
+
+    void deleteGroup(GreengrassGroupId greengrassGroupId);
+
+    void deleteDeviceDefinition(DefinitionInformation definitionInformation);
+
+    void deleteFunctionDefinition(DefinitionInformation definitionInformation);
+
+    void deleteConnectorDefinition(DefinitionInformation definitionInformation);
+
+    void deleteResourceDefinition(DefinitionInformation definitionInformation);
+
+    void deleteLoggerDefinition(DefinitionInformation definitionInformation);
+
+    void deleteCoreDefinition(DefinitionInformation definitionInformation);
+
+    Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses();
+
+    Stream<GetConnectorDefinitionVersionResponse> getImmutableConnectorDefinitionVersionResponses();
+
+    void deleteSubscriptionDefinition(DefinitionInformation definitionInformation);
+
+    Stream<GetDeviceDefinitionVersionResponse> getImmutableDeviceDefinitionVersionResponses();
+
+    Stream<GetFunctionDefinitionVersionResponse> getImmutableFunctionDefinitionVersionResponses();
+
+    Stream<GetResourceDefinitionVersionResponse> getImmutableResourceDefinitionVersionResponses();
+
+    Stream<GetLoggerDefinitionVersionResponse> getImmutableLoggerDefinitionVersionResponses();
+
+    Stream<GetSubscriptionDefinitionVersionResponse> getImmutableSubscriptionDefinitionVersionResponses();
 }

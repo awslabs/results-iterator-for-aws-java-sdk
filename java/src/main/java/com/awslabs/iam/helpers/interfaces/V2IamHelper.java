@@ -5,6 +5,7 @@ import software.amazon.awssdk.services.iam.model.Role;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface V2IamHelper {
     Optional<Role> getRole(RoleName roleName);
@@ -20,4 +21,8 @@ public interface V2IamHelper {
     void attachRolePolicy(Role role, PolicyArn policyArn);
 
     AccountId getAccountId();
+
+    Stream<Role> getRoles();
+
+    Stream<RoleName> getRoleNames();
 }

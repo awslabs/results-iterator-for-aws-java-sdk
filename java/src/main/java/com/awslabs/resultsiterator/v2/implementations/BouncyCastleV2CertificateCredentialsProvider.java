@@ -161,7 +161,7 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
     }
 
     private RuntimeException throwRuntimeExceptionOnMissingEnvironmentVariable(String environmentVariableName) {
-        throw new RuntimeException("Credentials from the IoT Credentials Provider could not be loaded because the environment variable " + environmentVariableName + " was not present");
+        throw new RuntimeException(String.join(" ", "Credentials from the IoT Credentials Provider could not be loaded because the environment variable", environmentVariableName, "was not present"));
     }
 
     protected AwsCredentials resolveCredentials(ImmutableCredentialProviderUrl credentialProviderUrl,

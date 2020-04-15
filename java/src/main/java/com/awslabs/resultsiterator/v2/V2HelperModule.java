@@ -9,10 +9,12 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
+import com.awslabs.resultsiterator.v2.implementations.BasicV2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.V2SafeProvider;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.interfaces.V2SdkErrorHandler;
 import com.awslabs.s3.helpers.implementations.BasicV2S3Helper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
@@ -31,6 +33,8 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.IamClientBuilder;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.IotClientBuilder;
+import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
+import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClientBuilder;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.LambdaClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -94,6 +98,16 @@ public class V2HelperModule {
     }
 
     @Provides
+    public IotDataPlaneClientBuilder iotDataPlaneClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return IotDataPlaneClient.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public IotDataPlaneClient iotDataPlaneClient(IotDataPlaneClientBuilder iotDataPlaneClientBuilder) {
+        return new V2SafeProvider<>(iotDataPlaneClientBuilder::build).get();
+    }
+
+    @Provides
     public GreengrassClientBuilder greengrassClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
         return GreengrassClient.builder().credentialsProvider(awsCredentialsProvider);
     }
@@ -153,5 +167,10 @@ public class V2HelperModule {
     @Provides
     public V2IotHelper v2IotHelper(BasicV2IotHelper basicV2IotHelper) {
         return basicV2IotHelper;
+    }
+
+    @Provides
+    public V2ReflectionHelper v2ReflectionHelper(BasicV2ReflectionHelper basicV2ReflectionHelper) {
+        return basicV2ReflectionHelper;
     }
 }

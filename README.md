@@ -29,8 +29,7 @@ This library is designed to return streams. There is no need to worry about pagi
 Example: Find all buckets you have access to that start with "sagemaker":
 
 ``` java
-  ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
-  V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, listBucketsRequest);
+  V2ResultsIterator<Bucket> bucketIterator = new V2ResultsIterator<>(s3Client, ListBucketsRequest.class);
   List<Bucket> sageMakerBuckets = bucketIterator.stream()
                 .filter(bucket -> bucket.name().startsWith("sagemaker"))
                 .collect(Collectors.toList());

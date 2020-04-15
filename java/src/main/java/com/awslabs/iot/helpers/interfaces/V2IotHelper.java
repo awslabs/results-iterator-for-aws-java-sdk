@@ -2,13 +2,18 @@ package com.awslabs.iot.helpers.interfaces;
 
 import com.awslabs.iot.data.*;
 import io.vavr.control.Try;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.iot.model.CreateRoleAliasResponse;
+import software.amazon.awssdk.services.iot.model.*;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface V2IotHelper {
+    String IMMUTABLE = "immutable";
+    String CACERT_IDENTIFIER = ":cacert/";
+    String CERT_IDENTIFIER = ":cert/";
+
     String getEndpoint(V2IotEndpointType v2IotEndpointType);
 
     boolean certificateExists(CertificateId certificateId);
@@ -21,7 +26,7 @@ public interface V2IotHelper {
 
     void attachThingPrincipal(ThingName thingName, CertificateArn certificateArn);
 
-    Optional<List<ThingPrincipal>> getThingPrincipals(ThingName thingName);
+    Stream<ThingPrincipal> getThingPrincipals(ThingName thingName);
 
     Optional<ThingArn> getThingArn(ThingName thingName);
 
@@ -40,4 +45,64 @@ public interface V2IotHelper {
     ThingArn createThing(ThingName thingName);
 
     boolean isThingImmutable(ThingName thingName);
+
+    boolean isAnyThingImmutable(Stream<ThingName> thingName);
+
+    Stream<Certificate> getCertificates();
+
+    Stream<Certificate> getUnattachedCertificates();
+
+    Stream<Policy> getPolicies();
+
+    Stream<TopicRuleListItem> getTopicRules();
+
+    Stream<Certificate> getCaCertificates();
+
+    Stream<ThingName> getAttachedThings(Certificate certificate);
+
+    Stream<ThingName> getAttachedThings(CertificateArn certificateArn);
+
+    Stream<Policy> getAttachedPolicies(Certificate certificate);
+
+    Stream<Policy> getAttachedPolicies(CertificateArn certificateArn);
+
+    boolean isCaCertificate(CertificateArn certificateArn);
+
+    void recursiveDelete(Certificate certificate);
+
+    void recursiveDelete(CertificateArn certificateArn);
+
+    void deleteCaCertificate(Certificate certificate);
+
+    void deleteCaCertificate(CertificateArn certificateArn);
+
+    void delete(Policy policy);
+
+    void delete(PolicyName policyName);
+
+    void delete(ThingName thingName);
+
+    void delete(Certificate certificate);
+
+    void delete(CertificateArn certificateArn);
+
+    void delete(CertificateId certificateId);
+
+    Stream<ThingAttribute> getThings();
+
+    Stream<GroupNameAndArn> getThingGroups();
+
+    void delete(GroupNameAndArn groupNameAndArn);
+
+    void delete(ThingGroup thingGroup);
+
+    void createTopicRule(RuleName ruleName, TopicRulePayload topicRulePayload);
+
+    void deleteTopicRule(RuleName ruleName);
+
+    void publish(TopicName topicName, Qos qos, String payload);
+
+    void publish(TopicName topicName, Qos qos, byte[] payload);
+
+    void publish(TopicName topicName, Qos qos, SdkBytes payload);
 }

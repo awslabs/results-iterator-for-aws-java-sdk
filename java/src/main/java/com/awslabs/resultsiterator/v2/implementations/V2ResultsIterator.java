@@ -1,6 +1,7 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.resultsiterator.interfaces.ResultsIterator;
+import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -22,9 +22,9 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIterator.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
-    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
-    private final List<String> methodsToIgnore = new ArrayList<>(Arrays.asList("sdkFields", "commonPrefixes"));
+    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker", "marker"));
     private final AwsRequest originalAwsRequest;
+    private final V2ReflectionHelper v2ReflectionHelper;
     private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
     private AwsResponse awsResponse;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
@@ -36,13 +36,29 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
     private Optional<Method> clientSetMethodAcceptingString = null;
 
+    public V2ResultsIterator(V2ReflectionHelper v2ReflectionHelper, SdkClient sdkClient, Class<? extends AwsRequest> awsRequestClass) {
+        this.v2ReflectionHelper = v2ReflectionHelper;
+        this.sdkClient = sdkClient;
+        this.awsRequestClass = awsRequestClass;
+        this.originalAwsRequest = null;
+    }
+
+    public V2ResultsIterator(V2ReflectionHelper v2ReflectionHelper, SdkClient sdkClient, AwsRequest originalAwsRequest) {
+        this.v2ReflectionHelper = v2ReflectionHelper;
+        this.sdkClient = sdkClient;
+        this.awsRequestClass = originalAwsRequest.getClass();
+        this.originalAwsRequest = originalAwsRequest;
+    }
+
     public V2ResultsIterator(SdkClient sdkClient, Class<? extends AwsRequest> awsRequestClass) {
+        this.v2ReflectionHelper = new BasicV2ReflectionHelper();
         this.sdkClient = sdkClient;
         this.awsRequestClass = awsRequestClass;
         this.originalAwsRequest = null;
     }
 
     public V2ResultsIterator(SdkClient sdkClient, AwsRequest originalAwsRequest) {
+        this.v2ReflectionHelper = new BasicV2ReflectionHelper();
         this.sdkClient = sdkClient;
         this.awsRequestClass = originalAwsRequest.getClass();
         this.originalAwsRequest = originalAwsRequest;
@@ -111,23 +127,17 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
 
     private AwsRequest configureRequest() {
         if (originalAwsRequest != null) {
+            // Use the existing request
             return originalAwsRequest.toBuilder().build();
         }
 
-        try {
-            // Get a new request object.  If this can't be done without parameters it will fail.
-            Method method = awsRequestClass.getMethod("builder");
-            return ((AwsRequest.Builder) method.invoke(null)).build();
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
-            throw new UnsupportedOperationException(e);
-        }
+        return v2ReflectionHelper.getNewRequest(awsRequestClass);
     }
 
     private AwsResponse queryNextResults(AwsRequest request) {
         if (clientMethodReturningResult == null) {
             // Look for a public method in the client (AWSIot, etc) that takes a AwsRequest and returns a V.  If zero or more than one exists, fail.
-            clientMethodReturningResult = getMethodWithParameterAndReturnType(sdkClient.getClass(), awsRequestClass, getResponseClass());
+            clientMethodReturningResult = v2ReflectionHelper.getMethodWithParameterAndReturnType(sdkClient.getClass(), awsRequestClass, getResponseClass());
         }
 
         if (!clientMethodReturningResult.isPresent()) {
@@ -181,7 +191,7 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private List<T> getResultData() {
         if (clientMethodReturningListT == null) {
             // Look for a public method that takes no arguments and returns a List<T>.  If zero or more than one exists, fail.
-            clientMethodReturningListT = getMethodWithParameterAndReturnType(getResponseClass(), null, new TypeToken<List<T>>(getClass()) {
+            clientMethodReturningListT = v2ReflectionHelper.getMethodWithParameterAndReturnType(getResponseClass(), null, new TypeToken<List<T>>(getClass()) {
             }.getRawType());
         }
 
@@ -200,7 +210,7 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private String getNextToken() {
         if (clientGetMethodReturningString == null) {
             // Look for a public method that takes no arguments and returns a string that matches our list of expected names.  If zero or more than one exists, fail.
-            clientGetMethodReturningString = getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, tokenMethodNames);
+            clientGetMethodReturningString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, tokenMethodNames);
         }
 
         if (!clientGetMethodReturningString.isPresent()) {
@@ -223,7 +233,7 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
         if (clientSetMethodAcceptingString == null) {
             // Look for a public method that takes a string and returns a builder class that matches our list of expected names.  If zero or more than one exists, fail.
             Class<? extends AwsRequest.Builder> builderClass = request.toBuilder().getClass();
-            clientSetMethodAcceptingString = getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, tokenMethodNames);
+            clientSetMethodAcceptingString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, tokenMethodNames);
         }
 
         if (!clientSetMethodAcceptingString.isPresent()) {
@@ -239,68 +249,5 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
         }
-    }
-
-    private Optional<Method> getMethodWithParameterAndReturnType(Class clazz, Class parameter, Class returnType) {
-        return getMethodWithParameterReturnTypeAndName(clazz, parameter, returnType, null);
-    }
-
-    private Optional<Method> getMethodWithParameterReturnTypeAndName(Class clazz, Class parameter, Class returnType, String name) {
-        List<String> names = new ArrayList<>();
-
-        if (name != null) {
-            names.add(name);
-        }
-
-        return getMethodWithParameterReturnTypeAndNames(clazz, parameter, returnType, names);
-    }
-
-    private Optional<Method> getMethodWithParameterReturnTypeAndNames(Class clazz, Class parameter, Class returnType, List<String> names) {
-        Method returnMethod = null;
-
-        for (Method method : clazz.getMethods()) {
-            if (!Modifier.isPublic(method.getModifiers())) {
-                // Not public, ignore
-                continue;
-            }
-
-            String methodName = method.getName();
-
-            if (methodsToIgnore.contains(methodName)) {
-                // Always ignore these methods
-                continue;
-            }
-
-            if ((names.size() > 0) && (!names.contains(method.getName()))) {
-                // Not an expected name, ignore
-                continue;
-            }
-
-            if (parameter != null) {
-                if (method.getParameterCount() != 1) {
-                    // Not the right number of parameters, ignore
-                    continue;
-                }
-
-                if (!method.getParameterTypes()[0].equals(parameter)) {
-                    // Not the right parameter type, ignore
-                    continue;
-                }
-            }
-
-            if (!method.getReturnType().isAssignableFrom(returnType)) {
-                // Not the right return type, ignore
-                continue;
-            }
-
-            if (returnMethod != null) {
-                // More than one match found, fail
-                throw new UnsupportedOperationException("Multiple methods found, cannot continue");
-            }
-
-            returnMethod = method;
-        }
-
-        return Optional.ofNullable(returnMethod);
     }
 }

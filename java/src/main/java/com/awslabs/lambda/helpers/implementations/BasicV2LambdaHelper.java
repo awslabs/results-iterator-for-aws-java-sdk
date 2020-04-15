@@ -33,7 +33,7 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
     public Stream<FunctionConfiguration> findFunctionConfigurationsByPartialName(String partialName) {
         String partialNameWithoutAlias = partialName.substring(0, partialName.lastIndexOf(":"));
         String escapedPartialName = StringEscapeUtils.escapeJava(partialNameWithoutAlias);
-        String patternString = "^" + escapedPartialName.replaceAll("~", ".*") + "$";
+        String patternString = String.join("", "^", escapedPartialName.replaceAll("~", ".*"), "$");
         Pattern pattern = Pattern.compile(patternString);
 
         return new V2ResultsIterator<ListFunctionsResponse>(lambdaClient, ListFunctionsRequest.class).stream()
@@ -101,7 +101,7 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
             lambdaClient.deleteAlias(deleteAliasRequest);
         }
 
-        log.info("Creating new alias [" + functionAlias.getAlias() + "] for version [" + functionVersion.getVersion() + "]");
+        log.info(String.join("", "Creating new alias [", functionAlias.getAlias(), "] for version [", functionVersion.getVersion(), "]"));
 
         CreateAliasRequest createAliasRequest = CreateAliasRequest.builder()
                 .functionName(functionName.getName())
