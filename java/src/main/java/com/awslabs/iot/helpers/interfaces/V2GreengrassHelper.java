@@ -126,4 +126,6 @@ public interface V2GreengrassHelper {
     void deleteGroup(GreengrassGroupId greengrassGroupId);
 
     void deleteCoreDefinition(DefinitionInformation definitionInformation);
+
+    Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses();
 }

@@ -499,6 +499,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         greengrassClient.deleteCoreDefinition(deleteCoreDefinitionRequest);
     }
 
+    @Override
     public Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses() {
         return getImmutableDefinitionVersionResponses(this::getCoreDefinitionVersionResponse);
     }
