@@ -128,4 +128,16 @@ public interface V2GreengrassHelper {
     void deleteCoreDefinition(DefinitionInformation definitionInformation);
 
     Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses();
+
+    Stream<GetConnectorDefinitionVersionResponse> getImmutableConnectorDefinitionVersionResponses();
+
+    Stream<GetDeviceDefinitionVersionResponse> getImmutableDeviceDefinitionVersionResponses();
+
+    Stream<GetFunctionDefinitionVersionResponse> getImmutableFunctionDefinitionVersionResponses();
+
+    Stream<GetResourceDefinitionVersionResponse> getImmutableResourceDefinitionVersionResponses();
+
+    Stream<GetLoggerDefinitionVersionResponse> getImmutableLoggerDefinitionVersionResponses();
+
+    Stream<GetSubscriptionDefinitionVersionResponse> getImmutableSubscriptionDefinitionVersionResponses();
 }

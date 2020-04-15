@@ -500,9 +500,40 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Stream<GetDeviceDefinitionVersionResponse> getImmutableDeviceDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getDeviceDefinitionVersionResponse);
+    }
+
+    @Override
+    public Stream<GetFunctionDefinitionVersionResponse> getImmutableFunctionDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getFunctionDefinitionVersionResponse);
+    }
+
+    @Override
     public Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses() {
         return getImmutableDefinitionVersionResponses(this::getCoreDefinitionVersionResponse);
     }
+
+    @Override
+    public Stream<GetConnectorDefinitionVersionResponse> getImmutableConnectorDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getConnectorDefinitionVersionResponse);
+    }
+
+    @Override
+    public Stream<GetResourceDefinitionVersionResponse> getImmutableResourceDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getResourceDefinitionVersionResponse);
+    }
+
+    @Override
+    public Stream<GetLoggerDefinitionVersionResponse> getImmutableLoggerDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getLoggerDefinitionVersionResponse);
+    }
+
+    @Override
+    public Stream<GetSubscriptionDefinitionVersionResponse> getImmutableSubscriptionDefinitionVersionResponses() {
+        return getImmutableDefinitionVersionResponses(this::getSubscriptionDefinitionVersionResponse);
+    }
+
 
     private <T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
         return getGroups()
