@@ -503,8 +503,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         return getImmutableDefinitionVersionResponses(this::getCoreDefinitionVersionResponse);
     }
 
-    private <
-            T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
+    private <T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
         return getGroups()
                 .filter(this::isGroupImmutable)
                 .map(this::getLatestGroupVersion)
