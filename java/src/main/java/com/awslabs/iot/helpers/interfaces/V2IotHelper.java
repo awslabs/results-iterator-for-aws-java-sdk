@@ -97,6 +97,8 @@ public interface V2IotHelper {
 
     void createTopicRule(RuleName ruleName, TopicRulePayload topicRulePayload);
 
+    void deleteTopicRule(RuleName ruleName);
+
     void publish(TopicName topicName, Qos qos, String payload);
 
     void publish(TopicName topicName, Qos qos, byte[] payload);

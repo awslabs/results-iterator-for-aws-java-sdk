@@ -327,8 +327,6 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     private CertificateId getCertificateId(CertificateArn certificateArn) {
-        String principal = certificateArn.getArn();
-
         String certificateId = certificateArn.getArn().split("/")[1];
 
         return ImmutableCertificateId.builder().id(certificateId).build();
@@ -513,6 +511,15 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .build();
 
         iotClient.createTopicRule(createTopicRuleRequest);
+    }
+
+    @Override
+    public void deleteTopicRule(RuleName ruleName) {
+        DeleteTopicRuleRequest deleteTopicRuleRequest = DeleteTopicRuleRequest.builder()
+                .ruleName(ruleName.getName())
+                .build();
+
+        iotClient.deleteTopicRule(deleteTopicRuleRequest);
     }
 
     @Override
