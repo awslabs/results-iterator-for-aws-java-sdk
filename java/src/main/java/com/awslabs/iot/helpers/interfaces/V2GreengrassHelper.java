@@ -135,11 +135,23 @@ public interface V2GreengrassHelper {
 
     void deleteGroup(GreengrassGroupId greengrassGroupId);
 
+    void deleteDeviceDefinition(DefinitionInformation definitionInformation);
+
+    void deleteFunctionDefinition(DefinitionInformation definitionInformation);
+
+    void deleteConnectorDefinition(DefinitionInformation definitionInformation);
+
+    void deleteResourceDefinition(DefinitionInformation definitionInformation);
+
+    void deleteLoggerDefinition(DefinitionInformation definitionInformation);
+
     void deleteCoreDefinition(DefinitionInformation definitionInformation);
 
     Stream<GetCoreDefinitionVersionResponse> getImmutableCoreDefinitionVersionResponses();
 
     Stream<GetConnectorDefinitionVersionResponse> getImmutableConnectorDefinitionVersionResponses();
+
+    void deleteSubscriptionDefinition(DefinitionInformation definitionInformation);
 
     Stream<GetDeviceDefinitionVersionResponse> getImmutableDeviceDefinitionVersionResponses();
 

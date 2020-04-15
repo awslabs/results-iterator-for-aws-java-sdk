@@ -516,12 +516,66 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public void deleteDeviceDefinition(DefinitionInformation definitionInformation) {
+        DeleteDeviceDefinitionRequest deleteDeviceDefinitionRequest = DeleteDeviceDefinitionRequest.builder()
+                .deviceDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteDeviceDefinition(deleteDeviceDefinitionRequest);
+    }
+
+    @Override
+    public void deleteFunctionDefinition(DefinitionInformation definitionInformation) {
+        DeleteFunctionDefinitionRequest deleteFunctionDefinitionRequest = DeleteFunctionDefinitionRequest.builder()
+                .functionDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteFunctionDefinition(deleteFunctionDefinitionRequest);
+    }
+
+    @Override
     public void deleteCoreDefinition(DefinitionInformation definitionInformation) {
         DeleteCoreDefinitionRequest deleteCoreDefinitionRequest = DeleteCoreDefinitionRequest.builder()
                 .coreDefinitionId(definitionInformation.id())
                 .build();
 
         greengrassClient.deleteCoreDefinition(deleteCoreDefinitionRequest);
+    }
+
+    @Override
+    public void deleteConnectorDefinition(DefinitionInformation definitionInformation) {
+        DeleteConnectorDefinitionRequest deleteConnectorDefinitionRequest = DeleteConnectorDefinitionRequest.builder()
+                .connectorDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteConnectorDefinition(deleteConnectorDefinitionRequest);
+    }
+
+    @Override
+    public void deleteResourceDefinition(DefinitionInformation definitionInformation) {
+        DeleteResourceDefinitionRequest deleteResourceDefinitionRequest = DeleteResourceDefinitionRequest.builder()
+                .resourceDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteResourceDefinition(deleteResourceDefinitionRequest);
+    }
+
+    @Override
+    public void deleteLoggerDefinition(DefinitionInformation definitionInformation) {
+        DeleteLoggerDefinitionRequest deleteLoggerDefinitionRequest = DeleteLoggerDefinitionRequest.builder()
+                .loggerDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteLoggerDefinition(deleteLoggerDefinitionRequest);
+    }
+
+    @Override
+    public void deleteSubscriptionDefinition(DefinitionInformation definitionInformation) {
+        DeleteSubscriptionDefinitionRequest deleteSubscriptionDefinitionRequest = DeleteSubscriptionDefinitionRequest.builder()
+                .subscriptionDefinitionId(definitionInformation.id())
+                .build();
+
+        greengrassClient.deleteSubscriptionDefinition(deleteSubscriptionDefinitionRequest);
     }
 
     @Override
