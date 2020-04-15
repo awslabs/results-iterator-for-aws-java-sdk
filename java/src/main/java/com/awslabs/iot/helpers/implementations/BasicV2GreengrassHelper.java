@@ -502,9 +502,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .groupId(greengrassGroupId.getGroupId())
                 .build();
 
-        greengrassClient.resetDeployments(resetDeploymentsRequest);
-
-        log.info(String.join("", "Reset deployments for group [", greengrassGroupId.getGroupId(), "]"));
+        // Try to reset deployments
+        Try.of(() -> greengrassClient.resetDeployments(resetDeploymentsRequest))
+                .recover(GreengrassException.class, greengrassException -> ignoreIfNotDeployedOrAlreadyReset(greengrassException, greengrassGroupId))
+                .onSuccess(response -> log.info(String.join("", "Reset deployments for group [", greengrassGroupId.getGroupId(), "]")));
 
         DeleteGroupRequest deleteGroupRequest = DeleteGroupRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
@@ -513,6 +514,15 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         greengrassClient.deleteGroup(deleteGroupRequest);
 
         log.info(String.join("", "Deleted group [", greengrassGroupId.getGroupId(), "]"));
+    }
+
+    private <T> T ignoreIfNotDeployedOrAlreadyReset(GreengrassException greengrassException, GreengrassGroupId greengrassGroupId) {
+        if (greengrassException.getMessage().contains("has not been deployed or has already been reset")) {
+            log.info(String.join("", "Deployments already reset for group [", greengrassGroupId.getGroupId(), "]"));
+            return null;
+        }
+
+        throw new RuntimeException(greengrassException);
     }
 
     @Override
