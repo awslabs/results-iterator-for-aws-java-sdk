@@ -13,9 +13,19 @@ import java.util.stream.Stream;
 public interface V2GreengrassHelper {
     Stream<GroupInformation> getGroups();
 
+    Stream<DefinitionInformation> getFunctionDefinitions();
+
     Stream<DefinitionInformation> getCoreDefinitions();
 
+    Stream<DefinitionInformation> getConnectorDefinitions();
+
     Stream<DefinitionInformation> getDeviceDefinitions();
+
+    Stream<DefinitionInformation> getResourceDefinitions();
+
+    Stream<DefinitionInformation> getLoggerDefinitions();
+
+    Stream<DefinitionInformation> getSubscriptionDefinitions();
 
     Stream<GroupCertificateAuthorityProperties> getGroupCertificateAuthorityProperties(GreengrassGroupId greengrassGroupId);
 

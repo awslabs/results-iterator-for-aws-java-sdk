@@ -44,13 +44,38 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
+    public Stream<DefinitionInformation> getDeviceDefinitions() {
+        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListDeviceDefinitionsRequest.class).stream();
+    }
+
+    @Override
+    public Stream<DefinitionInformation> getFunctionDefinitions() {
+        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListFunctionDefinitionsRequest.class).stream();
+    }
+
+    @Override
     public Stream<DefinitionInformation> getCoreDefinitions() {
         return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListCoreDefinitionsRequest.class).stream();
     }
 
     @Override
-    public Stream<DefinitionInformation> getDeviceDefinitions() {
-        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListDeviceDefinitionsRequest.class).stream();
+    public Stream<DefinitionInformation> getConnectorDefinitions() {
+        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListConnectorDefinitionsRequest.class).stream();
+    }
+
+    @Override
+    public Stream<DefinitionInformation> getResourceDefinitions() {
+        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListResourceDefinitionsRequest.class).stream();
+    }
+
+    @Override
+    public Stream<DefinitionInformation> getLoggerDefinitions() {
+        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListLoggerDefinitionsRequest.class).stream();
+    }
+
+    @Override
+    public Stream<DefinitionInformation> getSubscriptionDefinitions() {
+        return new V2ResultsIterator<DefinitionInformation>(greengrassClient, ListSubscriptionDefinitionsRequest.class).stream();
     }
 
     @Override
