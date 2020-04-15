@@ -81,7 +81,7 @@ public class TestV2ResultsIterator {
         thingAttributes.map(ThingAttribute::toString).forEach(log::info);
         thingAttributes = thingAttributesIterator.stream();
         long count = thingAttributes.count();
-        log.info("Thing attribute count: " + count);
+        log.info(String.join(" ", "Thing attribute count:", String.valueOf(count)));
         MatcherAssert.assertThat(count, greaterThan(0L));
     }
 
@@ -91,9 +91,9 @@ public class TestV2ResultsIterator {
         testNotMeaningfulWithout("buckets", bucketIterator.stream());
 
         Stream<Bucket> buckets = bucketIterator.stream();
-        buckets.forEach(System.out::println);
+        buckets.map(Bucket::toString).forEach(log::info);
         buckets = bucketIterator.stream();
-        System.out.println("Bucket count: " + buckets.count());
+        log.info(String.join(" ", "Bucket count:", String.valueOf(buckets.count())));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class TestV2ResultsIterator {
 
     private long listAll(Bucket bucket) {
         // NOTE: Setting the useArnRegionEnabled value does not automatically make cross-region requests. Below is some code to deal with that.
-        System.out.println(bucket.name());
+        log.info(bucket.name());
 
         S3Client regionSpecificS3Client = v2S3Helper.getRegionSpecificClientForBucket(bucket);
 
@@ -145,7 +145,7 @@ public class TestV2ResultsIterator {
         s3Objects.map(S3Object::toString).forEach(log::info);
         s3Objects = s3ObjectIterator.stream();
         long count = s3Objects.count();
-        log.info("Object count: " + count);
+        log.info(String.join(" ", "Object count:", String.valueOf(count)));
 
         return count;
     }

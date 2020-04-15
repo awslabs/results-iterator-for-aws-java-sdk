@@ -41,7 +41,7 @@ public class BasicV2IamHelper implements V2IamHelper {
         Optional<Role> optionalExistingRole = getRole(roleName);
 
         if (optionalExistingRole.isPresent()) {
-            log.info("Updating assume role policy for existing role [" + roleName + "]");
+            log.info(String.join("", "Updating assume role policy for existing role [", roleName.getName(), "]"));
             UpdateAssumeRolePolicyRequest.Builder updateAssumeRolePolicyRequestBuilder = UpdateAssumeRolePolicyRequest.builder();
             updateAssumeRolePolicyRequestBuilder.roleName(roleName.getName());
             optionalAssumeRolePolicyDocument
@@ -53,7 +53,7 @@ public class BasicV2IamHelper implements V2IamHelper {
             return optionalExistingRole.get();
         }
 
-        log.info("Creating new role [" + roleName + "]");
+        log.info(String.join("", "Creating new role [", roleName.getName(), "]"));
         CreateRoleRequest.Builder createRoleRequestBuilder = CreateRoleRequest.builder();
         createRoleRequestBuilder.roleName(roleName.getName());
         optionalAssumeRolePolicyDocument

@@ -100,7 +100,7 @@ public class BasicV2GreengrassHelperTests {
                 .findFirst()
                 .get();
 
-        deployment = deployment.toBuilder().deploymentId(deployment.deploymentId() + "1").build();
+        deployment = deployment.toBuilder().deploymentId(String.join("", deployment.deploymentId(), "1")).build();
 
         assertThat(v2GreengrassHelper.getDeploymentStatusResponse(groupId, deployment), is(Optional.empty()));
     }

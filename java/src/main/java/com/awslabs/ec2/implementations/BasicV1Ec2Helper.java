@@ -50,7 +50,7 @@ public class BasicV1Ec2Helper implements V1Ec2Helper {
                 .findFirst();
 
         if (!instanceOptional.isPresent()) {
-            throw new UnsupportedOperationException("Instance ID [" + instanceId + "] not found");
+            throw new UnsupportedOperationException(String.join("", "Instance ID [", instanceId, "] not found"));
         }
 
         return instanceOptional;

@@ -232,7 +232,7 @@ public class BasicV2IotHelper implements V2IotHelper {
             throw new RuntimeException(throwable);
         }
 
-        log.info("The thing [" + thingName.getName() + "] already exists with different tags/attributes (e.g. immutable or other attributes)");
+        log.info(String.join("", "The thing [", thingName.getName(), "] already exists with different tags/attributes (e.g. immutable or other attributes)"));
 
         DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
                 .thingName(thingName.getName())
@@ -353,7 +353,7 @@ public class BasicV2IotHelper implements V2IotHelper {
         }
 
         if (isAnyThingImmutable(getAttachedThings(certificateArn))) {
-            log.info("Skipping deletion of [" + certificateArn.getArn() + "] because it is attached to at least one immutable thing");
+            log.info(String.join("", "Skipping deletion of [", certificateArn.getArn(), "] because it is attached to at least one immutable thing"));
             return;
         }
 
@@ -379,14 +379,14 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .newStatus(CACertificateStatus.INACTIVE)
                 .build();
 
-        log.info("Attempting to mark CA certificate inactive [" + certificateId.getId() + "]");
+        log.info(String.join("", "Attempting to mark CA certificate inactive [", certificateId.getId(), "]"));
         iotClient.updateCACertificate(updateCaCertificateRequest);
 
         DeleteCaCertificateRequest deleteCaCertificateRequest = DeleteCaCertificateRequest.builder()
                 .certificateId(certificateId.getId())
                 .build();
 
-        log.info("Attempting to delete CA certificate [" + certificateId.getId() + "]");
+        log.info(String.join("", "Attempting to delete CA certificate [", certificateId.getId(), "]"));
         iotClient.deleteCACertificate(deleteCaCertificateRequest);
     }
 
@@ -468,14 +468,14 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .newStatus(CertificateStatus.INACTIVE)
                 .build();
 
-        log.info("Attempting to mark certificate inactive [" + certificateId.getId() + "]");
+        log.info(String.join("", "Attempting to mark certificate inactive [", certificateId.getId(), "]"));
         iotClient.updateCertificate(updateCertificateRequest);
 
         DeleteCertificateRequest deleteCertificateRequest = DeleteCertificateRequest.builder()
                 .certificateId(certificateId.getId())
                 .build();
 
-        log.info("Attempting to delete certificate [" + certificateId + "]");
+        log.info(String.join("", "Attempting to delete certificate [", certificateId.getId(), "]"));
         iotClient.deleteCertificate(deleteCertificateRequest);
     }
 

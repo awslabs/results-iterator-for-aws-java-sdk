@@ -75,12 +75,12 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                 .withPolicyName(policyName);
 
         try {
-            log.info("Attempting to delete policy [" + policyName + "]");
+            log.info(String.join("", "Attempting to delete policy [", policyName, "]"));
             awsIotClient.deletePolicy(deletePolicyRequest);
         } catch (UnauthorizedException e) {
-            log.info("You are not allowed to delete policy [" + policyName + "]");
+            log.info(String.join("", "You are not allowed to delete policy [", policyName, "]"));
         } catch (ResourceNotFoundException e) {
-            log.info("The policy was not found [" + policyName + "]");
+            log.info(String.join("", "The policy was not found [", policyName, "]"));
         } catch (DeleteConflictException e) {
             log.info("Policy has multiple versions, attempting to delete all versions");
 
@@ -121,7 +121,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                 .withTarget(principal)
                 .withPolicyName(policyName);
 
-        log.info("Attempting to detach principal [" + principal + "] from policy [" + policyName + "]");
+        log.info(String.join("", "Attempting to detach principal [", principal, "] from policy [", policyName, "]"));
         awsIotClient.detachPolicy(detachPolicyRequest);
     }
 

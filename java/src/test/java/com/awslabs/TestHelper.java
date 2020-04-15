@@ -19,7 +19,7 @@ public class TestHelper {
     }
 
     public static String testNotMeaningfulWithoutAtLeastError(String nameOfRequiredObjects, long count) {
-        return String.join(" ", "This test is not meaningful unless " + count + " or more", nameOfRequiredObjects, "are defined");
+        return String.join(" ", "This test is not meaningful unless", String.valueOf(count), "or more", nameOfRequiredObjects, "are defined");
     }
 
     public static boolean streamNotEmpty(Stream stream) {

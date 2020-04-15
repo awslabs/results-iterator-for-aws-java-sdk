@@ -439,7 +439,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
                 .withGroupId(groupId);
         awsGreengrassClient.deleteGroup(deleteGroupRequest);
 
-        log.info("Deleted group [" + groupId + "]");
+        log.info(String.join("", "Deleted group [", groupId, "]"));
     }
 
     private String getDeviceDefinitionVersionArn(String groupId, VersionInformation versionInformation) {

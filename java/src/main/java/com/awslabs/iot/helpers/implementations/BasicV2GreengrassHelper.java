@@ -460,7 +460,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
             throw new RuntimeException(greengrassException);
         }
 
-        log.info("The " + type + " [" + value + "] does not exist");
+        log.info(String.join("", "The ", type, " [", value, "] does not exist"));
 
         return null;
     }
@@ -504,7 +504,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
         greengrassClient.resetDeployments(resetDeploymentsRequest);
 
-        log.info("Reset deployments for group [" + greengrassGroupId.getGroupId() + "]");
+        log.info(String.join("", "Reset deployments for group [", greengrassGroupId.getGroupId(), "]"));
 
         DeleteGroupRequest deleteGroupRequest = DeleteGroupRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
@@ -512,7 +512,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
         greengrassClient.deleteGroup(deleteGroupRequest);
 
-        log.info("Deleted group [" + greengrassGroupId.getGroupId() + "]");
+        log.info(String.join("", "Deleted group [", greengrassGroupId.getGroupId(), "]"));
     }
 
     @Override
