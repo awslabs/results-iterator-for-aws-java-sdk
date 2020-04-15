@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V2IotHelper {
+    String IMMUTABLE = "immutable";
     String CACERT_IDENTIFIER = ":cacert/";
     String CERT_IDENTIFIER = ":cert/";
 

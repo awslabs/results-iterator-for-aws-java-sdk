@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 
 public class BasicV1ThingHelper implements V1ThingHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1ThingHelper.class);
-    public static final String IMMUTABLE = "immutable";
     @Inject
     AWSIotClient awsIotClient;
     @Inject

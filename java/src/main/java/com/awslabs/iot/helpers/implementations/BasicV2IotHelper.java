@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class BasicV2IotHelper implements V2IotHelper {
-    public static final String IMMUTABLE = "immutable";
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
 
     @Inject
