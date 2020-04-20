@@ -22,7 +22,8 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIterator.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
-    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker", "setMarker"));
+    private final List<String> primaryTokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
+    private final List<String> secondaryTokenMethodNames = new ArrayList<>(Arrays.asList("marker"));
     private final AwsRequest originalAwsRequest;
     private final V2ReflectionHelper v2ReflectionHelper;
     private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
@@ -210,13 +211,19 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private String getNextToken() {
         if (clientGetMethodReturningString == null) {
             // Look for a public method that takes no arguments and returns a string that matches our list of expected names.  If zero or more than one exists, fail.
-            clientGetMethodReturningString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, tokenMethodNames);
+            clientGetMethodReturningString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, primaryTokenMethodNames);
+
+            if (!clientGetMethodReturningString.isPresent()) {
+                // Only look for the secondary method if the primary methods aren't there
+                v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, secondaryTokenMethodNames);
+            }
         }
 
         if (!clientGetMethodReturningString.isPresent()) {
             // Some methods like S3's listBuckets do not have pagination
             return null;
         }
+
         try {
             return (String) clientGetMethodReturningString.get().invoke(awsResponse);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -233,7 +240,12 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
         if (clientSetMethodAcceptingString == null) {
             // Look for a public method that takes a string and returns a builder class that matches our list of expected names.  If zero or more than one exists, fail.
             Class<? extends AwsRequest.Builder> builderClass = request.toBuilder().getClass();
-            clientSetMethodAcceptingString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, tokenMethodNames);
+            clientSetMethodAcceptingString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, primaryTokenMethodNames);
+
+            if (!clientSetMethodAcceptingString.isPresent()) {
+                // Only look for these methods if the first search fails
+                clientSetMethodAcceptingString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, secondaryTokenMethodNames);
+            }
         }
 
         if (!clientSetMethodAcceptingString.isPresent()) {
