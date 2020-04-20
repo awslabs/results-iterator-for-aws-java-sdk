@@ -22,7 +22,7 @@ public class V2ResultsIterator<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIterator.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
-    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
+    private final List<String> tokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker", "setMarker"));
     private final AwsRequest originalAwsRequest;
     private final V2ReflectionHelper v2ReflectionHelper;
     private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
