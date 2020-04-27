@@ -7,19 +7,15 @@ import com.awslabs.iot.data.ImmutableThingName;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
-import io.vavr.control.Try;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.iot.IotClient;
-import software.amazon.awssdk.services.iot.model.*;
+import software.amazon.awssdk.services.iot.model.Certificate;
+import software.amazon.awssdk.services.iot.model.JobSummary;
+import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
