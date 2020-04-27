@@ -550,4 +550,21 @@ public class BasicV2IotHelper implements V2IotHelper {
     public Stream<JobSummary> getJobs() {
         return new V2ResultsIterator<JobSummary>(iotClient, ListJobsRequest.class).stream();
     }
+
+    @Override
+    public void delete(JobSummary jobSummary) {
+        DeleteJobRequest deleteJobRequest = DeleteJobRequest.builder()
+                .jobId(jobSummary.jobId())
+                .build();
+        iotClient.deleteJob(deleteJobRequest);
+    }
+
+    @Override
+    public Stream<JobExecutionSummaryForJob> getJobExecutions(String jobId) {
+        ListJobExecutionsForJobRequest listJobExecutionsForJobRequest = ListJobExecutionsForJobRequest.builder()
+                .jobId(jobId)
+                .build();
+
+        return new V2ResultsIterator<JobExecutionSummaryForJob>(iotClient, listJobExecutionsForJobRequest).stream();
+    }
 }
