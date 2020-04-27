@@ -1,8 +1,8 @@
 package com.awslabs.iot.helpers.interfaces;
 
-import com.awslabs.iot.data.CertificateArn;
-import com.awslabs.iot.data.GreengrassGroupId;
-import com.awslabs.iot.data.GreengrassGroupName;
+import com.awslabs.iam.data.RoleArn;
+import com.awslabs.iam.data.RoleName;
+import com.awslabs.iot.data.*;
 import software.amazon.awssdk.services.greengrass.model.*;
 
 import java.util.List;
@@ -162,4 +162,8 @@ public interface V2GreengrassHelper {
     Stream<GetLoggerDefinitionVersionResponse> getImmutableLoggerDefinitionVersionResponses();
 
     Stream<GetSubscriptionDefinitionVersionResponse> getImmutableSubscriptionDefinitionVersionResponses();
+
+    CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingArn greengrassCoreThingArn, RoleArn s3UrlSignerRoleArn);
+
+    CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingName greengrassCoreThingName, RoleName s3UrlSignerRoleName);
 }

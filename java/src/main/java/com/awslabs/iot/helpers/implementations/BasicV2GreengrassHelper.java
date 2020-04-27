@@ -1,5 +1,9 @@
 package com.awslabs.iot.helpers.implementations;
 
+import com.awslabs.iam.data.ImmutableRoleArn;
+import com.awslabs.iam.data.RoleArn;
+import com.awslabs.iam.data.RoleName;
+import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
@@ -12,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.*;
+import software.amazon.awssdk.services.iam.model.Role;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -33,6 +38,8 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     V2IotHelper v2IotHelper;
     @Inject
     V2ReflectionHelper v2ReflectionHelper;
+    @Inject
+    V2IamHelper v2IamHelper;
 
     @Inject
     public BasicV2GreengrassHelper() {
@@ -625,6 +632,28 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         return getImmutableDefinitionVersionResponses(this::getSubscriptionDefinitionVersionResponse);
     }
 
+    @Override
+    public CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingArn greengrassCoreThingArn, RoleArn s3UrlSignerRoleArn) {
+        CreateSoftwareUpdateJobRequest createSoftwareUpdateJobRequest = CreateSoftwareUpdateJobRequest.builder()
+                .updateTargetsArchitecture(UpdateTargetsArchitecture.ARMV7_L)
+                .updateTargets(greengrassCoreThingArn.getArn())
+                .updateTargetsOperatingSystem(UpdateTargetsOperatingSystem.RASPBIAN)
+                .softwareToUpdate(SoftwareToUpdate.CORE)
+                .s3UrlSignerRole(s3UrlSignerRoleArn.getArn())
+                .updateAgentLogLevel(UpdateAgentLogLevel.WARN)
+                .amznClientToken(UUID.randomUUID().toString())
+                .build();
+
+        return greengrassClient.createSoftwareUpdateJob(createSoftwareUpdateJobRequest);
+    }
+
+    @Override
+    public CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingName greengrassCoreThingName, RoleName s3UrlSignerRoleName) {
+        Role role = v2IamHelper.getRole(s3UrlSignerRoleName).get();
+        ThingArn thingArn = v2IotHelper.getThingArn(greengrassCoreThingName).get();
+
+        return updateRaspbianCore(thingArn, ImmutableRoleArn.builder().arn(role.arn()).build());
+    }
 
     private <T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
         return getGroups()

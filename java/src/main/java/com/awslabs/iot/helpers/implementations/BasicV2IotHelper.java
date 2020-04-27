@@ -560,9 +560,9 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public Stream<JobExecutionSummaryForJob> getJobExecutions(String jobId) {
+    public Stream<JobExecutionSummaryForJob> getJobExecutions(JobSummary jobSummary) {
         ListJobExecutionsForJobRequest listJobExecutionsForJobRequest = ListJobExecutionsForJobRequest.builder()
-                .jobId(jobId)
+                .jobId(jobSummary.jobId())
                 .build();
 
         return new V2ResultsIterator<JobExecutionSummaryForJob>(iotClient, listJobExecutionsForJobRequest).stream();

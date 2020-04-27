@@ -110,5 +110,5 @@ public interface V2IotHelper {
 
     void delete(JobSummary jobSummary);
 
-    Stream<JobExecutionSummaryForJob> getJobExecutions(String jobId);
+    Stream<JobExecutionSummaryForJob> getJobExecutions(JobSummary jobSummary);
 }

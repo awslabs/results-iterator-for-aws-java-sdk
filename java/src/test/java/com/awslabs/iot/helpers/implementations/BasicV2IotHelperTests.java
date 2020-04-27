@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.Certificate;
+import software.amazon.awssdk.services.iot.model.JobExecutionSummaryForJob;
 import software.amazon.awssdk.services.iot.model.JobSummary;
 import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
@@ -81,5 +82,16 @@ public class BasicV2IotHelperTests {
     public void shouldListJobsWithHelperAndNotThrowAnException() throws Exception {
         Callable<Stream<JobSummary>> getJobsStream = () -> v2IotHelper.getJobs();
         testNotMeaningfulWithout("jobs", getJobsStream.call());
+    }
+
+    @Test
+    public void shouldListJobExecutionsWithHelperAndNotThrowAnException() throws Exception {
+        Callable<Stream<JobSummary>> getJobsStream = () -> v2IotHelper.getJobs();
+        testNotMeaningfulWithout("jobs", getJobsStream.call());
+
+        JobSummary jobSummary = getJobsStream.call().findFirst().get();
+        Callable<Stream<JobExecutionSummaryForJob>> getJobsExecutionsStream = () -> v2IotHelper.getJobExecutions(jobSummary);
+
+        testNotMeaningfulWithout("job executions", getJobsExecutionsStream.call());
     }
 }
