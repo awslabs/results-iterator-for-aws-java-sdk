@@ -545,4 +545,9 @@ public class BasicV2IotHelper implements V2IotHelper {
 
         iotDataPlaneClient.publish(publishRequest);
     }
+
+    @Override
+    public Stream<JobSummary> getJobs() {
+        return new V2ResultsIterator<JobSummary>(iotClient, ListJobsRequest.class).stream();
+    }
 }

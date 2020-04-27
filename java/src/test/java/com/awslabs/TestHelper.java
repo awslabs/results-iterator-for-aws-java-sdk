@@ -54,7 +54,7 @@ public class TestHelper {
         return objects.size();
     }
 
-    private static <T> long logObject(T object) {
+    public static <T> long logObject(T object) {
         JsonHelper jsonHelper = new BasicJsonHelper();
 
         log.info(jsonHelper.toJson(object));

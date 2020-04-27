@@ -105,4 +105,6 @@ public interface V2IotHelper {
     void publish(TopicName topicName, Qos qos, byte[] payload);
 
     void publish(TopicName topicName, Qos qos, SdkBytes payload);
+
+    Stream<JobSummary> getJobs();
 }
