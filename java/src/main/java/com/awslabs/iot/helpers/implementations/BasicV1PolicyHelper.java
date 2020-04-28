@@ -29,8 +29,8 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                     .withPolicyDocument(ALLOW_ALL_POLICY_DOCUMENT);
             awsIotClient.createPolicy(createPolicyRequest);
         } catch (Exception e) {
-            log.info("Failed to create the policy.  Maybe it already exists?  If not, do you have the correct permissions to call iot:CreatePolicy?");
-            log.info("Continuing anyway...");
+            log.debug("Failed to create the policy.  Maybe it already exists?  If not, do you have the correct permissions to call iot:CreatePolicy?");
+            log.debug("Continuing anyway...");
         }
     }
 
@@ -42,7 +42,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                     .withTarget(certificateArn);
             awsIotClient.attachPolicy(attachPolicyRequest);
         } catch (Exception e) {
-            log.info("Failed to attach the policy to your certificate.  Do you have the correct permissions to call iot:AttachPrincipalPolicy?");
+            log.debug("Failed to attach the policy to your certificate.  Do you have the correct permissions to call iot:AttachPrincipalPolicy?");
             throw new UnsupportedOperationException(e);
         }
     }
@@ -75,14 +75,14 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                 .withPolicyName(policyName);
 
         try {
-            log.info(String.join("", "Attempting to delete policy [", policyName, "]"));
+            log.debug(String.join("", "Attempting to delete policy [", policyName, "]"));
             awsIotClient.deletePolicy(deletePolicyRequest);
         } catch (UnauthorizedException e) {
-            log.info(String.join("", "You are not allowed to delete policy [", policyName, "]"));
+            log.debug(String.join("", "You are not allowed to delete policy [", policyName, "]"));
         } catch (ResourceNotFoundException e) {
-            log.info(String.join("", "The policy was not found [", policyName, "]"));
+            log.debug(String.join("", "The policy was not found [", policyName, "]"));
         } catch (DeleteConflictException e) {
-            log.info("Policy has multiple versions, attempting to delete all versions");
+            log.debug("Policy has multiple versions, attempting to delete all versions");
 
             deletePolicyAndPolicyVersions(policyName);
         }
@@ -121,7 +121,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                 .withTarget(principal)
                 .withPolicyName(policyName);
 
-        log.info(String.join("", "Attempting to detach principal [", principal, "] from policy [", policyName, "]"));
+        log.debug(String.join("", "Attempting to detach principal [", principal, "] from policy [", policyName, "]"));
         awsIotClient.detachPolicy(detachPolicyRequest);
     }
 

@@ -56,7 +56,7 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         List<Path> filesToCopyToPackageDirectory = getDirectorySnapshot(baseDirectory.toPath());
 
         if (hasDependencies(baseDirectory.toPath())) {
-            log.info(String.join("-", functionName.getName(), "Retrieving Python dependencies"));
+            log.debug(String.join("-", functionName.getName(), "Retrieving Python dependencies"));
 
             // Install the requirements in a package directory
             List<String> programAndArguments = List.of(
@@ -74,7 +74,7 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
 
             checkPipStatus(optionalProcessOutput);
         } else {
-            log.info(String.join("-", functionName.getName(), "No Python dependencies to install"));
+            log.debug(String.join("-", functionName.getName(), "No Python dependencies to install"));
         }
 
         // Now the dependencies are in the directory, copy the rest of the necessary files in

@@ -46,7 +46,7 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
             return createKeysAndCertificateResult;
         })
                 .recover(Exception.class, throwable -> {
-                    log.info("Failed to create the keys and certificate.  Do you have the correct permissions to call iot:CreateKeysAndCertificate?");
+                    log.debug("Failed to create the keys and certificate.  Do you have the correct permissions to call iot:CreateKeysAndCertificate?");
                     throw new RuntimeException(throwable);
                 })
                 .get();

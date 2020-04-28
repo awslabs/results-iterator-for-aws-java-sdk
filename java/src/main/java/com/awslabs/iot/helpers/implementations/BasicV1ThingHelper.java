@@ -43,11 +43,11 @@ public class BasicV1ThingHelper implements V1ThingHelper {
                 .withThingName(thingName);
 
         try {
-            log.info(String.join("", "Attempting to delete thing [", thingName, "]"));
+            log.debug(String.join("", "Attempting to delete thing [", thingName, "]"));
             awsIotClient.deleteThing(deleteThingRequest);
         } catch (InvalidRequestException e) {
             if (e.getMessage().contains(stillAttachedMessage(thingName))) {
-                log.info(String.join("", "Thing [", thingName, "] is still attached to principals"));
+                log.debug(String.join("", "Thing [", thingName, "] is still attached to principals"));
                 throw new ThingAttachedToPrincipalsException();
             }
         }
@@ -59,7 +59,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
         ListThingPrincipalsRequest listThingPrincipalsRequest = new ListThingPrincipalsRequest()
                 .withThingName(thingName);
 
-        log.info(String.join("", "Attempting to list thing principals for [", thingName, "]"));
+        log.debug(String.join("", "Attempting to list thing principals for [", thingName, "]"));
         ListThingPrincipalsResult listThingPrincipalsResult = awsIotClient.listThingPrincipals(listThingPrincipalsRequest);
 
         return listThingPrincipalsResult.getPrincipals();
@@ -79,7 +79,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
                 .withThingName(thingName)
                 .withPrincipal(principal);
 
-        log.info(String.join("", "Attempting to detach principal [", principal, "] from [", thingName, "]"));
+        log.debug(String.join("", "Attempting to detach principal [", principal, "] from [", thingName, "]"));
         awsIotClient.detachThingPrincipal(detachThingPrincipalRequest);
     }
 
@@ -93,7 +93,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
                 detachPrincipal(thingName, principal);
                 detachedPrincipals.add(principal);
             } catch (UnauthorizedException e) {
-                log.info(String.join("", "Could not detach principal [", principal, "] from [", thingName, "]"));
+                log.debug(String.join("", "Could not detach principal [", principal, "] from [", thingName, "]"));
             }
         }
 
@@ -106,7 +106,7 @@ public class BasicV1ThingHelper implements V1ThingHelper {
 
         if (!principal.contains(V1CertificateHelper.CACERT_IDENTIFIER)) {
             if (principalAttachedToImmutableThing(principal)) {
-                log.info(String.join("", "Skipping principal [", principal, "] because it is attached to an immutable thing"));
+                log.debug(String.join("", "Skipping principal [", principal, "] because it is attached to an immutable thing"));
                 return;
             }
 
@@ -121,13 +121,13 @@ public class BasicV1ThingHelper implements V1ThingHelper {
                     .withCertificateId(certificateId)
                     .withNewStatus(CertificateStatus.INACTIVE);
 
-            log.info(String.join("", "Attempting to mark certificate inactive [", certificateId, "]"));
+            log.debug(String.join("", "Attempting to mark certificate inactive [", certificateId, "]"));
             awsIotClient.updateCertificate(updateCertificateRequest);
 
             DeleteCertificateRequest deleteCertificateRequest = new DeleteCertificateRequest()
                     .withCertificateId(certificateId);
 
-            log.info(String.join("", "Attempting to delete certificate [", certificateId, "]"));
+            log.debug(String.join("", "Attempting to delete certificate [", certificateId, "]"));
             awsIotClient.deleteCertificate(deleteCertificateRequest);
         } else {
             // This is a CA certificate, it just needs to be deactivated and removed
@@ -135,13 +135,13 @@ public class BasicV1ThingHelper implements V1ThingHelper {
                     .withCertificateId(certificateId)
                     .withNewStatus(CACertificateStatus.INACTIVE);
 
-            log.info(String.join("", "Attempting to mark CA certificate inactive [", certificateId, "]"));
+            log.debug(String.join("", "Attempting to mark CA certificate inactive [", certificateId, "]"));
             awsIotClient.updateCACertificate(updateCaCertificateRequest);
 
             DeleteCACertificateRequest deleteCaCertificateRequest = new DeleteCACertificateRequest()
                     .withCertificateId(certificateId);
 
-            log.info(String.join("", "Attempting to delete CA certificate [", certificateId, "]"));
+            log.debug(String.join("", "Attempting to delete CA certificate [", certificateId, "]"));
             awsIotClient.deleteCACertificate(deleteCaCertificateRequest);
         }
     }

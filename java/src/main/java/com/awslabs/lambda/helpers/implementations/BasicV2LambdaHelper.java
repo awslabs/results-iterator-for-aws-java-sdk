@@ -91,7 +91,7 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
     @Override
     public FunctionAliasArn createAlias(FunctionName functionName, FunctionVersion functionVersion, FunctionAlias functionAlias) {
         if (aliasExists(functionName, functionAlias)) {
-            log.info("Deleting existing alias");
+            log.debug("Deleting existing alias");
 
             DeleteAliasRequest deleteAliasRequest = DeleteAliasRequest.builder()
                     .functionName(functionName.getName())
@@ -101,7 +101,7 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
             lambdaClient.deleteAlias(deleteAliasRequest);
         }
 
-        log.info(String.join("", "Creating new alias [", functionAlias.getAlias(), "] for version [", functionVersion.getVersion(), "]"));
+        log.debug(String.join("", "Creating new alias [", functionAlias.getAlias(), "] for version [", functionVersion.getVersion(), "]"));
 
         CreateAliasRequest createAliasRequest = CreateAliasRequest.builder()
                 .functionName(functionName.getName())
