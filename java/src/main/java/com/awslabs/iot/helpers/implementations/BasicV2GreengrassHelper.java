@@ -655,6 +655,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         return updateRaspbianCore(thingArn, ImmutableRoleArn.builder().arn(role.arn()).build());
     }
 
+    @Override
+    public Stream<GroupInformation> getNonImmutableGroups() {
+        return getGroups()
+                // Don't include immutable groups
+                .filter(groupInformation -> !isGroupImmutable(groupInformation));
+    }
+
     private <T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
         return getGroups()
                 .filter(this::isGroupImmutable)

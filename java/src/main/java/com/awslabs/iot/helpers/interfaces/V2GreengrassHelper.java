@@ -166,4 +166,6 @@ public interface V2GreengrassHelper {
     CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingArn greengrassCoreThingArn, RoleArn s3UrlSignerRoleArn);
 
     CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingName greengrassCoreThingName, RoleName s3UrlSignerRoleName);
+
+    Stream<GroupInformation> getNonImmutableGroups();
 }
