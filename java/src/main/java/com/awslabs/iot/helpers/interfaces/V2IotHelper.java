@@ -110,5 +110,7 @@ public interface V2IotHelper {
 
     void delete(JobSummary jobSummary);
 
+    void forceDelete(JobSummary jobSummary);
+
     Stream<JobExecutionSummaryForJob> getJobExecutions(JobSummary jobSummary);
 }

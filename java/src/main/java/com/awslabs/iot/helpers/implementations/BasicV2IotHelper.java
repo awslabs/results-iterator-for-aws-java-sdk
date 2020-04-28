@@ -556,6 +556,17 @@ public class BasicV2IotHelper implements V2IotHelper {
         DeleteJobRequest deleteJobRequest = DeleteJobRequest.builder()
                 .jobId(jobSummary.jobId())
                 .build();
+
+        iotClient.deleteJob(deleteJobRequest);
+    }
+
+    @Override
+    public void forceDelete(JobSummary jobSummary) {
+        DeleteJobRequest deleteJobRequest = DeleteJobRequest.builder()
+                .jobId(jobSummary.jobId())
+                .force(true)
+                .build();
+
         iotClient.deleteJob(deleteJobRequest);
     }
 
