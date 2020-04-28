@@ -37,4 +37,6 @@ public interface V2LambdaHelper {
     GetFunctionConfigurationResponse getFunctionConfiguration(FunctionName functionName);
 
     GetFunctionConfigurationResponse getFunctionConfiguration(FunctionAliasArn functionAliasArn);
+
+    Stream<FunctionConfiguration> getAllFunctionConfigurations();
 }

@@ -158,4 +158,9 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
 
         return lambdaClient.getFunctionConfiguration(getFunctionConfigurationRequest);
     }
+
+    @Override
+    public Stream<FunctionConfiguration> getAllFunctionConfigurations() {
+        return new V2ResultsIterator<FunctionConfiguration>(lambdaClient, ListFunctionsRequest.class).stream();
+    }
 }
