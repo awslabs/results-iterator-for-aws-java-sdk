@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
-import software.amazon.awssdk.services.greengrass.model.CreateSoftwareUpdateJobResponse;
 import software.amazon.awssdk.services.greengrass.model.Deployment;
 import software.amazon.awssdk.services.greengrass.model.GroupInformation;
 
@@ -162,25 +161,11 @@ public class BasicV2GreengrassHelperTests {
     }
 
     @Test
-    public void asdf() {
+    public void shouldCreateARaspbianSoftwareUpdateJobAndNotThrowAnException() {
         String thingNameString = "pi_Core";
         ThingName thingName = ImmutableThingName.builder().name(thingNameString).build();
         String roleNameString = "IotS3UrlPresigningRole";
         RoleName roleName = ImmutableRoleName.builder().name(roleNameString).build();
-        CreateSoftwareUpdateJobResponse createSoftwareUpdateJobResponse = v2GreengrassHelper.updateRaspbianCore(thingName, roleName);
-
-        createSoftwareUpdateJobResponse = null;
+        v2GreengrassHelper.updateRaspbianCore(thingName, roleName);
     }
-
-//    @Test
-//    public void checkJob?() {
-//        String thingNameString = "pi_Core";
-//        ThingName thingName = ImmutableThingName.builder().name(thingNameString).build();
-//        String roleNameString = "IotS3UrlPresigningRole";
-//        RoleName roleName = ImmutableRoleName.builder().name(roleNameString).build();
-//        CreateSoftwareUpdateJobResponse createSoftwareUpdateJobResponse = v2GreengrassHelper.updateRaspbianCore(thingName, roleName);
-//
-//        Desc
-//
-//    }
 }
