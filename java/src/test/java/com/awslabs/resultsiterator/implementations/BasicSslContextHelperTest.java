@@ -1,17 +1,13 @@
-package com.awslabs.resultsiterator.v2.implementations;
+package com.awslabs.resultsiterator.implementations;
 
 import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
-import com.awslabs.resultsiterator.implementations.BasicSslContextHelper;
-import com.awslabs.resultsiterator.implementations.BasicSslContextHelperTest;
+import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
+import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
-import io.vavr.control.Try;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.EncryptionException;
@@ -21,37 +17,25 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.utils.StringInputStream;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.Security;
-import java.util.Map;
-import java.util.function.BiFunction;
 
-import static com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.Is.isA;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class BouncyCastleV2CertificateCredentialsProviderTest {
+public class BasicSslContextHelperTest {
     private final Logger log = LoggerFactory.getLogger(BouncyCastleV2CertificateCredentialsProvider.class);
     public static final String JUNK = "junk";
     public static final String JUNK_CORE = "junk_Core";
     public static final String ACCESS_KEY_ID = "accessKeyId";
     public static final String SESSION_TOKEN = "sessionToken";
     public static final String SECRET_ACCESS_KEY = "secretAccessKey";
-    private BouncyCastleV2CertificateCredentialsProvider bouncyCastleV2CertificateCredentialsProvider;
+    private BasicSslContextHelper basicSslContextHelper;
     private JsonHelper jsonHelper;
     private ImmutableCredentialProviderUrl immutableCredentialProviderUrl;
     private ImmutableThingName immutableThingName;
@@ -75,8 +59,7 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
         Security.addProvider(new BouncyCastleProvider());
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
         awsCredentialsProvider = injector.awsCredentialsProvider();
-        bouncyCastleV2CertificateCredentialsProvider = mock(BouncyCastleV2CertificateCredentialsProvider.class);
-        bouncyCastleV2CertificateCredentialsProvider.sslContextHelper = injector.sslContextHelper();
+        basicSslContextHelper = mock(BasicSslContextHelper.class);
 
         immutableCredentialProviderUrl = ImmutableCredentialProviderUrl.builder().credentialProviderUrl(v2IotHelper.getCredentialProviderUrl()).build();
         immutableThingName = ImmutableThingName.builder().name(JUNK_CORE).build();
@@ -97,132 +80,45 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
     }
 
     @Test
-    public void shouldReturnSessionCredentialsThatMatchTheMockedJsonObject() throws IOException {
-        // Mocks
-        HttpClient mockHttpClient = mock(HttpClient.class);
-        HttpResponse mockResponse = mock(HttpResponse.class);
-        HttpEntity mockEntity = mock(HttpEntity.class);
-
-        // Data
-        String json = jsonHelper.toJson(immutableIotCredentialsProviderCredentials);
-
-        // Normal wiring
-        bouncyCastleV2CertificateCredentialsProvider.jsonHelper = jsonHelper;
-
-        // Mock wiring
-        when(bouncyCastleV2CertificateCredentialsProvider.getHttpClient(immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword)).thenReturn(mockHttpClient);
-        when(bouncyCastleV2CertificateCredentialsProvider.resolveCredentials(any(), any(), any(), any(), any(), any(), any())).thenCallRealMethod();
-
-        when(mockEntity.getContent()).thenReturn(new StringInputStream(json));
-        when(mockResponse.getEntity()).thenReturn(mockEntity);
-        when(mockHttpClient.execute(any())).thenReturn(mockResponse);
-
-        // Invocation
-        AwsCredentials awsCredentials = bouncyCastleV2CertificateCredentialsProvider.resolveCredentials(immutableCredentialProviderUrl, immutableThingName, immutableRoleAlias, immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword);
-
-        // Assertions
-        // Thing name matches what was provided
-        verify(mockHttpClient).execute(argThat((HttpGet httpGet) -> httpGet.getHeaders(BouncyCastleV2CertificateCredentialsProvider.X_AMZN_IOT_THINGNAME)[0].getValue().equals(immutableThingName.getName())));
-
-        // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
-
-        AwsSessionCredentials awsSessionCredentials = (AwsSessionCredentials) awsCredentials;
-
-        // Session credentials match what was mocked
-        assertThat(awsSessionCredentials.accessKeyId(), is(ACCESS_KEY_ID));
-        assertThat(awsSessionCredentials.secretAccessKey(), is(SECRET_ACCESS_KEY));
-        assertThat(awsSessionCredentials.sessionToken(), is(SESSION_TOKEN));
+    public void shouldProduceAnX509CertificateHolderFromCertificateFile() {
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testCertificate.getBytes());
+        assertThat(objectFromParser, isA(X509CertificateHolder.class));
     }
 
     @Test
-    public void shouldGetCertificateCredentialsDirectlyWithLocalTestDataInSystemProperties() {
-        setupSystemPropertiesForCertificateCredentialsProviderFromFile();
-
-        AwsCredentials awsCredentials = v2CertificateCredentialsProvider.resolveCredentials();
-
-        // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+    public void shouldProduceAPemKeyPairFromPrivateKeyFile() {
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testPrivateKey.getBytes());
+        assertThat(objectFromParser, isA(PEMKeyPair.class));
     }
 
     @Test
-    public void shouldGetCertificateCredentialsFromChainWithLocalTestDataInSystemProperties() {
-        setupSystemPropertiesForCertificateCredentialsProviderFromFile();
-
-        AwsCredentials awsCredentials = awsCredentialsProvider.resolveCredentials();
-
-        // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+    public void shouldProduceAPemEncryptedKeyPairFromEncryptedPrivateKeyFile() {
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testEncryptedPrivateKey.getBytes());
+        assertThat(objectFromParser, isA(PEMEncryptedKeyPair.class));
     }
 
     @Test
-    public void shouldGetCertificateCredentialsDirectlyWithLocalTestDataInEnvironment() {
-        setupEnvironmentForCertificateCredentialsProviderFromFile();
-
-        AwsCredentials awsCredentials = v2CertificateCredentialsProvider.resolveCredentials();
-
-        // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+    public void shouldGetKeyPairFromPrivateKeyFile() {
+        when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        basicSslContextHelper.getKeyPair(testPrivateKey.getBytes(), ImmutablePassword.builder().build());
     }
 
     @Test
-    public void shouldGetCertificateCredentialsFromChainWithLocalTestDataInEnvironment() {
-        setupEnvironmentForCertificateCredentialsProviderFromFile();
-
-        AwsCredentials awsCredentials = awsCredentialsProvider.resolveCredentials();
-
-        // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+    public void shouldNotGetKeyPairFromPrivateKeyFileWithWrongPassword() {
+        when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        assertThrows(EncryptionException.class, () -> basicSslContextHelper.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("fake".toCharArray()).build()));
     }
 
-    private void setupSystemPropertiesForCertificateCredentialsProviderFromStaticValues() {
-        sharedSetterForStaticValues(System::setProperty);
-    }
-
-    private void setupEnvironmentForCertificateCredentialsProviderFromStaticValues() {
-        sharedSetterForStaticValues(this::setEnv);
-    }
-
-    private void setupSystemPropertiesForCertificateCredentialsProviderFromFile() {
-        sharedSetterForFile(System::setProperty);
-    }
-
-    private void setupEnvironmentForCertificateCredentialsProviderFromFile() {
-        sharedSetterForFile(this::setEnv);
-    }
-
-    // Guidance from: https://stackoverflow.com/a/40682052/796579
-    // Setting the environment isn't possible in Java directly since the map returned from getenv() isn't modifiable
-    private String setEnv(String key, String value) {
-        Map<String, String> env = System.getenv();
-        Class<?> cl = env.getClass();
-        Field field = Try.of(() -> cl.getDeclaredField("m")).get();
-        field.setAccessible(true);
-        Map<String, String> writableEnv = Try.of(() -> (Map<String, String>) field.get(env)).get();
-        return writableEnv.put(key, value);
-    }
-
-    private void sharedSetterForFile(BiFunction<String, String, String> setter) {
-        String propertiesFileName = Try.of(() -> Files.walk(Paths.get("../../aws-greengrass-lambda-functions/credentials/"))
-                .map(Path::toFile)
-                .filter(file -> "iotcp.properties".equals(file.getName()))
-                .map(File::getAbsolutePath)
-                .findFirst())
-                // Rethrow any exceptions
-                .get()
-                // Force getting the optional value
-                .get();
-
-        setter.apply(AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE, propertiesFileName);
-    }
-
-    private void sharedSetterForStaticValues(BiFunction<String, String, String> setter) {
-        setter.apply(AWS_CREDENTIAL_PROVIDER_URL, immutableCredentialProviderUrl.getCredentialProviderUrl());
-        setter.apply(AWS_THING_NAME, immutableThingName.getName());
-        setter.apply(AWS_ROLE_ALIAS, "Greengrass_CoreRoleAlias");
-        setter.apply(AWS_CA_CERT_FILENAME, "src/test/resources/root.ca.pem");
-        setter.apply(AWS_CLIENT_CERT_FILENAME, "src/test/resources/certificate.pem");
-        setter.apply(AWS_CLIENT_PRIVATE_KEY_FILENAME, "src/test/resources/private.key");
+    @Test
+    public void shouldGetKeyPairFromPrivateKeyFileWithCorrectPassword() {
+        when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        basicSslContextHelper.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("password".toCharArray()).build());
     }
 
     private final String testCertificate = "-----BEGIN CERTIFICATE-----\n" +

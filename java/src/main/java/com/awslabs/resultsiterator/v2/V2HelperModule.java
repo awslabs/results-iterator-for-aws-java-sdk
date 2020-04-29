@@ -9,6 +9,8 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
+import com.awslabs.resultsiterator.implementations.BasicSslContextHelper;
+import com.awslabs.resultsiterator.interfaces.SslContextHelper;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.implementations.BasicV2SdkErrorHandler;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
@@ -172,5 +174,10 @@ public class V2HelperModule {
     @Provides
     public V2ReflectionHelper v2ReflectionHelper(BasicV2ReflectionHelper basicV2ReflectionHelper) {
         return basicV2ReflectionHelper;
+    }
+
+    @Provides
+    public SslContextHelper sslContextHelper(BasicSslContextHelper basicSslContextHelper) {
+        return basicSslContextHelper;
     }
 }
