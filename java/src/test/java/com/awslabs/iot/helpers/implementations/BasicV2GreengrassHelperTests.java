@@ -11,6 +11,7 @@ import com.awslabs.iot.data.ThingName;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
+import io.vavr.Tuple2;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -91,11 +92,10 @@ public class BasicV2GreengrassHelperTests {
         Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
 
-        GreengrassGroupId groupId = getGroupInformationStream.call()
-                .findFirst()
-                .map(GroupInformation::id)
-                .map(id -> ImmutableGreengrassGroupId.builder().groupId(id).build())
-                .get();
+        Optional<ImmutableGreengrassGroupId> optionalGroupId = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 1);
+
+        // Use the group ID we found or a fake value if we didn't find any
+        ImmutableGreengrassGroupId groupId = optionalGroupId.orElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
 
         Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
         testNotMeaningfulWithout("Greengrass deployments", getDeploymentsStream.call());
@@ -114,14 +114,13 @@ public class BasicV2GreengrassHelperTests {
         Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
 
-        GreengrassGroupId groupId = getGroupInformationStream.call()
-                .findFirst()
-                .map(GroupInformation::id)
-                .map(id -> ImmutableGreengrassGroupId.builder().groupId(id).build())
-                .get();
+        Optional<ImmutableGreengrassGroupId> optionalGroupId = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 1);
+
+        // Use the group ID we found or a fake value if we didn't find any
+        ImmutableGreengrassGroupId groupId = optionalGroupId.orElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
 
         Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
-        testNotMeaningfulWithout("Greengrass deployments", getDeploymentsStream.call());
+        testNotMeaningfulWithout("Greengrass groups with deployments", getDeploymentsStream.call());
 
         Deployment deployment = getDeploymentsStream.call()
                 .findFirst()
@@ -135,14 +134,14 @@ public class BasicV2GreengrassHelperTests {
         Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
 
-        GreengrassGroupId groupId = getGroupInformationStream.call()
-                .findFirst()
-                .map(GroupInformation::id)
-                .map(id -> ImmutableGreengrassGroupId.builder().groupId(id).build())
-                .get();
+        // Must have at least two deployments in a single group so we can make sure the latest deployment is returned properly
+        Optional<ImmutableGreengrassGroupId> optionalGroupId = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 2);
+
+        // Use the group ID we found or a fake value if we didn't find any
+        ImmutableGreengrassGroupId groupId = optionalGroupId.orElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
 
         Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
-        testNotMeaningfulWithoutAtLeast("Greengrass deployments", getDeploymentsStream.call(), 2);
+        testNotMeaningfulWithoutAtLeast("Greengrass deployments in any group", getDeploymentsStream.call(), 2);
 
         Long latestDeploymentCreatedAt = v2GreengrassHelper.getLatestDeployment(groupId)
                 .map(Deployment::createdAt)
@@ -158,6 +157,18 @@ public class BasicV2GreengrassHelperTests {
                 .get();
 
         assertThat(latestDeploymentCreatedAt, is(maxCreatedAt));
+    }
+
+    private Optional<ImmutableGreengrassGroupId> getGroupIdWithXorMoreDeployments(Callable<Stream<GroupInformation>> getGroupInformationStream, int minimumNumberOfDeployments) throws Exception {
+        return getGroupInformationStream.call()
+                    .map(GroupInformation::id)
+                    .map(id -> ImmutableGreengrassGroupId.builder().groupId(id).build())
+                    // Get the deployments for each group and create a tuple with the group ID and stream of deployments
+                    .map(id -> new Tuple2<>(id, v2GreengrassHelper.getDeployments(id)))
+                    // Make sure we find a group with a minimum number of deployments
+                    .filter(tuple -> tuple._2.count() >= minimumNumberOfDeployments)
+                    .findAny()
+                    .map(tuple -> tuple._1);
     }
 
     @Test
