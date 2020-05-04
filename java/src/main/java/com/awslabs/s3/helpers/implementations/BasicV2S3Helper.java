@@ -1,9 +1,9 @@
 package com.awslabs.s3.helpers.implementations;
 
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
-import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import io.vavr.control.Try;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import java.io.File;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -111,5 +112,34 @@ public class BasicV2S3Helper implements V2S3Helper {
         String message = s3Exception.getMessage();
 
         return (message.contains("the region") && message.contains("is wrong"));
+    }
+
+    @Override
+    public PutObjectResponse copyToS3(String s3Bucket, String s3Directory, String fileName) {
+        if (s3Directory.equals("/")) {
+            // Clear out the S3 directory if it is just the root
+            s3Directory = "";
+        }
+
+        File inputFile = new File(fileName);
+        String s3FileName = inputFile.getName();
+
+        // Put the key together from the path
+        String key = String.join("/", s3Directory, s3FileName);
+
+        if (key.startsWith("/")) {
+            // If there's a leading slash remove it
+            key = key.substring(1);
+        }
+
+        // Replace any accidental double slashes
+        key = key.replaceAll("//", "/");
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(s3Bucket)
+                .key(key)
+                .build();
+
+        return s3ClientProvider.get().putObject(putObjectRequest, RequestBody.fromFile(inputFile));
     }
 }
