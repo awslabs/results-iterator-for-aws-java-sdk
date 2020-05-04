@@ -1,8 +1,10 @@
 package com.awslabs.s3.helpers.implementations;
 
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import com.awslabs.s3.helpers.data.*;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import io.vavr.control.Try;
+import org.bouncycastle.crypto.params.ISO18033KDFParameters;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -115,31 +117,37 @@ public class BasicV2S3Helper implements V2S3Helper {
     }
 
     @Override
-    public PutObjectResponse copyToS3(String s3Bucket, String s3Directory, String fileName) {
-        if (s3Directory.equals("/")) {
+    public PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, File file) {
+        if (s3Path.path().equals("/")) {
             // Clear out the S3 directory if it is just the root
-            s3Directory = "";
+            s3Path = ImmutableS3Path.builder().path("").build();
         }
 
-        File inputFile = new File(fileName);
-        String s3FileName = inputFile.getName();
+        String s3FileName = file.getName();
 
         // Put the key together from the path
-        String key = String.join("/", s3Directory, s3FileName);
+        String keyString = String.join("/", s3Path.path(), s3FileName);
 
-        if (key.startsWith("/")) {
+        if (keyString.startsWith("/")) {
             // If there's a leading slash remove it
-            key = key.substring(1);
+            keyString = keyString.substring(1);
         }
 
         // Replace any accidental double slashes
-        key = key.replaceAll("//", "/");
+        keyString = keyString.replaceAll("//", "/");
 
+        S3Key s3Key = ImmutableS3Key.builder().key(keyString).build();
+
+        return copyToS3(s3Bucket, s3Key, file);
+    }
+
+    @Override
+    public PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Key s3Key, File file) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Bucket)
-                .key(key)
+                .bucket(s3Bucket.bucket())
+                .key(s3Key.key())
                 .build();
 
-        return s3ClientProvider.get().putObject(putObjectRequest, RequestBody.fromFile(inputFile));
+        return s3ClientProvider.get().putObject(putObjectRequest, RequestBody.fromFile(file));
     }
 }
