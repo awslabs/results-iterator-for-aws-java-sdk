@@ -4,8 +4,10 @@ import com.awslabs.iam.helpers.implementations.BasicV2IamHelper;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2GreengrassHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2IotHelper;
+import com.awslabs.sqs.helpers.implementations.BasicV2SqsHelper;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
+import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
@@ -41,6 +43,8 @@ import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.LambdaClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.StsClientBuilder;
 
@@ -87,6 +91,16 @@ public class V2HelperModule {
     @Provides
     public S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
         return new V2SafeProvider<>(s3ClientBuilder::build).get();
+    }
+
+    @Provides
+    public SqsClientBuilder sqsClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return SqsClient.builder().credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public SqsClient sqsClient(SqsClientBuilder sqsClientBuilder) {
+        return new V2SafeProvider<>(sqsClientBuilder::build).get();
     }
 
     @Provides
@@ -169,6 +183,11 @@ public class V2HelperModule {
     @Provides
     public V2IotHelper v2IotHelper(BasicV2IotHelper basicV2IotHelper) {
         return basicV2IotHelper;
+    }
+
+    @Provides
+    public V2SqsHelper v2SqsHelper(BasicV2SqsHelper basicV2SqsHelper) {
+        return basicV2SqsHelper;
     }
 
     @Provides

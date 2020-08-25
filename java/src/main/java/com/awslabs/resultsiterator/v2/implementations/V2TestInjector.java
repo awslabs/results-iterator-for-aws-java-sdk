@@ -7,6 +7,7 @@ import com.awslabs.resultsiterator.interfaces.SslContextHelper;
 import com.awslabs.resultsiterator.v2.V2HelperModule;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
+import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
 import dagger.Component;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
@@ -33,6 +34,8 @@ public interface V2TestInjector {
     AwsCredentialsProvider awsCredentialsProvider();
 
     V2IotHelper v2IotHelper();
+
+    V2SqsHelper v2SqsHelper();
 
     V2GreengrassHelper v2GreengrassHelper();
 
