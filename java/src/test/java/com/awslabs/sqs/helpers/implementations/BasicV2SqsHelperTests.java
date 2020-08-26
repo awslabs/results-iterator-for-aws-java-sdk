@@ -1,4 +1,4 @@
-package com.awslabs.iot.helpers.implementations;
+package com.awslabs.sqs.helpers.implementations;
 
 import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
