@@ -32,7 +32,7 @@ def daggerVersion = '2.29.1'
 def commonsTextVersion = '1.9'
 def commonsIoVersion = '2.8.0'
 def ztZipVersion = '1.14'
-def mockitoVersion = '3.5.10'
+def mockitoVersion = '3.5.11'
 def bouncyCastleVersion = '1.66'
 
 group = 'com.awslabs.aws.iot.resultsiterator'
