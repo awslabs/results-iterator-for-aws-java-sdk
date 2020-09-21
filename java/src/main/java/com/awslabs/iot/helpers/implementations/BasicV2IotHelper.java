@@ -3,6 +3,7 @@ package com.awslabs.iot.helpers.implementations;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import com.awslabs.resultsiterator.v2.implementations.V2ResultsIteratorAbstract;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class BasicV2IotHelper implements V2IotHelper {
+    public static final String DELIMITER = ":";
+    public static final String THING_GROUP_NAMES = "thingGroupNames";
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
 
     @Inject
@@ -577,5 +580,17 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .build();
 
         return new V2ResultsIterator<JobExecutionSummaryForJob>(iotClient, listJobExecutionsForJobRequest).stream();
+    }
+
+    @Override
+    public Stream<ThingDocument> getThingsByGroupName(String groupName) {
+        String queryString = String.join(DELIMITER, THING_GROUP_NAMES, groupName);
+
+        SearchIndexRequest searchIndexRequest = SearchIndexRequest.builder()
+                .queryString(queryString)
+                .build();
+
+        return new V2ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
+        }.stream();
     }
 }

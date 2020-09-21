@@ -6,21 +6,28 @@ import com.awslabs.iot.data.ImmutableCertificateArn;
 import com.awslabs.iot.data.ImmutableThingName;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
+import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.iot.IotClient;
-import software.amazon.awssdk.services.iot.model.Certificate;
-import software.amazon.awssdk.services.iot.model.JobExecutionSummaryForJob;
-import software.amazon.awssdk.services.iot.model.JobSummary;
-import software.amazon.awssdk.services.iot.model.ThingAttribute;
+import software.amazon.awssdk.services.iot.model.*;
 
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
+import static com.awslabs.iot.helpers.implementations.BasicV2IotHelper.DELIMITER;
+import static com.awslabs.iot.helpers.implementations.BasicV2IotHelper.THING_GROUP_NAMES;
+import static com.awslabs.resultsiterator.TestV2ResultsIterator.JUNKFORGROUPTESTING_V2;
+import static com.awslabs.resultsiterator.TestV2ResultsIterator.JUNKFORTHINGTESTING_V2;
 
 public class BasicV2IotHelperTests {
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelperTests.class);
@@ -34,6 +41,41 @@ public class BasicV2IotHelperTests {
         v2IotHelper = injector.v2IotHelper();
         iotClient = injector.iotClient();
         jsonHelper = injector.jsonHelper();
+
+        CreateThingRequest createThingRequest = CreateThingRequest.builder()
+                .thingName(JUNKFORTHINGTESTING_V2)
+                .build();
+        iotClient.createThing(createThingRequest);
+
+        CreateThingGroupRequest createThingGroupRequest = CreateThingGroupRequest.builder()
+                .thingGroupName(JUNKFORGROUPTESTING_V2)
+                .build();
+        iotClient.createThingGroup(createThingGroupRequest);
+
+        DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
+                .thingName(JUNKFORTHINGTESTING_V2)
+                .build();
+
+        DescribeThingResponse describeThingResponse = iotClient.describeThing(describeThingRequest);
+
+        AddThingToThingGroupRequest addThingToThingGroupRequest = AddThingToThingGroupRequest.builder()
+                .thingArn(describeThingResponse.thingArn())
+                .thingGroupName(JUNKFORGROUPTESTING_V2)
+                .build();
+        iotClient.addThingToThingGroup(addThingToThingGroupRequest);
+    }
+
+    @After
+    public void tearDown() {
+        DeleteThingRequest deleteThingRequest = DeleteThingRequest.builder()
+                .thingName(JUNKFORTHINGTESTING_V2)
+                .build();
+        iotClient.deleteThing(deleteThingRequest);
+
+        DeleteThingGroupRequest deleteThingGroupRequest = DeleteThingGroupRequest.builder()
+                .thingGroupName(JUNKFORGROUPTESTING_V2)
+                .build();
+        iotClient.deleteThingGroup(deleteThingGroupRequest);
     }
 
     @Test
@@ -93,5 +135,38 @@ public class BasicV2IotHelperTests {
         Callable<Stream<JobExecutionSummaryForJob>> getJobsExecutionsStream = () -> v2IotHelper.getJobExecutions(jobSummary);
 
         testNotMeaningfulWithout("job executions", getJobsExecutionsStream.call());
+    }
+
+
+    private void waitForNonZeroFleetIndexResult(Callable<Stream> streamCallable) {
+        // Wait for the fleet index to settle
+        RetryPolicy<Long> fleetIndexRetryPolicy = new RetryPolicy<Long>()
+                .handleResult(0L)
+                .withDelay(Duration.ofSeconds(5))
+                .withMaxRetries(10)
+                .onRetry(failure -> log.warn("Waiting for non-zero fleet index result..."))
+                .onRetriesExceeded(failure -> log.error("Fleet index never returned results, giving up"));
+
+        Failsafe.with(fleetIndexRetryPolicy).get(() -> streamCallable.call().count());
+    }
+
+    @Test
+    public void shouldGetThingDocumentsInsteadOfThingGroups() throws Exception {
+        Callable<Stream> streamCallable = () -> v2IotHelper.getThingsByGroupName(JUNKFORGROUPTESTING_V2);
+        waitForNonZeroFleetIndexResult(streamCallable);
+
+        testNotMeaningfulWithout("things in thing groups", streamCallable.call());
+    }
+
+    @Test
+    public void shouldThrowExceptionDueToTypeErasureAmbiguityWhenRequestingSearchIndexResults() {
+        String queryString = String.join(DELIMITER, THING_GROUP_NAMES, "*");
+
+        SearchIndexRequest searchIndexRequest = SearchIndexRequest.builder()
+                .queryString(queryString)
+                .build();
+
+        UnsupportedOperationException unsupportedOperationException = Assert.assertThrows(UnsupportedOperationException.class, () -> new V2ResultsIterator<ThingDocument>(iotClient, searchIndexRequest).stream().count());
+        Assert.assertTrue(unsupportedOperationException.getMessage().contains("Multiple methods found"));
     }
 }

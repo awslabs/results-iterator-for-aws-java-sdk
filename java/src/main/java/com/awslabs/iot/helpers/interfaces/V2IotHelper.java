@@ -113,4 +113,6 @@ public interface V2IotHelper {
     void forceDelete(JobSummary jobSummary);
 
     Stream<JobExecutionSummaryForJob> getJobExecutions(JobSummary jobSummary);
+
+    Stream<ThingDocument> getThingsByGroupName(String groupName);
 }
