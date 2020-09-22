@@ -650,7 +650,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingName greengrassCoreThingName, RoleName s3UrlSignerRoleName) {
         Role role = v2IamHelper.getRole(s3UrlSignerRoleName).get();
-        ThingArn thingArn = v2IotHelper.getThingArn(greengrassCoreThingName).get();
+        Optional<ThingArn> optionalThingArn = v2IotHelper.getThingArn(greengrassCoreThingName);
+
+        if (!optionalThingArn.isPresent()) {
+            throw new RuntimeException("Core thing [" + greengrassCoreThingName.getName() + "] does not exist, cannot create a software update for it");
+        }
+
+        ThingArn thingArn = optionalThingArn.get();
 
         return updateRaspbianCore(thingArn, ImmutableRoleArn.builder().arn(role.arn()).build());
     }
