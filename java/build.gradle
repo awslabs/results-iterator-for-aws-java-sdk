@@ -104,7 +104,7 @@ dependencies {
     api "software.amazon.awssdk:iotdataplane:$awsSdk2Version"
     api "software.amazon.awssdk:lambda:$awsSdk2Version"
     api "software.amazon.awssdk:sqs:$awsSdk2Version"
-    api "software.amazon.awssdk:apache-client:$awsSdk2Version"
+    api "software.amazon.awssdk:netty-nio-client:$awsSdk2Version"
 
     // SDK v1
     api "com.amazonaws:aws-java-sdk-core:$awsSdkVersion"

@@ -29,7 +29,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -82,8 +82,9 @@ public class V2HelperModule {
 
     @Provides
     public SdkHttpClient sdkHttpClient() {
-        return ApacheHttpClient.builder()
-                .useIdleConnectionReaper(true)
+        return (SdkHttpClient) NettyNioAsyncHttpClient.builder()
+                .maxConcurrency(100)
+                .maxPendingConnectionAcquires(10000)
                 .build();
     }
 
