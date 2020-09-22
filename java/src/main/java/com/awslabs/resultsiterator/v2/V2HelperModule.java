@@ -4,10 +4,8 @@ import com.awslabs.iam.helpers.implementations.BasicV2IamHelper;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2GreengrassHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2IotHelper;
-import com.awslabs.sqs.helpers.implementations.BasicV2SqsHelper;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
-import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
@@ -22,12 +20,16 @@ import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.interfaces.V2SdkErrorHandler;
 import com.awslabs.s3.helpers.implementations.BasicV2S3Helper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
+import com.awslabs.sqs.helpers.implementations.BasicV2SqsHelper;
+import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
 import dagger.Module;
 import dagger.Provides;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -79,8 +81,15 @@ public class V2HelperModule {
     }
 
     @Provides
-    public StsClient stsClient(StsClientBuilder stsClientBuilder) {
-        return new V2SafeProvider<>(stsClientBuilder::build).get();
+    public SdkHttpClient sdkHttpClient() {
+        return ApacheHttpClient.builder()
+                .useIdleConnectionReaper(true)
+                .build();
+    }
+
+    @Provides
+    public StsClient stsClient(StsClientBuilder stsClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> stsClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
@@ -89,8 +98,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-        return new V2SafeProvider<>(s3ClientBuilder::build).get();
+    public S3Client s3Client(S3ClientBuilder s3ClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> s3ClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
@@ -99,8 +108,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public SqsClient sqsClient(SqsClientBuilder sqsClientBuilder) {
-        return new V2SafeProvider<>(sqsClientBuilder::build).get();
+    public SqsClient sqsClient(SqsClientBuilder sqsClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> sqsClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
@@ -109,8 +118,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public IotClient iotClient(IotClientBuilder iotClientBuilder) {
-        return new V2SafeProvider<>(iotClientBuilder::build).get();
+    public IotClient iotClient(IotClientBuilder iotClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> iotClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
@@ -119,8 +128,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public IotDataPlaneClient iotDataPlaneClient(IotDataPlaneClientBuilder iotDataPlaneClientBuilder) {
-        return new V2SafeProvider<>(iotDataPlaneClientBuilder::build).get();
+    public IotDataPlaneClient iotDataPlaneClient(IotDataPlaneClientBuilder iotDataPlaneClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> iotDataPlaneClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
@@ -129,8 +138,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public GreengrassClient greengrassClient(GreengrassClientBuilder greengrassClientBuilder) {
-        return new V2SafeProvider<>(greengrassClientBuilder::build).get();
+    public GreengrassClient greengrassClient(GreengrassClientBuilder greengrassClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> greengrassClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
@@ -139,8 +148,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public LambdaClient lambdaClient(LambdaClientBuilder lambdaClientBuilder) {
-        return new V2SafeProvider<>(lambdaClientBuilder::build).get();
+    public LambdaClient lambdaClient(LambdaClientBuilder lambdaClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> lambdaClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     // Clients that need special configuration
@@ -151,8 +160,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public IamClient iamClient(IamClientBuilder iamClientBuilder) {
-        return new V2SafeProvider<>(iamClientBuilder::build).get();
+    public IamClient iamClient(IamClientBuilder iamClientBuilder, SdkHttpClient sdkHttpClient) {
+        return new V2SafeProvider<>(() -> iamClientBuilder.httpClient(sdkHttpClient).build()).get();
     }
 
     @Provides
