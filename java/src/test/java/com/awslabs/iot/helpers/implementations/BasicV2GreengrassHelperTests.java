@@ -36,7 +36,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BasicV2GreengrassHelperTests {
     private final Logger log = LoggerFactory.getLogger(BasicV2GreengrassHelperTests.class);
-    private GreengrassClient greengrassClient;
     private JsonHelper jsonHelper;
     private V2GreengrassHelper v2GreengrassHelper;
 
@@ -44,7 +43,6 @@ public class BasicV2GreengrassHelperTests {
     public void setup() {
         V2TestInjector injector = DaggerV2TestInjector.create();
         v2GreengrassHelper = injector.v2GreengrassHelper();
-        greengrassClient = injector.greengrassClient();
         jsonHelper = injector.jsonHelper();
     }
 
