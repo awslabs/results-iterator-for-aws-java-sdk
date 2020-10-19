@@ -4,8 +4,10 @@ import com.awslabs.iam.helpers.implementations.BasicV2IamHelper;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2GreengrassHelper;
 import com.awslabs.iot.helpers.implementations.BasicV2IotHelper;
+import com.awslabs.sqs.helpers.implementations.BasicV2SqsHelper;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
+import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
 import com.awslabs.lambda.helpers.implementations.BasicV2LambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.SharedModule;
@@ -20,16 +22,12 @@ import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.awslabs.resultsiterator.v2.interfaces.V2SdkErrorHandler;
 import com.awslabs.s3.helpers.implementations.BasicV2S3Helper;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
-import com.awslabs.sqs.helpers.implementations.BasicV2SqsHelper;
-import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
 import dagger.Module;
 import dagger.Provides;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -52,11 +50,6 @@ import software.amazon.awssdk.services.sts.StsClientBuilder;
 
 @Module(includes = {SharedModule.class})
 public class V2HelperModule {
-    @Provides
-    public SdkHttpClient sdkHttpClient() {
-        return ApacheHttpClient.create();
-    }
-
     @Provides
     public AwsCredentialsProvider awsCredentialsProvider(V2CertificateCredentialsProvider v2CertificateCredentialsProvider) {
         return new V2SafeProvider<>(() -> AwsCredentialsProviderChain.of(v2CertificateCredentialsProvider, DefaultCredentialsProvider.create())).get();
@@ -81,8 +74,8 @@ public class V2HelperModule {
     // Normal clients that need no special configuration
     // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
     @Provides
-    public StsClientBuilder stsClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return StsClient.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public StsClientBuilder stsClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return StsClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -91,8 +84,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public S3ClientBuilder s3ClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return S3Client.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public S3ClientBuilder s3ClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return S3Client.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -101,8 +94,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public SqsClientBuilder sqsClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return SqsClient.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public SqsClientBuilder sqsClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return SqsClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -111,8 +104,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public IotClientBuilder iotClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return IotClient.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public IotClientBuilder iotClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return IotClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -121,8 +114,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public IotDataPlaneClientBuilder iotDataPlaneClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return IotDataPlaneClient.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public IotDataPlaneClientBuilder iotDataPlaneClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return IotDataPlaneClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -131,8 +124,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public GreengrassClientBuilder greengrassClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return GreengrassClient.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public GreengrassClientBuilder greengrassClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return GreengrassClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -141,8 +134,8 @@ public class V2HelperModule {
     }
 
     @Provides
-    public LambdaClientBuilder lambdaClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
-        return LambdaClient.builder().credentialsProvider(awsCredentialsProvider).httpClient(sdkHttpClient);
+    public LambdaClientBuilder lambdaClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
+        return LambdaClient.builder().credentialsProvider(awsCredentialsProvider);
     }
 
     @Provides
@@ -153,7 +146,7 @@ public class V2HelperModule {
     // Clients that need special configuration
     // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
     @Provides
-    public IamClientBuilder iamClientBuilder(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
+    public IamClientBuilder iamClientBuilder(AwsCredentialsProvider awsCredentialsProvider) {
         return IamClient.builder().credentialsProvider(awsCredentialsProvider).region(Region.AWS_GLOBAL);
     }
 
@@ -163,7 +156,7 @@ public class V2HelperModule {
     }
 
     @Provides
-    public AwsCredentials awsCredentials(AwsCredentialsProvider awsCredentialsProvider, SdkHttpClient sdkHttpClient) {
+    public AwsCredentials awsCredentials(AwsCredentialsProvider awsCredentialsProvider) {
         return new V2SafeProvider<>(awsCredentialsProvider::resolveCredentials).get();
     }
 
