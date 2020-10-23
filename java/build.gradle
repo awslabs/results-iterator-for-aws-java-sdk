@@ -21,7 +21,7 @@ mainClassName = 'not-applicable'
 // Specify all of our dependency versions
 def slf4jVersion = '1.7.30'
 def jcabiVersion = '0.18.1'
-def awsSdkVersion = '1.11.882'
+def awsSdkVersion = '1.11.886'
 def awsSdk2Version = '2.15.9'
 def junitVersion = '4.13.1'
 def guavaVersion = '30.0-jre'
