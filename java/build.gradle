@@ -33,7 +33,7 @@ def commonsTextVersion = '1.9'
 def commonsIoVersion = '2.8.0'
 def ztZipVersion = '1.14'
 def mockitoVersion = '3.6.0'
-def bouncyCastleVersion = '1.66'
+def bouncyCastleVersion = '1.67'
 def jodahFailsafeVersion = '2.4.0'
 
 group = 'com.awslabs.aws.iot.resultsiterator'
