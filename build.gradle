@@ -36,8 +36,8 @@ def mockitoVersion = '3.6.28'
 def bouncyCastleVersion = '1.67'
 def jodahFailsafeVersion = '2.4.0'
 
-group = 'com.awslabs.aws.iot.resultsiterator'
-version = '0.1'
+group = 'local'
+version = '1.0-SNAPSHOT'
 
 description = """"""
 

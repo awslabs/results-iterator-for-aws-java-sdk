@@ -1,8 +1,7 @@
 .idea
 .gradle
-/java/build
-/java/out
+build
+out
 generated
-/java/src/test/resources/private.key
-/java/src/test/resources/certificate.pem
 *.swp
+.DS_Store
