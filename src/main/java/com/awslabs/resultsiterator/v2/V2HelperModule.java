@@ -27,6 +27,7 @@ import dagger.Provides;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
@@ -52,7 +53,7 @@ import software.amazon.awssdk.services.sts.StsClientBuilder;
 public class V2HelperModule {
     @Provides
     public AwsCredentialsProvider awsCredentialsProvider(V2CertificateCredentialsProvider v2CertificateCredentialsProvider) {
-        return new V2SafeProvider<>(() -> AwsCredentialsProviderChain.of(v2CertificateCredentialsProvider, AwsCredentialsProviderChain.builder().build())).get();
+        return new V2SafeProvider<>(() -> AwsCredentialsProviderChain.of(v2CertificateCredentialsProvider, DefaultCredentialsProvider.create())).get();
     }
 
     @Provides
