@@ -3,6 +3,8 @@ package com.awslabs.resultsiterator.v2.implementations;
 import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.google.gson.internal.$Gson$Types;
+import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
@@ -11,13 +13,9 @@ import software.amazon.awssdk.services.greengrass.model.GreengrassResponse;
 
 import javax.inject.Inject;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 public class BasicV2ReflectionHelper implements V2ReflectionHelper {
-    private final List<String> methodsToIgnore = new ArrayList<>(Arrays.asList("sdkFields", "commonPrefixes", "copy"));
+    private final List<String> methodsToIgnore = List.of("sdkFields", "commonPrefixes", "copy");
 
     @Inject
     GreengrassIdExtractor greengrassIdExtractor;
@@ -29,23 +27,23 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
     }
 
     @Override
-    public Optional<Method> getMethodWithParameterAndReturnType(Class clazz, Class parameter, Class returnType) {
+    public Option<Method> getMethodWithParameterAndReturnType(Class clazz, Class parameter, Class returnType) {
         return getMethodWithParameterReturnTypeAndName(clazz, parameter, returnType, null);
     }
 
     @Override
-    public Optional<Method> getMethodWithParameterReturnTypeAndName(Class clazz, Class parameter, Class returnType, String name) {
-        List<String> names = new ArrayList<>();
+    public Option<Method> getMethodWithParameterReturnTypeAndName(Class clazz, Class parameter, Class returnType, String name) {
+        List<String> names = List.empty();
 
         if (name != null) {
-            names.add(name);
+            names = names.append(name);
         }
 
         return getMethodWithParameterReturnTypeAndNames(clazz, parameter, returnType, names);
     }
 
     @Override
-    public Optional<Method> getMethodWithParameterReturnTypeAndNames(Class clazz, Class parameter, Class returnType, List<String> names) {
+    public Option<Method> getMethodWithParameterReturnTypeAndNames(Class clazz, Class parameter, Class returnType, List<String> names) {
         // To deal with generics we look at signatures if all else fails. We want to look for lists of the expected type and the expected type itself.
         String expectedListSignature = toGenericListSignature(returnType);
         String expectedSignature = toGenericSignature(returnType);
@@ -99,12 +97,12 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
             returnMethod = method;
         }
 
-        return Optional.ofNullable(returnMethod);
+        return Option.of(returnMethod);
     }
 
     // From: https://stackoverflow.com/a/29801335/796579
     private String toGenericListSignature(final Type type) {
-        ParameterizedType listType = $Gson$Types.newParameterizedTypeWithOwner(null, List.class, type);
+        ParameterizedType listType = $Gson$Types.newParameterizedTypeWithOwner(null, java.util.List.class, type);
         return toGenericSignature(listType);
     }
 
@@ -201,9 +199,9 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
 
         AwsRequest request = builder.build();
 
-        Optional<Method> optionalClientMethodReturningResult = getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
+        Option<Method> optionalClientMethodReturningResult = getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
 
-        if (!optionalClientMethodReturningResult.isPresent()) {
+        if (optionalClientMethodReturningResult.isEmpty()) {
             throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
         }
 

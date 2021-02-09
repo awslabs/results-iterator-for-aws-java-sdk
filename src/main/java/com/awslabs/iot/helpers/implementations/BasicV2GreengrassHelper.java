@@ -11,6 +11,7 @@ import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,10 +129,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId) {
-        return getGroups()
+    public Option<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId) {
+        return Option.ofOptional(getGroups()
                 .filter(getGroupIdMatchesPredicate(greengrassGroupId))
-                .findFirst();
+                .findFirst());
     }
 
     @Override
@@ -143,57 +144,57 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<String> getCoreDefinitionIdByName(String coreDefinitionName) {
+    public Option<String> getCoreDefinitionIdByName(String coreDefinitionName) {
         return getDefinitionIdByName(getCoreDefinitions(), coreDefinitionName);
     }
 
     @Override
-    public Optional<String> getDeviceDefinitionIdByName(String deviceDefinitionName) {
+    public Option<String> getDeviceDefinitionIdByName(String deviceDefinitionName) {
         return getDefinitionIdByName(getDeviceDefinitions(), deviceDefinitionName);
     }
 
-    private Optional<String> getDefinitionIdByName(Stream<DefinitionInformation> definitionInformationStream, String name) {
-        return definitionInformationStream
+    private Option<String> getDefinitionIdByName(Stream<DefinitionInformation> definitionInformationStream, String name) {
+        return Option.ofOptional(definitionInformationStream
                 // Keep entries with a non-NULL name
                 .filter(definitionInformation -> definitionInformation.name() != null)
                 // Find entries with matching names
                 .filter(definitionInformation -> definitionInformation.name().equals(name))
                 // Extract the definition ID
                 .map(DefinitionInformation::id)
-                .findFirst();
+                .findFirst());
     }
 
     @Override
-    public Optional<GreengrassGroupId> getGroupId(GroupInformation groupInformation) {
+    public Option<GreengrassGroupId> getGroupId(GroupInformation groupInformation) {
         return getGroupVersionResponse(groupInformation)
                 .map(GetGroupVersionResponse::id)
                 .map(groupId -> ImmutableGreengrassGroupId.builder().groupId(groupId).build());
     }
 
     @Override
-    public Optional<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId) {
+    public Option<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId) {
         return getGroupInformation(greengrassGroupId)
                 .flatMap(this::getLatestGroupVersion);
     }
 
     @Override
-    public Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation) {
+    public Option<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation) {
         return getGroupVersionResponse(groupInformation)
                 .map(GetGroupVersionResponse::definition);
     }
 
-    private Optional<GetGroupVersionResponse> getGroupVersionResponse(GroupInformation groupInformation) {
+    private Option<GetGroupVersionResponse> getGroupVersionResponse(GroupInformation groupInformation) {
         return getGroupVersionResponse(ImmutableGreengrassGroupId.builder().groupId(groupInformation.id()).build(), groupInformation.latestVersion());
     }
 
-    private Optional<GetGroupVersionResponse> getGroupVersionResponse(GreengrassGroupId greengrassGroupId, String versionId) {
+    private Option<GetGroupVersionResponse> getGroupVersionResponse(GreengrassGroupId greengrassGroupId, String versionId) {
         GetGroupVersionRequest getGroupVersionRequest = GetGroupVersionRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
                 .groupVersionId(versionId)
                 .build();
 
         // This method throws an exception if the definition does not exist
-        return Optional.ofNullable(Try.of(() -> greengrassClient.getGroupVersion(getGroupVersionRequest))
+        return Option.of(Try.of(() -> greengrassClient.getGroupVersion(getGroupVersionRequest))
                 .getOrNull());
     }
 
@@ -210,13 +211,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     public Stream<GroupVersion> getGroupVersions(GreengrassGroupId greengrassGroupId) {
         return getVersionInformation(greengrassGroupId)
                 .map(versionInformation -> getGroupVersionResponse(greengrassGroupId, versionInformation.version()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .filter(Option::isDefined)
+                .map(Option::get)
                 .map(GetGroupVersionResponse::definition);
     }
 
     @Override
-    public Optional<List<Function>> getFunctions(GroupInformation groupInformation) {
+    public Option<List<Function>> getFunctions(GroupInformation groupInformation) {
         // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
         return getFunctionDefinitionVersion(groupInformation)
                 .map(FunctionDefinitionVersion::functions)
@@ -225,12 +226,12 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation) {
+    public Option<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation) {
         List<GroupCertificateAuthorityProperties> groupCertificateAuthorityPropertiesList = getGroupCertificateAuthorityProperties(groupInformation).collect(Collectors.toList());
 
         if (groupCertificateAuthorityPropertiesList.size() != 1) {
             log.error("Currently we do not support multiple group CAs");
-            return Optional.empty();
+            return Option.none();
         }
 
         GroupCertificateAuthorityProperties groupCertificateAuthorityProperties = groupCertificateAuthorityPropertiesList.get(0);
@@ -241,13 +242,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .build();
 
         // This method throws an exception if the definition does not exist
-        return Optional.of(Try.of(() -> greengrassClient.getGroupCertificateAuthority(getGroupCertificateAuthorityRequest))
+        return Option.of(Try.of(() -> greengrassClient.getGroupCertificateAuthority(getGroupCertificateAuthorityRequest))
                 .getOrNull());
     }
 
     @Override
-    public Optional<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation) {
-        Optional<FunctionDefinitionVersion> optionalFunctionDefinitionVersion = getFunctionDefinitionVersion(groupInformation);
+    public Option<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation) {
+        Option<FunctionDefinitionVersion> optionalFunctionDefinitionVersion = getFunctionDefinitionVersion(groupInformation);
 
         return optionalFunctionDefinitionVersion
                 .map(FunctionDefinitionVersion::defaultConfig)
@@ -256,126 +257,126 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
+    public Option<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getFunctionDefinitionVersion);
     }
 
     @Override
-    public Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupVersion groupVersion) {
+    public Option<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupVersion groupVersion) {
         return getFunctionDefinitionVersionResponse(groupVersion)
                 .map(GetFunctionDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class));
+    public Option<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation) {
+    public Option<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getCoreDefinitionVersion);
     }
 
     @Override
-    public Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
+    public Option<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion) {
         return getCoreDefinitionVersionResponse(groupVersion)
                 .map(GetCoreDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
+    public Option<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation) {
+    public Option<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getConnectorDefinitionVersion);
     }
 
     @Override
-    public Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion) {
+    public Option<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion) {
         return getConnectorDefinitionVersionResponse(groupVersion)
                 .map(GetConnectorDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class));
+    public Option<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation) {
+    public Option<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getResourceDefinitionVersion);
     }
 
     @Override
-    public Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion) {
+    public Option<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion) {
         return getResourceDefinitionVersionResponse(groupVersion)
                 .map(GetResourceDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class));
+    public Option<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation) {
+    public Option<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getLoggerDefinitionVersion);
     }
 
     @Override
-    public Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
+    public Option<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion) {
         return getLoggerDefinitionVersionResponse(groupVersion)
                 .map(GetLoggerDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class));
+    public Option<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupInformation groupInformation) {
+    public Option<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getSubscriptionDefinitionVersion);
     }
 
     @Override
-    public Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupVersion groupVersion) {
+    public Option<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupVersion groupVersion) {
         return getSubscriptionDefinitionVersionResponse(groupVersion)
                 .map(GetSubscriptionDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class));
+    public Option<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupInformation groupInformation) {
+    public Option<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getDeviceDefinitionVersion);
     }
 
     @Override
-    public Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupVersion groupVersion) {
+    public Option<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupVersion groupVersion) {
         return getDeviceDefinitionVersionResponse(groupVersion)
                 .map(GetDeviceDefinitionVersionResponse::definition);
     }
 
     @Override
-    public Optional<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Optional.ofNullable(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class));
+    public Option<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion) {
+        return Option.of(v2ReflectionHelper.getSingleGreengrassResult(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class));
     }
 
     @Override
-    public Optional<List<Device>> getDevices(GroupInformation groupInformation) {
+    public Option<List<Device>> getDevices(GroupInformation groupInformation) {
         return getDeviceDefinitionVersion(groupInformation)
                 .map(DeviceDefinitionVersion::devices)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
@@ -383,7 +384,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
+    public Option<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
         return getSubscriptionDefinitionVersion(groupInformation)
                 .map(SubscriptionDefinitionVersion::subscriptions)
                 // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
@@ -391,13 +392,13 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation) {
+    public Option<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation) {
         return getLatestGroupVersion(groupInformation)
                 .flatMap(this::getCoreCertificateArn);
     }
 
     @Override
-    public Optional<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion) {
+    public Option<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion) {
         return getCoreDefinitionVersion(groupVersion)
                 .map(CoreDefinitionVersion::cores)
                 .filter(list -> list.size() != 0)
@@ -414,10 +415,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     @Override
-    public Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId) {
-        return getGroupInformationByNameOrId(groupNameOrGroupId)
+    public Option<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId) {
+        return Option.ofOptional(getGroupInformationByNameOrId(groupNameOrGroupId)
                 .filter(groupInformation -> groupInformation.latestVersion() != null)
-                .findFirst()
+                .findFirst())
                 .flatMap(this::getLatestGroupVersion);
     }
 
@@ -434,23 +435,23 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     public Stream<Deployment> getDeployments(GreengrassGroupId greengrassGroupId) {
         return getGroupInformation(greengrassGroupId)
                 .map(this::getDeployments)
-                .orElse(Stream.empty());
+                .getOrElse(Stream.empty());
     }
 
     @Override
-    public Optional<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId) {
+    public Option<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId) {
         return getGroupInformation(greengrassGroupId)
                 .flatMap(this::getLatestDeployment);
     }
 
     @Override
-    public Optional<Deployment> getLatestDeployment(GroupInformation groupInformation) {
-        return getDeployments(groupInformation)
-                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.createdAt()).toEpochMilli()));
+    public Option<Deployment> getLatestDeployment(GroupInformation groupInformation) {
+        return Option.ofOptional(getDeployments(groupInformation)
+                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.createdAt()).toEpochMilli())));
     }
 
     @Override
-    public Optional<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment) {
+    public Option<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment) {
         GetDeploymentStatusRequest getDeploymentStatusRequest = GetDeploymentStatusRequest.builder()
                 .groupId(greengrassGroupId.getGroupId())
                 .deploymentId(deployment.deploymentId())
@@ -458,7 +459,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
         return Try.of(() -> greengrassClient.getDeploymentStatus(getDeploymentStatusRequest))
                 .recover(GreengrassException.class, throwable -> handleDoesNotExistException(throwable, "deployment", deployment.deploymentId()))
-                .map(Optional::ofNullable)
+                .map(Option::of)
                 .get();
     }
 
@@ -477,20 +478,20 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         // Get the group information by group ID
         return getGroupInformation(greengrassGroupId)
                 .map(this::isGroupImmutable)
-                .orElse(false);
+                .getOrElse(false);
     }
 
     @Override
     public boolean isGroupImmutable(GroupInformation groupInformation) {
-        return Optional.of(groupInformation)
-                // Get the latest core definition version (flatMap to get rid of Optional<Optional<...>> result
+        return Option.of(groupInformation)
+                // Get the latest core definition version (flatMap to get rid of Option<Option<...>> result
                 .flatMap(this::getCoreDefinitionVersion)
                 // Get the list of cores
                 .map(CoreDefinitionVersion::cores)
                 // Convert it to a stream
                 .map(Collection::stream)
                 // Use an empty stream if no cores exist
-                .orElse(Stream.empty())
+                .getOrElse(Stream.empty())
                 .findFirst()
                 // Get the thing ARN
                 .map(Core::thingArn)
@@ -662,14 +663,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 .filter(groupInformation -> !isGroupImmutable(groupInformation));
     }
 
-    private <T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Optional<T>> convertFromGroupVersion) {
+    private <T> Stream<T> getImmutableDefinitionVersionResponses(java.util.function.Function<GroupVersion, Option<T>> convertFromGroupVersion) {
         return getGroups()
                 .filter(this::isGroupImmutable)
                 .map(this::getLatestGroupVersion)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .filter(Option::isDefined)
+                .map(Option::get)
                 .map(convertFromGroupVersion)
-                .filter(Optional::isPresent)
-                .map(Optional::get);
+                .filter(Option::isDefined)
+                .map(Option::get);
     }
 }

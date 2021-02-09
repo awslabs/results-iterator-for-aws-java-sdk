@@ -6,6 +6,7 @@ import com.amazonaws.AmazonWebServiceResult;
 import com.amazonaws.SdkClientException;
 import com.awslabs.resultsiterator.interfaces.ResultsIterator;
 import com.google.common.reflect.TypeToken;
+import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,7 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
     private final List<String> getTokenMethodNames = new ArrayList<>(Arrays.asList("getNextToken", "getMarker", "getNextMarker"));
     private final List<String> setTokenMethodNames = new ArrayList<>(Arrays.asList("setNextToken", "setMarker", "setNextMarker"));
     private final AmazonWebServiceRequest originalRequest;
-    private Optional<Class<? extends AmazonWebServiceResult>> optionalResultClass = Optional.empty();
+    private Option<Class<? extends AmazonWebServiceResult>> optionalResultClass = Option.none();
     private AmazonWebServiceResult result;
     private Method clientMethodReturningResult;
     private Method clientMethodReturningListT;
@@ -145,12 +146,12 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
 
     private Class<? extends AmazonWebServiceResult> getResultClass() {
         synchronized (this) {
-            if (!optionalResultClass.isPresent()) {
+            if (optionalResultClass.isEmpty()) {
                 String requestClassName = requestClass.getName();
                 String resultClass = requestClassName.replaceAll("Request$", "Result");
 
                 try {
-                    optionalResultClass = Optional.of((Class<? extends AmazonWebServiceResult>) Class.forName(resultClass));
+                    optionalResultClass = Option.of((Class<? extends AmazonWebServiceResult>) Class.forName(resultClass));
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                     throw new UnsupportedOperationException(e);

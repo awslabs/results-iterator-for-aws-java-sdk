@@ -4,13 +4,13 @@ import com.awslabs.lambda.data.FunctionAlias;
 import com.awslabs.lambda.data.FunctionAliasArn;
 import com.awslabs.lambda.data.FunctionName;
 import com.awslabs.lambda.data.FunctionVersion;
+import io.vavr.control.Option;
 import software.amazon.awssdk.services.lambda.model.FunctionConfiguration;
 import software.amazon.awssdk.services.lambda.model.GetFunctionConfigurationResponse;
 import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
 import software.amazon.awssdk.services.lambda.model.PublishVersionResponse;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V2LambdaHelper {
@@ -20,9 +20,9 @@ public interface V2LambdaHelper {
 
     boolean functionExists(FunctionAliasArn functionAliasArn);
 
-    Optional<GetFunctionResponse> getFunction(FunctionName functionName);
+    Option<GetFunctionResponse> getFunction(FunctionName functionName);
 
-    Optional<GetFunctionResponse> getFunction(FunctionAliasArn functionAliasArn);
+    Option<GetFunctionResponse> getFunction(FunctionAliasArn functionAliasArn);
 
     boolean aliasExists(FunctionName functionName, FunctionAlias functionAlias);
 

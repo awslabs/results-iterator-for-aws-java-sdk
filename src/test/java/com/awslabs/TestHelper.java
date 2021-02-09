@@ -2,11 +2,11 @@ package com.awslabs;
 
 import com.awslabs.general.helpers.implementations.BasicJsonHelper;
 import com.awslabs.general.helpers.interfaces.JsonHelper;
+import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
@@ -38,8 +38,8 @@ public class TestHelper {
         assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), itemCount > 0);
     }
 
-    public static <T> long logAndCount(Optional<List<T>> optionalObjects) {
-        if (!optionalObjects.isPresent()) {
+    public static <T> long logAndCount(Option<List<T>> optionalObjects) {
+        if (optionalObjects.isEmpty()) {
             return 0;
         }
 

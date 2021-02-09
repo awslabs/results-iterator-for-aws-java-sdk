@@ -4,6 +4,7 @@ import com.awslabs.general.helpers.data.ImmutableProcessOutput;
 import com.awslabs.general.helpers.data.ProcessOutput;
 import com.awslabs.general.helpers.interfaces.ProcessHelper;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -15,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.Optional;
 
 public class BasicProcessHelper implements ProcessHelper {
     private final Logger log = LoggerFactory.getLogger(BasicProcessHelper.class);
@@ -56,19 +56,19 @@ public class BasicProcessHelper implements ProcessHelper {
     }
 
     @Override
-    public Optional<ProcessOutput> getOutputFromProcess(ProcessBuilder processBuilder) {
+    public Option<ProcessOutput> getOutputFromProcess(ProcessBuilder processBuilder) {
         return Try.of(() -> innerGetOutputFromProcess(processBuilder))
                 .recover(Exception.class, this::logExceptionMessageAndReturnEmpty)
                 .get();
     }
 
-    private Optional<ProcessOutput> logExceptionMessageAndReturnEmpty(Exception throwable) {
+    private Option<ProcessOutput> logExceptionMessageAndReturnEmpty(Exception throwable) {
         log.error(throwable.getMessage());
 
-        return Optional.empty();
+        return Option.none();
     }
 
-    private Optional<ProcessOutput> innerGetOutputFromProcess(ProcessBuilder processBuilder) throws IOException, InterruptedException {
+    private Option<ProcessOutput> innerGetOutputFromProcess(ProcessBuilder processBuilder) throws IOException, InterruptedException {
         Process process = processBuilder.start();
 
         BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -83,6 +83,6 @@ public class BasicProcessHelper implements ProcessHelper {
                 .standardOutStrings(stdout.lines().collect(List.collector()))
                 .build();
 
-        return Optional.of(processOutput);
+        return Option.of(processOutput);
     }
 }

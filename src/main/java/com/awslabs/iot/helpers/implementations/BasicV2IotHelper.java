@@ -4,6 +4,7 @@ import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIteratorAbstract;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import javax.inject.Inject;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class BasicV2IotHelper implements V2IotHelper {
@@ -121,21 +121,21 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public Optional<ThingArn> getThingArn(ThingName thingName) {
+    public Option<ThingArn> getThingArn(ThingName thingName) {
         return describeThing(thingName)
-                // At this point our try should be successful, even if the resource wasn't found, but the result may be empty
+                // At this point our try should be successful, even if the resource wasn't found, but the result may be none
                 .map(DescribeThingResponse::thingArn)
                 .map(thingArn -> ImmutableThingArn.builder().arn(thingArn).build());
     }
 
-    public Optional<DescribeThingResponse> describeThing(ThingName thingName) {
+    public Option<DescribeThingResponse> describeThing(ThingName thingName) {
         DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
                 .thingName(thingName.getName())
                 .build();
 
         // DescribeThing will throw an exception if the thing does not exist
-        return Try.of(() -> Optional.of(iotClient.describeThing(describeThingRequest)))
-                .recover(ResourceNotFoundException.class, throwable -> Optional.empty())
+        return Try.of(() -> Option.of(iotClient.describeThing(describeThingRequest)))
+                .recover(ResourceNotFoundException.class, throwable -> Option.none())
                 .get();
     }
 
@@ -195,22 +195,22 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public Optional<CertificatePem> getCertificatePem(CertificateArn certificateArn) {
+    public Option<CertificatePem> getCertificatePem(CertificateArn certificateArn) {
         CertificateId certificateId = getCertificateId(certificateArn);
 
         return getCertificatePem(certificateId);
     }
 
     @Override
-    public Optional<CertificatePem> getCertificatePem(CertificateId certificateId) {
+    public Option<CertificatePem> getCertificatePem(CertificateId certificateId) {
         DescribeCertificateRequest describeCertificateRequest = DescribeCertificateRequest.builder()
                 .certificateId(certificateId.getId())
                 .build();
 
         // DescribeCertificate will throw an exception if the certificate does not exist
-        return Try.of(() -> Optional.of(iotClient.describeCertificate(describeCertificateRequest)))
-                .recover(ResourceNotFoundException.class, throwable -> Optional.empty())
-                // At this point our try should be successful, even if the resource wasn't found, but the result may be empty
+        return Try.of(() -> Option.of(iotClient.describeCertificate(describeCertificateRequest)))
+                .recover(ResourceNotFoundException.class, throwable -> Option.none())
+                // At this point our try should be successful, even if the resource wasn't found, but the result may be none
                 .get()
                 .map(DescribeCertificateResponse::certificateDescription)
                 .map(CertificateDescription::certificatePem)
@@ -253,8 +253,8 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .map(Map::keySet)
                 // Turn it into a stream
                 .map(Collection::stream)
-                // Use an empty stream if no values are present
-                .orElse(Stream.empty())
+                // Use an none stream if no values are present
+                .getOrElse(Stream.empty())
                 // Check if any of the keys are equal to the immutable string
                 .anyMatch(IMMUTABLE::equals);
     }
@@ -590,6 +590,9 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .queryString(queryString)
                 .build();
 
+        // Must be abstract so we can avoid type erasure get the type information for ThingDocument at runtime.
+        //   Specifically this must be done because this API has two methods that return lists (ThingDocument
+        //   and ThingGroupDocument)
         return new V2ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
         }.stream();
     }

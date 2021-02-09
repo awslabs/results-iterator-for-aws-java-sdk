@@ -6,6 +6,7 @@ import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.iot.helpers.interfaces.V1GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V1ThingHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 
@@ -51,7 +52,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     public Map<String, VersionInformation> listLatestGroupVersions() {
         return listGroups()
                 .map(group -> new AbstractMap.SimpleEntry<>(group.getId(), getLatestGroupVersion(group.getId())))
-                .filter(entry -> entry.getValue().isPresent())
+                .filter(entry -> entry.getValue().isDefined())
                 .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
                 .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
@@ -61,7 +62,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
         return listGroups()
                 .filter(group -> isGroupImmutable(group.getId()))
                 .map(group -> new AbstractMap.SimpleEntry<>(group.getId(), getLatestGroupVersion(group.getId())))
-                .filter(entry -> entry.getValue().isPresent())
+                .filter(entry -> entry.getValue().isDefined())
                 .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
                 .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
@@ -181,10 +182,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public Optional<VersionInformation> getLatestGroupVersion(String groupId) {
+    public Option<VersionInformation> getLatestGroupVersion(String groupId) {
         // Get the last group version or return NULL if there aren't any deployments
-        return listGroupVersions(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli())));
+        return Option.ofOptional(listGroupVersions(groupId)
+                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli()))));
     }
 
     @Override
@@ -203,10 +204,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     @Override
-    public Optional<Deployment> getLatestDeployment(String groupId) {
+    public Option<Deployment> getLatestDeployment(String groupId) {
         // Get the last deployment or return NULL if there aren't any deployments
-        return listDeployments(groupId)
-                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli()));
+        return Option.ofOptional(listDeployments(groupId)
+                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())));
     }
 
     @Override
@@ -581,9 +582,9 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
             return false;
         }
 
-        Optional<VersionInformation> optionalLatestGroupVersion = getLatestGroupVersion(groupId);
+        Option<VersionInformation> optionalLatestGroupVersion = getLatestGroupVersion(groupId);
 
-        if (!optionalLatestGroupVersion.isPresent()) {
+        if (optionalLatestGroupVersion.isEmpty()) {
             return false;
         }
 

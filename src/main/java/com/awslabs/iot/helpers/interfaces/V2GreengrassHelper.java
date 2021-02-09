@@ -3,10 +3,10 @@ package com.awslabs.iot.helpers.interfaces;
 import com.awslabs.iam.data.RoleArn;
 import com.awslabs.iam.data.RoleName;
 import com.awslabs.iot.data.*;
+import io.vavr.control.Option;
 import software.amazon.awssdk.services.greengrass.model.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -41,93 +41,93 @@ public interface V2GreengrassHelper {
 
     Stream<GroupInformation> getGroupInformation(GreengrassGroupName greengrassGroupName);
 
-    Optional<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId);
+    Option<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId);
 
     Stream<GreengrassGroupId> getGroupId(GreengrassGroupName greengrassGroupName);
 
-    Optional<String> getCoreDefinitionIdByName(String coreDefinitionName);
+    Option<String> getCoreDefinitionIdByName(String coreDefinitionName);
 
-    Optional<String> getDeviceDefinitionIdByName(String deviceDefinitionName);
+    Option<String> getDeviceDefinitionIdByName(String deviceDefinitionName);
 
-    Optional<GreengrassGroupId> getGroupId(GroupInformation groupInformation);
+    Option<GreengrassGroupId> getGroupId(GroupInformation groupInformation);
 
-    Optional<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId);
+    Option<GroupVersion> getLatestGroupVersion(GreengrassGroupId greengrassGroupId);
 
-    Optional<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation);
+    Option<GroupVersion> getLatestGroupVersion(GroupInformation groupInformation);
 
     Stream<VersionInformation> getVersionInformation(GreengrassGroupId greengrassGroupId);
 
     Stream<GroupVersion> getGroupVersions(GreengrassGroupId greengrassGroupId);
 
-    Optional<List<Function>> getFunctions(GroupInformation groupInformation);
+    Option<List<Function>> getFunctions(GroupInformation groupInformation);
 
-    Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupInformation groupInformation);
+    Option<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupVersion groupVersion);
+    Option<DeviceDefinitionVersion> getDeviceDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation);
+    Option<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupVersion groupVersion);
+    Option<FunctionDefinitionVersion> getFunctionDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation);
+    Option<CoreDefinitionVersion> getCoreDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion);
+    Option<CoreDefinitionVersion> getCoreDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation);
+    Option<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion);
+    Option<ConnectorDefinitionVersion> getConnectorDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation);
+    Option<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion);
+    Option<ResourceDefinitionVersion> getResourceDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation);
+    Option<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion);
+    Option<LoggerDefinitionVersion> getLoggerDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupInformation groupInformation);
+    Option<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupInformation groupInformation);
 
-    Optional<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupVersion groupVersion);
+    Option<SubscriptionDefinitionVersion> getSubscriptionDefinitionVersion(GroupVersion groupVersion);
 
-    Optional<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion);
+    Option<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion);
 
-    Optional<List<Device>> getDevices(GroupInformation groupInformation);
+    Option<List<Device>> getDevices(GroupInformation groupInformation);
 
-    Optional<List<Subscription>> getSubscriptions(GroupInformation groupInformation);
+    Option<List<Subscription>> getSubscriptions(GroupInformation groupInformation);
 
-    Optional<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation);
+    Option<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation);
 
-    Optional<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation);
+    Option<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation);
 
-    Optional<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation);
+    Option<CertificateArn> getCoreCertificateArn(GroupInformation groupInformation);
 
-    Optional<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion);
+    Option<CertificateArn> getCoreCertificateArn(GroupVersion groupVersion);
 
     boolean groupExists(GreengrassGroupName greengrassGroupName);
 
-    Optional<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
+    Option<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId);
 
     Stream<Deployment> getDeployments(GroupInformation groupInformation);
 
     Stream<Deployment> getDeployments(GreengrassGroupId greengrassGroupId);
 
-    Optional<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId);
+    Option<Deployment> getLatestDeployment(GreengrassGroupId greengrassGroupId);
 
-    Optional<Deployment> getLatestDeployment(GroupInformation groupInformation);
+    Option<Deployment> getLatestDeployment(GroupInformation groupInformation);
 
-    Optional<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment);
+    Option<GetDeploymentStatusResponse> getDeploymentStatusResponse(GreengrassGroupId greengrassGroupId, Deployment deployment);
 
     boolean isGroupImmutable(GreengrassGroupId greengrassGroupId);
 

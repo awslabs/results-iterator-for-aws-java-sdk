@@ -2,9 +2,9 @@ package com.awslabs.iot.helpers.interfaces;
 
 import com.amazonaws.services.iot.model.ThingAttribute;
 import com.awslabs.iot.exceptions.ThingAttachedToPrincipalsException;
+import io.vavr.control.Option;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V1ThingHelper {
@@ -32,5 +32,5 @@ public interface V1ThingHelper {
 
     boolean isThingArnImmutable(String thingArn);
 
-    Optional<ThingAttribute> getThingIfItExists(String thingArn);
+    Option<ThingAttribute> getThingIfItExists(String thingArn);
 }

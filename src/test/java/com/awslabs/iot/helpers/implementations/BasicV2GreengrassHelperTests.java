@@ -12,6 +12,7 @@ import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import io.vavr.Tuple2;
+import io.vavr.control.Option;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -107,7 +108,7 @@ public class BasicV2GreengrassHelperTests {
 
         deployment = deployment.toBuilder().deploymentId(String.join("", deployment.deploymentId(), "1")).build();
 
-        assertThat(v2GreengrassHelper.getDeploymentStatusResponse(groupId, deployment), is(Optional.empty()));
+        assertThat(v2GreengrassHelper.getDeploymentStatusResponse(groupId, deployment), is(Option.none()));
     }
 
     @Test
@@ -127,7 +128,7 @@ public class BasicV2GreengrassHelperTests {
                 .findFirst()
                 .get();
 
-        assertThat(v2GreengrassHelper.getDeploymentStatusResponse(groupId, deployment), is(not(Optional.empty())));
+        assertThat(v2GreengrassHelper.getDeploymentStatusResponse(groupId, deployment), is(not(Option.none())));
     }
 
     @Test

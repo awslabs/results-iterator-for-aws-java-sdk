@@ -1,10 +1,10 @@
 package com.awslabs.sqs.helpers.interfaces;
 
 import com.awslabs.sqs.data.*;
+import io.vavr.control.Option;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V2SqsHelper {
@@ -12,7 +12,7 @@ public interface V2SqsHelper {
 
     List<Message> receiveMessages(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout, MaxNumberOfMessages maxNumberOfMessages);
 
-    List<Message> receiveMessages(QueueUrl queueUrl, Optional<VisibilityTimeout> optionalVisibilityTimeout, Optional<MaxNumberOfMessages> optionalMaxNumberOfMessages);
+    List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> optionalVisibilityTimeout, Option<MaxNumberOfMessages> optionalMaxNumberOfMessages);
 
     void deleteMessage(QueueUrl queueUrl, ReceiptHandle receiptHandle);
 

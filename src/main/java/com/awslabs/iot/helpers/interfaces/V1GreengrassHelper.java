@@ -1,9 +1,9 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.amazonaws.services.greengrass.model.*;
+import io.vavr.control.Option;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface V1GreengrassHelper {
@@ -33,13 +33,13 @@ public interface V1GreengrassHelper {
 
     Stream<VersionInformation> listGroupVersions(String groupId);
 
-    Optional<VersionInformation> getLatestGroupVersion(String groupId);
+    Option<VersionInformation> getLatestGroupVersion(String groupId);
 
     Stream<Deployment> listDeployments(String groupId);
 
     Stream<String> listDeploymentIds(String groupId);
 
-    Optional<Deployment> getLatestDeployment(String groupId);
+    Option<Deployment> getLatestDeployment(String groupId);
 
     String getDeploymentStatus(String groupId, String deploymentId);
 
