@@ -7,12 +7,16 @@ import com.awslabs.sqs.data.ImmutableQueueName;
 import com.awslabs.sqs.data.QueueName;
 import com.awslabs.sqs.data.QueueUrl;
 import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sqs.model.QueueDeletedRecentlyException;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -66,14 +70,30 @@ public class BasicV2SqsHelperTests {
                 .collect(Collectors.toList());
 
         // Create all of the queues
+        RetryPolicy<QueueUrl> sqsCreateQueuesRetryPolicy = new RetryPolicy<QueueUrl>()
+                .withDelay(Duration.ofSeconds(10))
+                .withMaxRetries(6)
+                .handle(QueueDeletedRecentlyException.class)
+                .onRetry(failure -> log.warn("Waiting for SQS to allow recreation of the queue..."))
+                .onRetriesExceeded(failure -> log.error("SQS never allowed the queue to be recreated, giving up"));
+
         List<QueueUrl> queueUrls = queueNames.stream()
-                .map(queueName -> v2SqsHelper.createQueue(queueName))
+                .map(queueName -> Failsafe.with(sqsCreateQueuesRetryPolicy).get(() -> v2SqsHelper.createQueue(queueName)))
                 .collect(Collectors.toList());
 
+        RetryPolicy<Long> sqsGetQueueUrlsRetryPolicy = new RetryPolicy<Long>()
+                .handleResult(0L)
+                .withDelay(Duration.ofSeconds(5))
+                .withMaxRetries(10)
+                .handle(QueueDeletedRecentlyException.class)
+                .onRetry(failure -> log.warn("Waiting for non-zero queue URL list result..."))
+                .onRetriesExceeded(failure -> log.error("SQS never returned results, giving up"));
+
         // Count the number of created queues (this can fail if you have queues with UUIDs as names)
-        long actualCount = v2SqsHelper.getQueueUrls()
-                .filter(getUuidPredicate())
-                .count();
+        Long actualCount = Failsafe.with(sqsGetQueueUrlsRetryPolicy).get(() ->
+                v2SqsHelper.getQueueUrls()
+                        .filter(getUuidPredicate())
+                        .count());
 
         // Make sure the count matches
         assertThat(actualCount, is(expectedCount));
