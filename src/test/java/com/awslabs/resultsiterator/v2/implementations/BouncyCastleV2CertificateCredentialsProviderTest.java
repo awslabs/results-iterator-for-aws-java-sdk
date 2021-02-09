@@ -203,7 +203,7 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
     }
 
     private void sharedSetterForFile(BiFunction<String, String, String> setter) {
-        String propertiesFileName = Try.of(() -> Files.walk(Paths.get("../../aws-greengrass-lambda-functions/credentials/"))
+        String propertiesFileName = Try.of(() -> Files.walk(Paths.get("../aws-greengrass-lambda-functions/credentials/"))
                 .map(Path::toFile)
                 .filter(file -> "iotcp.properties".equals(file.getName()))
                 .map(File::getAbsolutePath)
