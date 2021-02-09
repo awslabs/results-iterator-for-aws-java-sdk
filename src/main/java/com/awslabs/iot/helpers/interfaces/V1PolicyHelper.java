@@ -1,8 +1,7 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.amazonaws.services.iot.model.Policy;
-
-import java.util.stream.Stream;
+import io.vavr.collection.Stream;
 
 public interface V1PolicyHelper {
     void createAllowAllPolicy(String clientName);

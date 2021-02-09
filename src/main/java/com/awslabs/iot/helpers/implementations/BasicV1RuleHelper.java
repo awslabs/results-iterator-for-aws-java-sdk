@@ -5,9 +5,9 @@ import com.amazonaws.services.iot.model.ListTopicRulesRequest;
 import com.amazonaws.services.iot.model.TopicRuleListItem;
 import com.awslabs.iot.helpers.interfaces.V1RuleHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.collection.Stream;
 
 import javax.inject.Inject;
-import java.util.stream.Stream;
 
 public class BasicV1RuleHelper implements V1RuleHelper {
     @Inject

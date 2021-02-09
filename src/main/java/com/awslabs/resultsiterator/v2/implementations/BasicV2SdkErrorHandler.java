@@ -1,13 +1,12 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.resultsiterator.v2.interfaces.V2SdkErrorHandler;
+import io.vavr.collection.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BasicV2SdkErrorHandler implements V2SdkErrorHandler {
     private final Logger log = LoggerFactory.getLogger(BasicV2SdkErrorHandler.class);
@@ -40,25 +39,25 @@ public class BasicV2SdkErrorHandler implements V2SdkErrorHandler {
     @Override
     public Void handleSdkError(SdkClientException e) {
         String message = e.getMessage();
-        List<String> errors = new ArrayList<>();
+        List<String> errors = List.empty();
 
         if (message.contains(REGION_EXCEPTION_1) || message.contains(REGION_EXCEPTION_2)) {
-            errors.add(REGION_ERROR);
-            errors.add(GENERIC_CREDENTIALS_SOLUTION);
-            errors.add(REGION_SOLUTION);
+            errors = errors.append(REGION_ERROR);
+            errors = errors.append(GENERIC_CREDENTIALS_SOLUTION);
+            errors = errors.append(REGION_SOLUTION);
         } else if (message.contains(MISSING_CREDENTIALS_EXCEPTION)) {
-            errors.add(MISSING_CREDENTIALS_ERROR);
-            errors.add(GENERIC_CREDENTIALS_SOLUTION);
-            errors.add(MISSING_CREDENTIALS_SOLUTION);
+            errors = errors.append(MISSING_CREDENTIALS_ERROR);
+            errors = errors.append(GENERIC_CREDENTIALS_SOLUTION);
+            errors = errors.append(MISSING_CREDENTIALS_SOLUTION);
         } else if (message.contains(BAD_CREDENTIALS_EXCEPTION)) {
-            errors.add(BAD_CREDENTIALS_ERROR);
-            errors.add(BAD_CREDENTIALS_SOLUTION);
+            errors = errors.append(BAD_CREDENTIALS_ERROR);
+            errors = errors.append(BAD_CREDENTIALS_SOLUTION);
         } else if (message.contains(BAD_PERMISSIONS_EXCEPTION)) {
-            errors.add(message.substring(0, message.indexOf("(")));
-            errors.add(BAD_PERMISSIONS_SOLUTION);
+            errors = errors.append(message.substring(0, message.indexOf("(")));
+            errors = errors.append(BAD_PERMISSIONS_SOLUTION);
         } else if (message.contains(HTTP_REQUEST_EXCEPTION)) {
-            errors.add(message.substring(0, message.indexOf(":")));
-            errors.add(HTTP_REQUEST_SOLUTION);
+            errors = errors.append(message.substring(0, message.indexOf(":")));
+            errors = errors.append(HTTP_REQUEST_SOLUTION);
         }
 
         if (errors.size() != 0) {

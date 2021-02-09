@@ -3,6 +3,8 @@ package com.awslabs.iam.helpers.implementations;
 import com.awslabs.iam.data.*;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -13,8 +15,6 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class BasicV2IamHelper implements V2IamHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2IamHelper.class);

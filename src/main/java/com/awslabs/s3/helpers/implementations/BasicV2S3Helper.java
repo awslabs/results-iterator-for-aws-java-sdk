@@ -3,6 +3,7 @@ package com.awslabs.s3.helpers.implementations;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.s3.helpers.data.*;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -14,7 +15,6 @@ import software.amazon.awssdk.services.s3.model.*;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
-import java.util.stream.Stream;
 
 public class BasicV2S3Helper implements V2S3Helper {
     @Inject
@@ -62,10 +62,10 @@ public class BasicV2S3Helper implements V2S3Helper {
 
         Stream<S3Object> s3Objects = new V2ResultsIterator<S3Object>(getRegionSpecificClientForBucket(bucket), listObjectsRequest).stream();
 
-        Option<S3Object> optionalS3Object = Option.ofOptional(s3Objects
+        Option<S3Object> optionalS3Object = Option.of(s3Objects
                 // Require an exact match on the name
                 .filter(object -> object.key().equals(key))
-                .findFirst());
+                .getOrNull());
 
         return optionalS3Object.isDefined();
     }

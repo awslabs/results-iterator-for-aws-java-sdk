@@ -3,12 +3,12 @@ package com.awslabs.iot.helpers.interfaces;
 import com.awslabs.iam.data.RoleArn;
 import com.awslabs.iam.data.RoleName;
 import com.awslabs.iot.data.*;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import software.amazon.awssdk.services.greengrass.model.*;
 
-import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public interface V2GreengrassHelper {
     Stream<GroupInformation> getGroups();

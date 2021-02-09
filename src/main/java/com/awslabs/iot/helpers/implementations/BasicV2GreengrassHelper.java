@@ -11,6 +11,8 @@ import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -21,10 +23,8 @@ import software.amazon.awssdk.services.iam.model.Role;
 
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.*;
+import java.util.UUID;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2GreengrassHelper.class);
@@ -130,9 +130,9 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Option<GroupInformation> getGroupInformation(GreengrassGroupId greengrassGroupId) {
-        return Option.ofOptional(getGroups()
+        return Option.of(getGroups()
                 .filter(getGroupIdMatchesPredicate(greengrassGroupId))
-                .findFirst());
+                .getOrNull());
     }
 
     @Override
@@ -154,14 +154,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     }
 
     private Option<String> getDefinitionIdByName(Stream<DefinitionInformation> definitionInformationStream, String name) {
-        return Option.ofOptional(definitionInformationStream
+        return Option.of(definitionInformationStream
                 // Keep entries with a non-NULL name
                 .filter(definitionInformation -> definitionInformation.name() != null)
                 // Find entries with matching names
                 .filter(definitionInformation -> definitionInformation.name().equals(name))
                 // Extract the definition ID
                 .map(DefinitionInformation::id)
-                .findFirst());
+                .getOrNull());
     }
 
     @Override
@@ -221,13 +221,12 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
         // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
         return getFunctionDefinitionVersion(groupInformation)
                 .map(FunctionDefinitionVersion::functions)
-                // Put the functions in an array list so the consumer of the list can modify it
-                .map(ArrayList::new);
+                .map(List::ofAll);
     }
 
     @Override
     public Option<GetGroupCertificateAuthorityResponse> getGroupCertificateAuthorityResponse(GroupInformation groupInformation) {
-        List<GroupCertificateAuthorityProperties> groupCertificateAuthorityPropertiesList = getGroupCertificateAuthorityProperties(groupInformation).collect(Collectors.toList());
+        List<GroupCertificateAuthorityProperties> groupCertificateAuthorityPropertiesList = List.ofAll(getGroupCertificateAuthorityProperties(groupInformation));
 
         if (groupCertificateAuthorityPropertiesList.size() != 1) {
             log.error("Currently we do not support multiple group CAs");
@@ -379,16 +378,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     public Option<List<Device>> getDevices(GroupInformation groupInformation) {
         return getDeviceDefinitionVersion(groupInformation)
                 .map(DeviceDefinitionVersion::devices)
-                // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
-                .map(ArrayList::new);
+                .map(List::ofAll);
     }
 
     @Override
     public Option<List<Subscription>> getSubscriptions(GroupInformation groupInformation) {
         return getSubscriptionDefinitionVersion(groupInformation)
                 .map(SubscriptionDefinitionVersion::subscriptions)
-                // The returned list is an unmodifiable list, copy it to an array list so callers can modify it
-                .map(ArrayList::new);
+                .map(List::ofAll);
     }
 
     @Override
@@ -410,15 +407,14 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
     @Override
     public boolean groupExists(GreengrassGroupName greengrassGroupName) {
         return getGroupId(greengrassGroupName)
-                .findAny()
-                .isPresent();
+                .nonEmpty();
     }
 
     @Override
     public Option<GroupVersion> getLatestGroupVersionByNameOrId(String groupNameOrGroupId) {
-        return Option.ofOptional(getGroupInformationByNameOrId(groupNameOrGroupId)
+        return Option.of(getGroupInformationByNameOrId(groupNameOrGroupId)
                 .filter(groupInformation -> groupInformation.latestVersion() != null)
-                .findFirst())
+                .getOrNull())
                 .flatMap(this::getLatestGroupVersion);
     }
 
@@ -446,8 +442,10 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Option<Deployment> getLatestDeployment(GroupInformation groupInformation) {
-        return Option.ofOptional(getDeployments(groupInformation)
-                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.createdAt()).toEpochMilli())));
+        return Option.of(getDeployments(groupInformation)
+                .sortBy(deployment -> Instant.parse(deployment.createdAt()).toEpochMilli())
+                .reverse()
+                .getOrNull());
     }
 
     @Override
@@ -489,10 +487,9 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 // Get the list of cores
                 .map(CoreDefinitionVersion::cores)
                 // Convert it to a stream
-                .map(Collection::stream)
+                .map(Stream::ofAll)
                 // Use an empty stream if no cores exist
                 .getOrElse(Stream.empty())
-                .findFirst()
                 // Get the thing ARN
                 .map(Core::thingArn)
                 .map(thingArn -> ImmutableThingArn.builder().arn(thingArn).build())
@@ -501,7 +498,7 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
                 // Check if the thing is immutable
                 .map(v2IotHelper::isThingImmutable)
                 // If the thing wasn't found, return false. Otherwise use the result from the immutability check.
-                .orElse(false);
+                .getOrElse(false);
     }
 
     @Override

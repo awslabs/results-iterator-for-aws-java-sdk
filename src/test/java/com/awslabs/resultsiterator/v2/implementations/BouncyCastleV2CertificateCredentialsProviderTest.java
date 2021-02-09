@@ -4,19 +4,13 @@ import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
-import com.awslabs.resultsiterator.implementations.BasicSslContextHelper;
-import com.awslabs.resultsiterator.implementations.BasicSslContextHelperTest;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import io.vavr.control.Try;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.EncryptionException;
-import org.bouncycastle.openssl.PEMEncryptedKeyPair;
-import org.bouncycastle.openssl.PEMKeyPair;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,14 +27,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
-import java.util.Map;
 import java.util.function.BiFunction;
 
 import static com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.Is.isA;
-import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -194,11 +186,11 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
     // Guidance from: https://stackoverflow.com/a/40682052/796579
     // Setting the environment isn't possible in Java directly since the map returned from getenv() isn't modifiable
     private String setEnv(String key, String value) {
-        Map<String, String> env = System.getenv();
+        java.util.Map<String, String> env = System.getenv();
         Class<?> cl = env.getClass();
         Field field = Try.of(() -> cl.getDeclaredField("m")).get();
         field.setAccessible(true);
-        Map<String, String> writableEnv = Try.of(() -> (Map<String, String>) field.get(env)).get();
+        java.util.Map<String, String> writableEnv = Try.of(() -> (java.util.Map<String, String>) field.get(env)).get();
         return writableEnv.put(key, value);
     }
 

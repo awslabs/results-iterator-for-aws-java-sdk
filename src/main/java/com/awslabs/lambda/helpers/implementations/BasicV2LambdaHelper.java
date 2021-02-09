@@ -4,6 +4,9 @@ import com.awslabs.lambda.data.FunctionVersion;
 import com.awslabs.lambda.data.*;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.text.StringEscapeUtils;
@@ -13,11 +16,7 @@ import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.*;
 
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class BasicV2LambdaHelper implements V2LambdaHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2LambdaHelper.class);
@@ -38,7 +37,7 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
 
         return new V2ResultsIterator<ListFunctionsResponse>(lambdaClient, ListFunctionsRequest.class).stream()
                 .map(ListFunctionsResponse::functions)
-                .flatMap(Collection::stream)
+                .flatMap(Stream::ofAll)
                 .filter(function -> pattern.matcher(function.functionName()).find());
     }
 
@@ -138,7 +137,8 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
 
         return Option.of(getFunctionConfigurationResponse.environment())
                 .map(EnvironmentResponse::variables)
-                .getOrElse(HashMap::new);
+                .map(HashMap::ofAll)
+                .getOrElse(HashMap.empty());
     }
 
     @Override

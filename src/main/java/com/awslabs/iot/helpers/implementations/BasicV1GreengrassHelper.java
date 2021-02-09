@@ -6,6 +6,10 @@ import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.iot.helpers.interfaces.V1GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V1ThingHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.Tuple;
+import io.vavr.collection.List;
+import io.vavr.collection.Map;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -13,11 +17,10 @@ import org.slf4j.Logger;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1GreengrassHelper.class);
@@ -51,20 +54,20 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public Map<String, VersionInformation> listLatestGroupVersions() {
         return listGroups()
-                .map(group -> new AbstractMap.SimpleEntry<>(group.getId(), getLatestGroupVersion(group.getId())))
-                .filter(entry -> entry.getValue().isDefined())
-                .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
-                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+                .map(group -> Tuple.of(group.getId(), getLatestGroupVersion(group.getId())))
+                .filter(tuple -> tuple._2.isDefined())
+                .map(tuple -> Tuple.of(tuple._1, tuple._2.get()))
+                .toMap(tuple2 -> tuple2._1, tuple2 -> tuple2._2);
     }
 
     @Override
     public Map<String, VersionInformation> listLatestImmutableGroupVersions() {
         return listGroups()
                 .filter(group -> isGroupImmutable(group.getId()))
-                .map(group -> new AbstractMap.SimpleEntry<>(group.getId(), getLatestGroupVersion(group.getId())))
-                .filter(entry -> entry.getValue().isDefined())
-                .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
-                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+                .map(group -> Tuple.of(group.getId(), getLatestGroupVersion(group.getId())))
+                .filter(tuple -> tuple._2.isDefined())
+                .map(tuple -> Tuple.of(tuple._1, tuple._2.get()))
+                .toMap(tuple2 -> tuple2._1, tuple2 -> tuple2._2);
     }
 
     @Override
@@ -105,7 +108,7 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     private Stream<DefinitionInformation> listNonImmutableDefinitionInformation(Supplier<Stream<DefinitionInformation>> definitionInformationSupplier,
                                                                                 Supplier<Stream<String>> immutableDefinitionVersionArnSupplier) {
         Stream<DefinitionInformation> definitionInformationStream = definitionInformationSupplier.get();
-        List<String> latestCoreDefinitions = immutableDefinitionVersionArnSupplier.get().collect(Collectors.toList());
+        List<String> latestCoreDefinitions = immutableDefinitionVersionArnSupplier.get().toList();
 
         // Remove all definitions that are immutable versions
         return definitionInformationStream
@@ -113,59 +116,66 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     }
 
     private Stream<String> listLatestImmutableCoreDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getCoreDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getCoreDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetCoreDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private Stream<String> listLatestImmutableDeviceDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getDeviceDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getDeviceDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetDeviceDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private Stream<String> listLatestImmutableFunctionDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getFunctionDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getFunctionDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetFunctionDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private Stream<String> listLatestImmutableLoggerDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getLoggerDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getLoggerDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetLoggerDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private Stream<String> listLatestImmutableResourceDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getResourceDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getResourceDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetResourceDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private Stream<String> listLatestImmutableConnectorDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getConnectorDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getConnectorDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetConnectorDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private Stream<String> listLatestImmutableSubscriptionDefinitionVersionArns() {
-        return listLatestImmutableGroupVersions().entrySet().stream()
-                .map(e -> getSubscriptionDefinitionVersion(e.getKey(), e.getValue()))
+        return listLatestImmutableGroupVersions()
+                .map(e -> getSubscriptionDefinitionVersion(e._1, e._2))
                 .filter(Objects::nonNull)
                 .map(GetSubscriptionDefinitionVersionResult::getArn)
-                .distinct();
+                .distinct()
+                .toStream();
     }
 
     private <V> Stream<V> mapGroupInfo(Class<V> returnType, Function<? super GroupInformation, V> x) {
@@ -184,8 +194,9 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public Option<VersionInformation> getLatestGroupVersion(String groupId) {
         // Get the last group version or return NULL if there aren't any deployments
-        return Option.ofOptional(listGroupVersions(groupId)
-                .min(Collections.reverseOrder(Comparator.comparingLong(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli()))));
+        return Option.of(listGroupVersions(groupId)
+                .sortBy(versionInformation -> Instant.parse(versionInformation.getCreationTimestamp()).toEpochMilli())
+                .getOrNull());
     }
 
     @Override
@@ -206,8 +217,10 @@ public class BasicV1GreengrassHelper implements V1GreengrassHelper {
     @Override
     public Option<Deployment> getLatestDeployment(String groupId) {
         // Get the last deployment or return NULL if there aren't any deployments
-        return Option.ofOptional(listDeployments(groupId)
-                .max(Comparator.comparingLong(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())));
+        return Option.of(listDeployments(groupId)
+                .sortBy(deployment -> Instant.parse(deployment.getCreatedAt()).toEpochMilli())
+                .reverse()
+                .getOrNull());
     }
 
     @Override

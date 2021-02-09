@@ -1,13 +1,12 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.awslabs.iot.data.*;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.model.*;
-
-import java.util.stream.Stream;
 
 public interface V2IotHelper {
     String IMMUTABLE = "immutable";

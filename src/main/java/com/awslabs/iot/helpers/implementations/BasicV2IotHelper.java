@@ -4,6 +4,10 @@ import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIteratorAbstract;
+import io.vavr.Value;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -17,9 +21,6 @@ import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 
 import javax.inject.Inject;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class BasicV2IotHelper implements V2IotHelper {
     public static final String DELIMITER = ":";
@@ -249,19 +250,21 @@ public class BasicV2IotHelper implements V2IotHelper {
         return describeThing(thingName)
                 // Extract the attributes
                 .map(DescribeThingResponse::attributes)
+                // Convert to a vavr hash map
+                .map(HashMap::ofAll)
                 // Extract the keys from the attributes
                 .map(Map::keySet)
                 // Turn it into a stream
-                .map(Collection::stream)
+                .map(Value::toStream)
                 // Use an none stream if no values are present
                 .getOrElse(Stream.empty())
                 // Check if any of the keys are equal to the immutable string
-                .anyMatch(IMMUTABLE::equals);
+                .exists(IMMUTABLE::equals);
     }
 
     @Override
     public boolean isAnyThingImmutable(Stream<ThingName> thingName) {
-        return thingName.anyMatch(this::isThingImmutable);
+        return thingName.exists(this::isThingImmutable);
     }
 
     @Override
@@ -276,11 +279,11 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     private boolean hasAttachedThings(Certificate certificate) {
-        return getAttachedThings(certificate).findAny().isPresent();
+        return getAttachedThings(certificate).nonEmpty();
     }
 
     private boolean hasAttachedPolicies(Certificate certificate) {
-        return getAttachedPolicies(certificate).findAny().isPresent();
+        return getAttachedPolicies(certificate).nonEmpty();
     }
 
     @Override
@@ -593,7 +596,7 @@ public class BasicV2IotHelper implements V2IotHelper {
         // Must be abstract so we can avoid type erasure get the type information for ThingDocument at runtime.
         //   Specifically this must be done because this API has two methods that return lists (ThingDocument
         //   and ThingGroupDocument)
-        return new V2ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
-        }.stream();
+        return Stream.ofAll(new V2ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
+        }.stream());
     }
 }

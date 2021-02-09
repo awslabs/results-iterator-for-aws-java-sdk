@@ -2,7 +2,9 @@ package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.resultsiterator.interfaces.ResultsIterator;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
+import io.vavr.collection.Iterator;
 import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -15,11 +17,6 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIteratorAbstract.class);
@@ -129,7 +126,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
         };
 
         // This stream does not have a known size, does not contain NULL elements, and can not be run in parallel
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false);
+        return Stream.ofAll(iterator);
     }
 
     private AwsRequest configureRequest() {

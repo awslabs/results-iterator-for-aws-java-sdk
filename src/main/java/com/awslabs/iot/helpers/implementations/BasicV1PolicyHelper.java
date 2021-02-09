@@ -4,11 +4,11 @@ import com.amazonaws.services.iot.AWSIotClient;
 import com.amazonaws.services.iot.model.*;
 import com.awslabs.iot.helpers.interfaces.V1PolicyHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class BasicV1PolicyHelper implements V1PolicyHelper {
     private static final String ALLOW_ALL_POLICY_DOCUMENT = "{ \"Statement\": [ { \"Action\": \"iot:*\", \"Resource\": \"*\", \"Effect\": \"Allow\" } ], \"Version\": \"2012-10-17\" }";
@@ -93,7 +93,7 @@ public class BasicV1PolicyHelper implements V1PolicyHelper {
                 .withPolicyName(policyName);
 
         ListPolicyVersionsResult listPolicyVersionsResult = awsIotClient.listPolicyVersions(listPolicyVersionsRequest);
-        List<PolicyVersion> policyVersions = listPolicyVersionsResult.getPolicyVersions();
+        List<PolicyVersion> policyVersions = List.ofAll(listPolicyVersionsResult.getPolicyVersions());
 
         // Delete the policies
         for (PolicyVersion policyVersion : policyVersions) {

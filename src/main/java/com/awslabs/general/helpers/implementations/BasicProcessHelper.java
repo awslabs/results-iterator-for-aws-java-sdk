@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 public class BasicProcessHelper implements ProcessHelper {
     private final Logger log = LoggerFactory.getLogger(BasicProcessHelper.class);
@@ -45,7 +44,7 @@ public class BasicProcessHelper implements ProcessHelper {
         ProcessBuilder processBuilder = new ProcessBuilder(output.toJavaList());
 
         // Add in the access key ID and secret access key for when we are running processes that need them like IDT
-        Map<String, String> environment = processBuilder.environment();
+        java.util.Map<String, String> environment = processBuilder.environment();
         // NOTE: Device Tester v1.2 does not work in Docker without AWS_ACCESS_KEY and AWS_SECRET_KEY in the environment
         environment.put(AWS_ACCESS_KEY, awsCredentials.accessKeyId());
         environment.put(AWS_ACCESS_KEY_ID, awsCredentials.accessKeyId());

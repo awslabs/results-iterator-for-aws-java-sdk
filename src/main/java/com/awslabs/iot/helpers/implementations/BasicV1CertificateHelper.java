@@ -10,12 +10,12 @@ import com.awslabs.iot.helpers.interfaces.V1CertificateHelper;
 import com.awslabs.iot.helpers.interfaces.V1PolicyHelper;
 import com.awslabs.iot.helpers.interfaces.V1ThingHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.collection.Stream;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.stream.Stream;
 
 public class BasicV1CertificateHelper implements V1CertificateHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1CertificateHelper.class);
@@ -80,9 +80,9 @@ public class BasicV1CertificateHelper implements V1CertificateHelper {
     public Stream<String> getUnattachedCertificateArns() {
         return listCertificateArns()
                 // Look for certificates with no things attached
-                .filter(certificateArn -> !thingHelperProvider.get().listPrincipalThings(certificateArn).findAny().isPresent())
+                .filter(certificateArn -> thingHelperProvider.get().listPrincipalThings(certificateArn).isEmpty())
                 // Look for certificates with no policies attached
-                .filter(certificateArn -> !policyHelperProvider.get().listPrincipalPolicies(certificateArn).findAny().isPresent());
+                .filter(certificateArn -> policyHelperProvider.get().listPrincipalPolicies(certificateArn).isEmpty());
     }
 
     @Override

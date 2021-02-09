@@ -23,9 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 public class BouncyCastleV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
     @Inject
@@ -41,8 +39,8 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
 
     @Override
     public AwsCredentials resolveCredentials() {
-        HashMap<String, String> properties = toHashMap(System.getProperties().entrySet());
-        HashMap<String, String> environment = toHashMap(System.getenv().entrySet());
+        HashMap<String, String> properties = toHashMap(System.getProperties().entrySet().stream());
+        HashMap<String, String> environment = toHashMap(System.getenv().entrySet().stream());
 
         Option<String> maybeCredentialProviderPropertiesFile = getOptionFromPropertiesOrEnvironment(properties, environment, AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE);
 
@@ -55,7 +53,7 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
 
             if (optionalProperties.isDefined()) {
                 // Got the values as we expected, use these instead of the original properties
-                properties = toHashMap(propertiesFromFile.entrySet());
+                properties = toHashMap(propertiesFromFile.entrySet().stream());
             }
         }
 
@@ -84,9 +82,8 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
         return resolveCredentials(credentialProviderUrl, thingName, roleAlias, caCertFilename, clientCertFilename, clientPrivateKeyFilename, password);
     }
 
-    private <U, V> HashMap<String, String> toHashMap(Set<Map.Entry<U, V>> entrySet) {
-        return entrySet.stream()
-                .collect(HashMap.collector(e -> (String) e.getKey(), e -> (String) e.getValue()));
+    private <K, V> HashMap<String, String> toHashMap(java.util.stream.Stream<java.util.Map.Entry<K, V>> input) {
+        return HashMap.ofAll(input, entry -> entry.getKey().toString(), entry -> entry.getValue().toString());
     }
 
     private Option<Properties> loadProperties(File credentialProviderPropertiesFile, Properties properties) throws IOException {

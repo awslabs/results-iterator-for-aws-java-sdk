@@ -1,11 +1,10 @@
 package com.awslabs.iam.helpers.interfaces;
 
 import com.awslabs.iam.data.*;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import software.amazon.awssdk.services.iam.model.Role;
-
-import java.util.List;
-import java.util.stream.Stream;
 
 public interface V2IamHelper {
     Option<Role> getRole(RoleName roleName);

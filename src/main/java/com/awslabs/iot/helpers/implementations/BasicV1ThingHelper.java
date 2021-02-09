@@ -7,14 +7,13 @@ import com.awslabs.iot.helpers.interfaces.V1CertificateHelper;
 import com.awslabs.iot.helpers.interfaces.V1PolicyHelper;
 import com.awslabs.iot.helpers.interfaces.V1ThingHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class BasicV1ThingHelper implements V1ThingHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV1ThingHelper.class);
@@ -60,9 +59,8 @@ public class BasicV1ThingHelper implements V1ThingHelper {
                 .withThingName(thingName);
 
         log.debug(String.join("", "Attempting to list thing principals for [", thingName, "]"));
-        ListThingPrincipalsResult listThingPrincipalsResult = awsIotClient.listThingPrincipals(listThingPrincipalsRequest);
 
-        return listThingPrincipalsResult.getPrincipals();
+        return List.ofAll(awsIotClient.listThingPrincipals(listThingPrincipalsRequest).getPrincipals());
     }
 
     @Override
@@ -86,12 +84,12 @@ public class BasicV1ThingHelper implements V1ThingHelper {
     @Override
     public List<String> detachPrincipals(String thingName) {
         List<String> principals = listPrincipals(thingName);
-        List<String> detachedPrincipals = new ArrayList<>();
+        List<String> detachedPrincipals = List.empty();
 
         for (String principal : principals) {
             try {
                 detachPrincipal(thingName, principal);
-                detachedPrincipals.add(principal);
+                detachedPrincipals = detachedPrincipals.append(principal);
             } catch (UnauthorizedException e) {
                 log.debug(String.join("", "Could not detach principal [", principal, "] from [", thingName, "]"));
             }
@@ -155,10 +153,10 @@ public class BasicV1ThingHelper implements V1ThingHelper {
     @Override
     public boolean principalAttachedToImmutableThing(String principal) {
         // Look for a true value
-        Option<Boolean> optionalBoolean = Option.ofOptional(listPrincipalThings(principal)
+        Option<Boolean> optionalBoolean = Option.of(listPrincipalThings(principal)
                 .map(this::isThingImmutable)
                 .filter(value -> value)
-                .findFirst());
+                .getOrNull());
 
         // If one is present then this thing is immutable
         return optionalBoolean.isDefined();
@@ -189,9 +187,9 @@ public class BasicV1ThingHelper implements V1ThingHelper {
 
     @Override
     public Option<ThingAttribute> getThingIfItExists(String thingArn) {
-        return Option.ofOptional(listThingAttributes()
+        return Option.of(listThingAttributes()
                 .filter(t -> t.getThingArn().equals(thingArn))
-                .findFirst());
+                .getOrNull());
     }
 
     private String stillAttachedMessage(String thingName) {
