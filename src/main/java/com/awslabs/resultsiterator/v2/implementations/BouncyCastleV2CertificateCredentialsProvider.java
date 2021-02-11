@@ -49,9 +49,9 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
 
             File credentialsProviderPropertiesFile = new File(maybeCredentialProviderPropertiesFile.get());
 
-            Option<Properties> optionalProperties = Try.of(() -> loadProperties(credentialsProviderPropertiesFile, propertiesFromFile)).get();
+            Option<Properties> propertiesOption = Try.of(() -> loadProperties(credentialsProviderPropertiesFile, propertiesFromFile)).get();
 
-            if (optionalProperties.isDefined()) {
+            if (propertiesOption.isDefined()) {
                 // Got the values as we expected, use these instead of the original properties
                 properties = toHashMap(propertiesFromFile.entrySet().stream());
             }

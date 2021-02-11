@@ -26,7 +26,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
     private final List<String> secondaryTokenMethodNames = List.of("marker");
     private final AwsRequest originalAwsRequest;
     private final V2ReflectionHelper v2ReflectionHelper;
-    private Option<? extends Class<? extends AwsResponse>> optionalResponseClass = Option.none();
+    private Option<? extends Class<? extends AwsResponse>> responseClassOption = Option.none();
     private AwsResponse awsResponse;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
     private Option<Method> clientMethodReturningResult = null;
@@ -167,12 +167,12 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
 
     private Class<? extends AwsResponse> getResponseClass() {
         synchronized (this) {
-            if (optionalResponseClass.isEmpty()) {
+            if (responseClassOption.isEmpty()) {
                 String requestClassName = awsRequestClass.getName();
                 String responseClassName = requestClassName.replaceAll("Request$", "Response");
 
                 try {
-                    optionalResponseClass = Option.of((Class<? extends AwsResponse>) Class.forName(responseClassName));
+                    responseClassOption = Option.of((Class<? extends AwsResponse>) Class.forName(responseClassName));
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                     throw new UnsupportedOperationException(e);
@@ -180,7 +180,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
             }
         }
 
-        return optionalResponseClass.get();
+        return responseClassOption.get();
     }
 
     private List<T> getResultData() {

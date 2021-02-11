@@ -37,26 +37,26 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public Role createRoleIfNecessary(RoleName roleName, Option<AssumeRolePolicyDocument> optionalAssumeRolePolicyDocument) {
-        Option<Role> optionalExistingRole = getRole(roleName);
+    public Role createRoleIfNecessary(RoleName roleName, Option<AssumeRolePolicyDocument> assumeRolePolicyDocumentOption) {
+        Option<Role> existingRoleOption = getRole(roleName);
 
-        if (optionalExistingRole.isDefined()) {
+        if (existingRoleOption.isDefined()) {
             log.debug(String.join("", "Updating assume role policy for existing role [", roleName.getName(), "]"));
             UpdateAssumeRolePolicyRequest.Builder updateAssumeRolePolicyRequestBuilder = UpdateAssumeRolePolicyRequest.builder();
             updateAssumeRolePolicyRequestBuilder.roleName(roleName.getName());
-            optionalAssumeRolePolicyDocument
+            assumeRolePolicyDocumentOption
                     .map(AssumeRolePolicyDocument::getDocument)
                     .forEach(updateAssumeRolePolicyRequestBuilder::policyDocument);
 
             iamClient.updateAssumeRolePolicy(updateAssumeRolePolicyRequestBuilder.build());
 
-            return optionalExistingRole.get();
+            return existingRoleOption.get();
         }
 
         log.debug(String.join("", "Creating new role [", roleName.getName(), "]"));
         CreateRoleRequest.Builder createRoleRequestBuilder = CreateRoleRequest.builder();
         createRoleRequestBuilder.roleName(roleName.getName());
-        optionalAssumeRolePolicyDocument
+        assumeRolePolicyDocumentOption
                 .map(AssumeRolePolicyDocument::getDocument)
                 .forEach(createRoleRequestBuilder::assumeRolePolicyDocument);
 
@@ -66,17 +66,17 @@ public class BasicV2IamHelper implements V2IamHelper {
     }
 
     @Override
-    public void attachRolePolicies(Role role, Option<List<ManagedPolicyArn>> optionalManagedPolicyArns) {
-        optionalManagedPolicyArns.forEach(policies -> policies.forEach(policy -> attachRolePolicy(role, policy)));
+    public void attachRolePolicies(Role role, Option<List<ManagedPolicyArn>> managedPolicyArnsOption) {
+        managedPolicyArnsOption.forEach(policies -> policies.forEach(policy -> attachRolePolicy(role, policy)));
     }
 
     @Override
-    public void putInlinePolicy(Role role, PolicyName policyName, Option<InlinePolicy> optionalInlinePolicy) {
-        if (optionalInlinePolicy.isEmpty()) {
+    public void putInlinePolicy(Role role, PolicyName policyName, Option<InlinePolicy> inlinePolicyOption) {
+        if (inlinePolicyOption.isEmpty()) {
             return;
         }
 
-        InlinePolicy inlinePolicy = optionalInlinePolicy.get();
+        InlinePolicy inlinePolicy = inlinePolicyOption.get();
 
         PutRolePolicyRequest putRolePolicyRequest = PutRolePolicyRequest.builder()
                 .policyDocument(inlinePolicy.getPolicy())

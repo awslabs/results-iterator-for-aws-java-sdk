@@ -247,9 +247,9 @@ public class BasicV2GreengrassHelper implements V2GreengrassHelper {
 
     @Override
     public Option<FunctionIsolationMode> getDefaultIsolationMode(GroupInformation groupInformation) {
-        Option<FunctionDefinitionVersion> optionalFunctionDefinitionVersion = getFunctionDefinitionVersion(groupInformation);
+        Option<FunctionDefinitionVersion> functionDefinitionVersionOption = getFunctionDefinitionVersion(groupInformation);
 
-        return optionalFunctionDefinitionVersion
+        return functionDefinitionVersionOption
                 .map(FunctionDefinitionVersion::defaultConfig)
                 .map(FunctionDefaultConfig::execution)
                 .map(FunctionDefaultExecutionConfig::isolationMode);

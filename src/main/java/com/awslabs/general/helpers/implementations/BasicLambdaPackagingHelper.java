@@ -69,9 +69,9 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
             ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
             processBuilder.directory(baseDirectory);
 
-            Option<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
+            Option<ProcessOutput> processOutputOption = processHelper.getOutputFromProcess(processBuilder);
 
-            checkPipStatus(optionalProcessOutput);
+            checkPipStatus(processOutputOption);
         } else {
             log.debug(String.join("-", functionName.getName(), "No Python dependencies to install"));
         }
@@ -133,13 +133,13 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         return buildDirectory.resolve(REQUIREMENTS_TXT).toFile().exists();
     }
 
-    private void checkPipStatus(Option<ProcessOutput> optionalProcessOutput) {
-        if (optionalProcessOutput.isEmpty()) {
+    private void checkPipStatus(Option<ProcessOutput> processOutputOption) {
+        if (processOutputOption.isEmpty()) {
             log.error("pip failed to start, cannot continue.");
             System.exit(1);
         }
 
-        ProcessOutput processOutput = optionalProcessOutput.get();
+        ProcessOutput processOutput = processOutputOption.get();
 
         if (processOutput.getExitCode() == 0) {
             // Success!
@@ -190,13 +190,13 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
 
         ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
 
-        Option<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
+        Option<ProcessOutput> processOutputOption = processHelper.getOutputFromProcess(processBuilder);
 
-        if (optionalProcessOutput.isEmpty()) {
+        if (processOutputOption.isEmpty()) {
             return false;
         }
 
-        ProcessOutput processOutput = optionalProcessOutput.get();
+        ProcessOutput processOutput = processOutputOption.get();
 
         // We expect pip 19.x only!
         return processOutput.getStandardOutStrings()

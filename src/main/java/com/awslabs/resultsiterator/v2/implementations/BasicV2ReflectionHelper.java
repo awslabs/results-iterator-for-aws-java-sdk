@@ -199,13 +199,13 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
 
         AwsRequest request = builder.build();
 
-        Option<Method> optionalClientMethodReturningResult = getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
+        Option<Method> clientMethodReturningResultOption = getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
 
-        if (optionalClientMethodReturningResult.isEmpty()) {
+        if (clientMethodReturningResultOption.isEmpty()) {
             throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
         }
 
-        Method clientMethodReturningResult = optionalClientMethodReturningResult.get();
+        Method clientMethodReturningResult = clientMethodReturningResultOption.get();
 
         // This method throws an exception if the definition does not exist
         return (T) Try.of(() -> callMethod(greengrassClient, clientMethodReturningResult, request))

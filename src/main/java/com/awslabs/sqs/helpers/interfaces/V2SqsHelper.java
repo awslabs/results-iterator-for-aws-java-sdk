@@ -11,7 +11,7 @@ public interface V2SqsHelper {
 
     List<Message> receiveMessages(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout, MaxNumberOfMessages maxNumberOfMessages);
 
-    List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> optionalVisibilityTimeout, Option<MaxNumberOfMessages> optionalMaxNumberOfMessages);
+    List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> visibilityTimeoutOption, Option<MaxNumberOfMessages> maxNumberOfMessagesOption);
 
     void deleteMessage(QueueUrl queueUrl, ReceiptHandle receiptHandle);
 

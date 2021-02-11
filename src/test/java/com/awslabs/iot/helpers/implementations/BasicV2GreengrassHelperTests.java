@@ -85,10 +85,10 @@ public class BasicV2GreengrassHelperTests {
         Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
 
-        Option<ImmutableGreengrassGroupId> optionalGroupId = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 1);
+        Option<ImmutableGreengrassGroupId> groupIdOption = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 1);
 
         // Use the group ID we found or a fake value if we didn't find any
-        ImmutableGreengrassGroupId groupId = optionalGroupId.getOrElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
+        ImmutableGreengrassGroupId groupId = groupIdOption.getOrElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
 
         Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
         testNotMeaningfulWithout("Greengrass deployments", getDeploymentsStream.call());
@@ -105,10 +105,10 @@ public class BasicV2GreengrassHelperTests {
         Callable<Stream<GroupInformation>> getGroupInformationStream = () -> v2GreengrassHelper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
 
-        Option<ImmutableGreengrassGroupId> optionalGroupId = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 1);
+        Option<ImmutableGreengrassGroupId> groupIdOption = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 1);
 
         // Use the group ID we found or a fake value if we didn't find any
-        ImmutableGreengrassGroupId groupId = optionalGroupId.getOrElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
+        ImmutableGreengrassGroupId groupId = groupIdOption.getOrElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
 
         Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
         testNotMeaningfulWithout("Greengrass groups with deployments", getDeploymentsStream.call());
@@ -124,10 +124,10 @@ public class BasicV2GreengrassHelperTests {
         testNotMeaningfulWithout("Greengrass groups", getGroupInformationStream.call());
 
         // Must have at least two deployments in a single group so we can make sure the latest deployment is returned properly
-        Option<ImmutableGreengrassGroupId> optionalGroupId = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 2);
+        Option<ImmutableGreengrassGroupId> groupIdOption = getGroupIdWithXorMoreDeployments(getGroupInformationStream, 2);
 
         // Use the group ID we found or a fake value if we didn't find any
-        ImmutableGreengrassGroupId groupId = optionalGroupId.getOrElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
+        ImmutableGreengrassGroupId groupId = groupIdOption.getOrElse(ImmutableGreengrassGroupId.builder().groupId("fake").build());
 
         Callable<Stream<Deployment>> getDeploymentsStream = () -> v2GreengrassHelper.getDeployments(groupId);
         testNotMeaningfulWithoutAtLeast("Greengrass deployments in any group", getDeploymentsStream.call(), 2);

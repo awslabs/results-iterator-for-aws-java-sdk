@@ -9,11 +9,11 @@ import software.amazon.awssdk.services.iam.model.Role;
 public interface V2IamHelper {
     Option<Role> getRole(RoleName roleName);
 
-    Role createRoleIfNecessary(RoleName roleName, Option<AssumeRolePolicyDocument> optionalAssumeRolePolicyDocument);
+    Role createRoleIfNecessary(RoleName roleName, Option<AssumeRolePolicyDocument> assumeRolePolicyDocumentOption);
 
-    void attachRolePolicies(Role role, Option<List<ManagedPolicyArn>> optionalManagedPolicyArns);
+    void attachRolePolicies(Role role, Option<List<ManagedPolicyArn>> managedPolicyArnsOption);
 
-    void putInlinePolicy(Role role, PolicyName policyName, Option<InlinePolicy> optionalInlinePolicy);
+    void putInlinePolicy(Role role, PolicyName policyName, Option<InlinePolicy> inlinePolicyOption);
 
     void attachRolePolicy(Role role, ManagedPolicyArn managedPolicyArn);
 

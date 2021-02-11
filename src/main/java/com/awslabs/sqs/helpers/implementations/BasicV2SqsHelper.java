@@ -40,11 +40,11 @@ public class BasicV2SqsHelper implements V2SqsHelper {
     }
 
     @Override
-    public List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> optionalVisibilityTimeout, Option<MaxNumberOfMessages> optionalMaxNumberOfMessages) {
+    public List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> visibilityTimeoutOption, Option<MaxNumberOfMessages> maxNumberOfMessagesOption) {
         ReceiveMessageRequest.Builder receiveMessageRequestBuilder = ReceiveMessageRequest.builder();
         receiveMessageRequestBuilder.queueUrl(queueUrl.getUrl());
-        optionalVisibilityTimeout.forEach(visibilityTimeout -> receiveMessageRequestBuilder.visibilityTimeout(Math.toIntExact(visibilityTimeout.getDuration().getSeconds())));
-        optionalMaxNumberOfMessages.forEach(maxNumberOfMessages -> receiveMessageRequestBuilder.maxNumberOfMessages(maxNumberOfMessages.getValue()));
+        visibilityTimeoutOption.forEach(visibilityTimeout -> receiveMessageRequestBuilder.visibilityTimeout(Math.toIntExact(visibilityTimeout.getDuration().getSeconds())));
+        maxNumberOfMessagesOption.forEach(maxNumberOfMessages -> receiveMessageRequestBuilder.maxNumberOfMessages(maxNumberOfMessages.getValue()));
 
         ReceiveMessageResponse receiveMessageResponse = getRegionSpecificClientForQueue(queueUrl).receiveMessage(receiveMessageRequestBuilder.build());
         return List.ofAll(receiveMessageResponse.messages());

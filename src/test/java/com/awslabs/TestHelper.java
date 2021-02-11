@@ -33,12 +33,12 @@ public class TestHelper {
         assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), itemCount > 0);
     }
 
-    public static <T> int logAndCount(Option<List<T>> optionalObjects) {
-        if (optionalObjects.isEmpty()) {
+    public static <T> int logAndCount(Option<List<T>> objectsOption) {
+        if (objectsOption.isEmpty()) {
             return 0;
         }
 
-        return logObjects(optionalObjects.get());
+        return logObjects(objectsOption.get());
     }
 
     private static <T> int logObjects(List<T> objects) {

@@ -62,12 +62,12 @@ public class BasicV2S3Helper implements V2S3Helper {
 
         Stream<S3Object> s3Objects = new V2ResultsIterator<S3Object>(getRegionSpecificClientForBucket(bucket), listObjectsRequest).stream();
 
-        Option<S3Object> optionalS3Object = Option.of(s3Objects
+        Option<S3Object> s3ObjectOption = Option.of(s3Objects
                 // Require an exact match on the name
                 .filter(object -> object.key().equals(key))
                 .getOrNull());
 
-        return optionalS3Object.isDefined();
+        return s3ObjectOption.isDefined();
     }
 
     @Override
