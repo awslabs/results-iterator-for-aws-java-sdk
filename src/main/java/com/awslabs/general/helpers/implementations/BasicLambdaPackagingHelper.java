@@ -24,10 +24,9 @@ import java.nio.file.Path;
 
 public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
     public static final String PIP_3 = "pip3";
-    private final Logger log = LoggerFactory.getLogger(BasicLambdaPackagingHelper.class);
     private static final String PACKAGE_DIRECTORY = "package";
     private static final String REQUIREMENTS_TXT = "requirements.txt";
-
+    private final Logger log = LoggerFactory.getLogger(BasicLambdaPackagingHelper.class);
     @Inject
     ProcessHelper processHelper;
 

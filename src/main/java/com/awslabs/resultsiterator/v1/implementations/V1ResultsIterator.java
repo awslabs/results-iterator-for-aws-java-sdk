@@ -85,13 +85,8 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
                     performRequest();
                 }
 
-                if (output.size() != 0) {
-                    // Output array is not empty, there is at least one more element
-                    return true;
-                }
-
-                // Output array is empty and the next token is NULL
-                return false;
+                // Next token is NULL, return whether or not the output array is empty
+                return output.size() != 0;
             }
 
             @Override

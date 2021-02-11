@@ -17,12 +17,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class BasicProcessHelper implements ProcessHelper {
-    private final Logger log = LoggerFactory.getLogger(BasicProcessHelper.class);
     private static final String AWS_SECRET_KEY = "AWS_SECRET_KEY";
     private static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
     private static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     private static final String AWS_ACCESS_KEY = "AWS_ACCESS_KEY";
-
+    private final Logger log = LoggerFactory.getLogger(BasicProcessHelper.class);
     @Inject
     // Minor hack for integration tests
     public AwsCredentials awsCredentials;
