@@ -32,6 +32,8 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.GreengrassClientBuilder;
 import software.amazon.awssdk.services.iam.IamClient;
@@ -147,6 +149,16 @@ public class V2HelperModule {
     @Provides
     public LambdaClient lambdaClient(LambdaClientBuilder lambdaClientBuilder) {
         return new V2SafeProvider<>(lambdaClientBuilder::build).get();
+    }
+
+    @Provides
+    public Ec2ClientBuilder ec2ClientBuilder(AwsCredentialsProvider awsCredentialsProvider, ApacheHttpClient.Builder apacheHttpClientBuilder) {
+        return Ec2Client.builder().httpClientBuilder(apacheHttpClientBuilder).credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public Ec2Client ec2Client(Ec2ClientBuilder ec2ClientBuilder) {
+        return new V2SafeProvider<>(ec2ClientBuilder::build).get();
     }
 
     // Clients that need special configuration

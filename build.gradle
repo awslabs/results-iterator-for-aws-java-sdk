@@ -105,15 +105,8 @@ dependencies {
     api "software.amazon.awssdk:iotdataplane:$awsSdk2Version"
     api "software.amazon.awssdk:lambda:$awsSdk2Version"
     api "software.amazon.awssdk:sqs:$awsSdk2Version"
+    api "software.amazon.awssdk:ec2:$awsSdk2Version"
     implementation "software.amazon.awssdk:apache-client:$awsSdk2Version"
-
-    // SDK v1
-    api "com.amazonaws:aws-java-sdk-core:$awsSdkVersion"
-    api "com.amazonaws:aws-java-sdk-greengrass:$awsSdkVersion"
-    api "com.amazonaws:aws-java-sdk-iot:$awsSdkVersion"
-    api "com.amazonaws:aws-java-sdk-iam:$awsSdkVersion"
-    api "com.amazonaws:aws-java-sdk-ec2:$awsSdkVersion"
-    api "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
 
     // For certificate based authentication
     implementation "org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion"

@@ -1,6 +1,5 @@
 package com.awslabs.general.helpers.implementations;
 
-import com.amazonaws.util.EC2MetadataUtils;
 import com.awslabs.general.helpers.interfaces.AwsHelper;
 import com.awslabs.general.helpers.interfaces.IoHelper;
 import io.vavr.control.Try;
@@ -8,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import software.amazon.awssdk.core.SdkSystemSetting;
 
 import javax.inject.Inject;
 
@@ -21,7 +21,7 @@ public class BasicAwsHelper implements AwsHelper {
 
     @Override
     public boolean isEc2() {
-        String metadataUrl = EC2MetadataUtils.getHostAddressForEC2MetadataService();
+        String metadataUrl = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
 
         HttpClient client = ioHelper.getDefaultHttpClient();
         HttpGet httpGet = new HttpGet(metadataUrl);
