@@ -23,10 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 
 public class BouncyCastleV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
     @Inject
@@ -42,8 +39,8 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
 
     @Override
     public AwsCredentials resolveCredentials() {
-        HashMap<String, String> properties = toHashMap(System.getProperties().entrySet());
-        HashMap<String, String> environment = toHashMap(System.getenv().entrySet());
+        HashMap<String, String> properties = toHashMap(System.getProperties().entrySet().stream());
+        HashMap<String, String> environment = toHashMap(System.getenv().entrySet().stream());
 
         Option<String> maybeCredentialProviderPropertiesFile = getOptionFromPropertiesOrEnvironment(properties, environment, AWS_CREDENTIAL_PROVIDER_PROPERTIES_FILE);
 
@@ -52,11 +49,11 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
 
             File credentialsProviderPropertiesFile = new File(maybeCredentialProviderPropertiesFile.get());
 
-            Optional<Properties> optionalProperties = Try.of(() -> loadProperties(credentialsProviderPropertiesFile, propertiesFromFile)).get();
+            Option<Properties> optionalProperties = Try.of(() -> loadProperties(credentialsProviderPropertiesFile, propertiesFromFile)).get();
 
-            if (optionalProperties.isPresent()) {
+            if (optionalProperties.isDefined()) {
                 // Got the values as we expected, use these instead of the original properties
-                properties = toHashMap(propertiesFromFile.entrySet());
+                properties = toHashMap(propertiesFromFile.entrySet().stream());
             }
         }
 
@@ -85,12 +82,11 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
         return resolveCredentials(credentialProviderUrl, thingName, roleAlias, caCertFilename, clientCertFilename, clientPrivateKeyFilename, password);
     }
 
-    private <U, V> HashMap<String, String> toHashMap(Set<Map.Entry<U, V>> entrySet) {
-        return entrySet.stream()
-                .collect(HashMap.collector(e -> (String) e.getKey(), e -> (String) e.getValue()));
+    private <K, V> HashMap<String, String> toHashMap(java.util.stream.Stream<java.util.Map.Entry<K, V>> input) {
+        return HashMap.ofAll(input, entry -> entry.getKey().toString(), entry -> entry.getValue().toString());
     }
 
-    private Optional<Properties> loadProperties(File credentialProviderPropertiesFile, Properties properties) throws IOException {
+    private Option<Properties> loadProperties(File credentialProviderPropertiesFile, Properties properties) throws IOException {
         FileInputStream fileInputStream = new FileInputStream(credentialProviderPropertiesFile);
         properties.load(fileInputStream);
 
@@ -98,21 +94,21 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
 
         if (caCertFilenameString == null) {
             // Missing file, give up
-            return Optional.empty();
+            return Option.none();
         }
 
         String clientCertFilenameString = properties.getProperty(AWS_CLIENT_CERT_FILENAME);
 
         if (clientCertFilenameString == null) {
             // Missing file, give up
-            return Optional.empty();
+            return Option.none();
         }
 
         String clientPrivateKeyFilenameString = properties.getProperty(AWS_CLIENT_PRIVATE_KEY_FILENAME);
 
         if (clientPrivateKeyFilenameString == null) {
             // Missing file, give up
-            return Optional.empty();
+            return Option.none();
         }
 
         // All file names are present, make them relative to the properties file
@@ -126,7 +122,7 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
         properties.setProperty(AWS_CLIENT_CERT_FILENAME, clientCertFilenameString);
         properties.setProperty(AWS_CLIENT_PRIVATE_KEY_FILENAME, clientPrivateKeyFilenameString);
 
-        return Optional.of(properties);
+        return Option.of(properties);
     }
 
     private String getFromPropertiesOrEnvironment(HashMap<String, String> properties, HashMap<String, String> environment, String name) {

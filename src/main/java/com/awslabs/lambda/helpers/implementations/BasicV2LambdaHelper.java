@@ -4,6 +4,10 @@ import com.awslabs.lambda.data.FunctionVersion;
 import com.awslabs.lambda.data.*;
 import com.awslabs.lambda.helpers.interfaces.V2LambdaHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -12,12 +16,7 @@ import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.*;
 
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class BasicV2LambdaHelper implements V2LambdaHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2LambdaHelper.class);
@@ -38,7 +37,7 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
 
         return new V2ResultsIterator<ListFunctionsResponse>(lambdaClient, ListFunctionsRequest.class).stream()
                 .map(ListFunctionsResponse::functions)
-                .flatMap(Collection::stream)
+                .flatMap(Stream::ofAll)
                 .filter(function -> pattern.matcher(function.functionName()).find());
     }
 
@@ -53,26 +52,26 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
     }
 
     private boolean innerFunctionExists(String functionNameOrAliasArn) {
-        return innerGetFunction(functionNameOrAliasArn).isPresent();
+        return innerGetFunction(functionNameOrAliasArn).isDefined();
     }
 
     @Override
-    public Optional<GetFunctionResponse> getFunction(FunctionName functionName) {
+    public Option<GetFunctionResponse> getFunction(FunctionName functionName) {
         return innerGetFunction(functionName.getName());
     }
 
     @Override
-    public Optional<GetFunctionResponse> getFunction(FunctionAliasArn functionAliasArn) {
+    public Option<GetFunctionResponse> getFunction(FunctionAliasArn functionAliasArn) {
         return innerGetFunction(functionAliasArn.getAliasArn());
     }
 
-    private Optional<GetFunctionResponse> innerGetFunction(String functionNameOrAliasArn) {
+    private Option<GetFunctionResponse> innerGetFunction(String functionNameOrAliasArn) {
         GetFunctionRequest getFunctionRequest = GetFunctionRequest.builder()
                 .functionName(functionNameOrAliasArn)
                 .build();
 
-        return Try.of(() -> Optional.of(lambdaClient.getFunction(getFunctionRequest)))
-                .recover(ResourceNotFoundException.class, throwable -> Optional.empty())
+        return Try.of(() -> Option.of(lambdaClient.getFunction(getFunctionRequest)))
+                .recover(ResourceNotFoundException.class, throwable -> Option.none())
                 .get();
     }
 
@@ -136,9 +135,10 @@ public class BasicV2LambdaHelper implements V2LambdaHelper {
     private Map<String, String> innerGetFunctionEnvironment(String functionNameOrAliasArn) {
         GetFunctionConfigurationResponse getFunctionConfigurationResponse = innerGetFunctionConfiguration(functionNameOrAliasArn);
 
-        return Optional.ofNullable(getFunctionConfigurationResponse.environment())
+        return Option.of(getFunctionConfigurationResponse.environment())
                 .map(EnvironmentResponse::variables)
-                .orElseGet(HashMap::new);
+                .map(HashMap::ofAll)
+                .getOrElse(HashMap.empty());
     }
 
     @Override

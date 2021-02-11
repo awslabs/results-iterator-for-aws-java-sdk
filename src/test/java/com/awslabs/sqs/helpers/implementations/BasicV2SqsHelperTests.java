@@ -7,19 +7,22 @@ import com.awslabs.sqs.data.ImmutableQueueName;
 import com.awslabs.sqs.data.QueueName;
 import com.awslabs.sqs.data.QueueUrl;
 import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sqs.model.QueueDeletedRecentlyException;
 
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static org.hamcrest.CoreMatchers.is;
@@ -52,9 +55,9 @@ public class BasicV2SqsHelperTests {
     @Test
     public void shouldCreateAndDeleteQueues() {
         // Create 100 queues, with consistent names
-        long expectedCount = 100;
+        int expectedCount = 100;
 
-        List<QueueName> queueNames = LongStream.range(0, expectedCount)
+        List<QueueName> queueNames = List.ofAll(LongStream.range(0, expectedCount)
                 // Convert the long to a byte array so it can be hashed into a consistent queue name
                 .mapToObj(this::longToBytes)
                 // Create a queue name as the UUID by hashing the bytes
@@ -62,18 +65,32 @@ public class BasicV2SqsHelperTests {
                 // Convert the UUID to a string
                 .map(UUID::toString)
                 // Convert the string to a QueueName object
-                .map(queueName -> ImmutableQueueName.builder().name(queueName).build())
-                .collect(Collectors.toList());
+                .map(queueName -> ImmutableQueueName.builder().name(queueName).build()));
 
         // Create all of the queues
-        List<QueueUrl> queueUrls = queueNames.stream()
-                .map(queueName -> v2SqsHelper.createQueue(queueName))
-                .collect(Collectors.toList());
+        RetryPolicy<QueueUrl> sqsCreateQueuesRetryPolicy = new RetryPolicy<QueueUrl>()
+                .withDelay(Duration.ofSeconds(10))
+                .withMaxRetries(6)
+                .handle(QueueDeletedRecentlyException.class)
+                .onRetry(failure -> log.warn("Waiting for SQS to allow recreation of the queue..."))
+                .onRetriesExceeded(failure -> log.error("SQS never allowed the queue to be recreated, giving up"));
+
+        List<QueueUrl> queueUrls = queueNames
+                .map(queueName -> Failsafe.with(sqsCreateQueuesRetryPolicy).get(() -> v2SqsHelper.createQueue(queueName)));
+
+        RetryPolicy<Integer> sqsGetQueueUrlsRetryPolicy = new RetryPolicy<Integer>()
+                .handleResult(0)
+                .withDelay(Duration.ofSeconds(5))
+                .withMaxRetries(10)
+                .handle(QueueDeletedRecentlyException.class)
+                .onRetry(failure -> log.warn("Waiting for non-zero queue URL list result..."))
+                .onRetriesExceeded(failure -> log.error("SQS never returned results, giving up"));
 
         // Count the number of created queues (this can fail if you have queues with UUIDs as names)
-        long actualCount = v2SqsHelper.getQueueUrls()
-                .filter(getUuidPredicate())
-                .count();
+        int actualCount = Failsafe.with(sqsGetQueueUrlsRetryPolicy).get(() ->
+                v2SqsHelper.getQueueUrls()
+                        .filter(getUuidPredicate())
+                        .size());
 
         // Make sure the count matches
         assertThat(actualCount, is(expectedCount));

@@ -2,12 +2,11 @@ package com.awslabs;
 
 import com.awslabs.general.helpers.implementations.BasicJsonHelper;
 import com.awslabs.general.helpers.interfaces.JsonHelper;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
 
@@ -22,31 +21,27 @@ public class TestHelper {
         return String.join(" ", "This test is not meaningful unless", String.valueOf(count), "or more", nameOfRequiredObjects, "are defined");
     }
 
-    public static boolean streamNotEmpty(Stream stream) {
-        return stream.findFirst().isPresent();
-    }
-
     public static <T> void testNotMeaningfulWithout(String nameOfRequiredObjects, Stream<T> stream) {
-        assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), streamNotEmpty(stream));
+        assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), stream.nonEmpty());
     }
 
     public static <T> void testNotMeaningfulWithoutAtLeast(String nameOfRequiredObjects, Stream<T> stream, long count) {
-        assertTrue(testNotMeaningfulWithoutAtLeastError(nameOfRequiredObjects, count), stream.count() >= count);
+        assertTrue(testNotMeaningfulWithoutAtLeastError(nameOfRequiredObjects, count), stream.size() >= count);
     }
 
-    public static <T> void testNotMeaningfulWithout(String nameOfRequiredObjects, long itemCount) {
+    public static <T> void testNotMeaningfulWithout(String nameOfRequiredObjects, int itemCount) {
         assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), itemCount > 0);
     }
 
-    public static <T> long logAndCount(Optional<List<T>> optionalObjects) {
-        if (!optionalObjects.isPresent()) {
+    public static <T> int logAndCount(Option<List<T>> optionalObjects) {
+        if (optionalObjects.isEmpty()) {
             return 0;
         }
 
         return logObjects(optionalObjects.get());
     }
 
-    private static <T> long logObjects(List<T> objects) {
+    private static <T> int logObjects(List<T> objects) {
         JsonHelper jsonHelper = new BasicJsonHelper();
 
         log.info(jsonHelper.toJson(objects));
@@ -54,7 +49,7 @@ public class TestHelper {
         return objects.size();
     }
 
-    public static <T> long logObject(T object) {
+    public static <T> int logObject(T object) {
         JsonHelper jsonHelper = new BasicJsonHelper();
 
         log.info(jsonHelper.toJson(object));
@@ -62,8 +57,9 @@ public class TestHelper {
         return 1;
     }
 
-    public static <T> long logAndCount(Stream<T> stream) {
-        return stream.map(TestHelper::logObject)
-                .reduce(0L, Long::sum);
+    public static <T> int logAndCount(Stream<T> stream) {
+        return stream
+                .map(TestHelper::logObject)
+                .size();
     }
 }

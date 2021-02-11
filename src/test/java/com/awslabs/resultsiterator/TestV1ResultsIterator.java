@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.ListBucketsRequest;
 import com.awslabs.resultsiterator.v1.implementations.DaggerV1TestInjector;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
 import com.awslabs.resultsiterator.v1.implementations.V1TestInjector;
+import io.vavr.collection.Stream;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
@@ -18,8 +19,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -54,7 +53,7 @@ public class TestV1ResultsIterator {
         Stream<ThingAttribute> thingAttributes = v1ResultsIterator.stream();
         thingAttributes.forEach(System.out::println);
         thingAttributes = v1ResultsIterator.stream();
-        MatcherAssert.assertThat(thingAttributes.count(), greaterThan(0L));
+        MatcherAssert.assertThat(thingAttributes.size(), greaterThan(0));
     }
 
     @Test
@@ -63,7 +62,7 @@ public class TestV1ResultsIterator {
         V1ResultsIterator<ThingAttribute> v1ResultsIterator = new V1ResultsIterator<>(awsIotClient, listThingsRequest);
         Stream<ThingAttribute> thingAttributesStream1 = v1ResultsIterator.stream();
         Stream<ThingAttribute> thingAttributesStream2 = v1ResultsIterator.stream();
-        MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
+        MatcherAssert.assertThat(thingAttributesStream1.size(), equalTo(thingAttributesStream2.size()));
     }
 
     @Test

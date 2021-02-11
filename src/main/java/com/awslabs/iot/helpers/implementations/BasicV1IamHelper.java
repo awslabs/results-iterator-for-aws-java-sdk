@@ -7,9 +7,9 @@ import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.awslabs.iot.helpers.interfaces.V1IamHelper;
 import com.awslabs.resultsiterator.v1.implementations.V1ResultsIterator;
+import io.vavr.collection.Stream;
 
 import javax.inject.Inject;
-import java.util.stream.Stream;
 
 public class BasicV1IamHelper implements V1IamHelper {
     @Inject

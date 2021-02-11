@@ -1,45 +1,44 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.amazonaws.services.greengrass.model.*;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
+import io.vavr.collection.Map;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 
 public interface V1GreengrassHelper {
     Stream<GroupInformation> listGroups();
 
-    Stream<String> listGroupArns();
+    io.vavr.collection.Stream<String> listGroupArns();
 
-    Stream<String> listGroupIds();
+    io.vavr.collection.Stream<String> listGroupIds();
 
     Map<String, VersionInformation> listLatestGroupVersions();
 
     Map<String, VersionInformation> listLatestImmutableGroupVersions();
 
-    Stream<DefinitionInformation> listNonImmutableCoreDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableCoreDefinitionInformation();
 
-    Stream<DefinitionInformation> listNonImmutableDeviceDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableDeviceDefinitionInformation();
 
-    Stream<DefinitionInformation> listNonImmutableFunctionDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableFunctionDefinitionInformation();
 
-    Stream<DefinitionInformation> listNonImmutableLoggerDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableLoggerDefinitionInformation();
 
-    Stream<DefinitionInformation> listNonImmutableResourceDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableResourceDefinitionInformation();
 
-    Stream<DefinitionInformation> listNonImmutableConnectorDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableConnectorDefinitionInformation();
 
-    Stream<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation();
+    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation();
 
-    Stream<VersionInformation> listGroupVersions(String groupId);
+    io.vavr.collection.Stream<VersionInformation> listGroupVersions(String groupId);
 
-    Optional<VersionInformation> getLatestGroupVersion(String groupId);
+    Option<VersionInformation> getLatestGroupVersion(String groupId);
 
-    Stream<Deployment> listDeployments(String groupId);
+    io.vavr.collection.Stream<Deployment> listDeployments(String groupId);
 
-    Stream<String> listDeploymentIds(String groupId);
+    io.vavr.collection.Stream<String> listDeploymentIds(String groupId);
 
-    Optional<Deployment> getLatestDeployment(String groupId);
+    Option<Deployment> getLatestDeployment(String groupId);
 
     String getDeploymentStatus(String groupId, String deploymentId);
 
@@ -75,19 +74,19 @@ public interface V1GreengrassHelper {
 
     GetConnectorDefinitionVersionResult getConnectorDefinitionVersion(String groupId, VersionInformation versionInformation);
 
-    Stream<DefinitionInformation> listCoreDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listCoreDefinitions();
 
     void deleteCoreDefinition(DefinitionInformation definitionInformation);
 
-    Stream<DefinitionInformation> listFunctionDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listFunctionDefinitions();
 
     void deleteFunctionDefinition(DefinitionInformation definitionInformation);
 
-    Stream<DefinitionInformation> listSubscriptionDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listSubscriptionDefinitions();
 
     void deleteSubscriptionDefinition(DefinitionInformation definitionInformation);
 
-    Stream<DefinitionInformation> listDeviceDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listDeviceDefinitions();
 
     void deleteDeviceDefinition(DefinitionInformation definitionInformation);
 
@@ -95,13 +94,13 @@ public interface V1GreengrassHelper {
 
     void deleteLoggerDefinition(DefinitionInformation definitionInformation);
 
-    Stream<DefinitionInformation> listLoggerDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listLoggerDefinitions();
 
     GetResourceDefinitionVersionResult getResourceDefinitionVersion(String groupId, VersionInformation versionInformation);
 
-    Stream<DefinitionInformation> listResourceDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listResourceDefinitions();
 
-    Stream<DefinitionInformation> listConnectorDefinitions();
+    io.vavr.collection.Stream<DefinitionInformation> listConnectorDefinitions();
 
     void deleteResourceDefinition(DefinitionInformation definitionInformation);
 

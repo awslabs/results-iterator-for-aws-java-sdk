@@ -7,6 +7,7 @@ import com.awslabs.lambda.data.FunctionName;
 import com.awslabs.lambda.data.JavaLambdaFunctionDirectory;
 import com.awslabs.lambda.data.PythonLambdaFunctionDirectory;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.BuildLauncher;
@@ -20,14 +21,12 @@ import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
     public static final String PIP_3 = "pip3";
-    private final Logger log = LoggerFactory.getLogger(BasicLambdaPackagingHelper.class);
     private static final String PACKAGE_DIRECTORY = "package";
     private static final String REQUIREMENTS_TXT = "requirements.txt";
-
+    private final Logger log = LoggerFactory.getLogger(BasicLambdaPackagingHelper.class);
     @Inject
     ProcessHelper processHelper;
 
@@ -70,7 +69,7 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
             ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
             processBuilder.directory(baseDirectory);
 
-            Optional<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
+            Option<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
 
             checkPipStatus(optionalProcessOutput);
         } else {
@@ -134,8 +133,8 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         return buildDirectory.resolve(REQUIREMENTS_TXT).toFile().exists();
     }
 
-    private void checkPipStatus(Optional<ProcessOutput> optionalProcessOutput) {
-        if (!optionalProcessOutput.isPresent()) {
+    private void checkPipStatus(Option<ProcessOutput> optionalProcessOutput) {
+        if (optionalProcessOutput.isEmpty()) {
             log.error("pip failed to start, cannot continue.");
             System.exit(1);
         }
@@ -191,9 +190,9 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
 
         ProcessBuilder processBuilder = processHelper.getProcessBuilder(programAndArguments);
 
-        Optional<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
+        Option<ProcessOutput> optionalProcessOutput = processHelper.getOutputFromProcess(processBuilder);
 
-        if (!optionalProcessOutput.isPresent()) {
+        if (optionalProcessOutput.isEmpty()) {
             return false;
         }
 

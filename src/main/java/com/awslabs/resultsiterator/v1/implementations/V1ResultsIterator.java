@@ -6,24 +6,25 @@ import com.amazonaws.AmazonWebServiceResult;
 import com.amazonaws.SdkClientException;
 import com.awslabs.resultsiterator.interfaces.ResultsIterator;
 import com.google.common.reflect.TypeToken;
+import io.vavr.collection.Iterator;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class V1ResultsIterator<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V1ResultsIterator.class);
     private final AmazonWebServiceClient amazonWebServiceClient;
     private final Class<? extends AmazonWebServiceRequest> requestClass;
-    private final List<String> getTokenMethodNames = new ArrayList<>(Arrays.asList("getNextToken", "getMarker", "getNextMarker"));
-    private final List<String> setTokenMethodNames = new ArrayList<>(Arrays.asList("setNextToken", "setMarker", "setNextMarker"));
+    private final List<String> getTokenMethodNames = List.of("getNextToken", "getMarker", "getNextMarker");
+    private final List<String> setTokenMethodNames = List.of("setNextToken", "setMarker", "setNextMarker");
     private final AmazonWebServiceRequest originalRequest;
-    private Optional<Class<? extends AmazonWebServiceResult>> optionalResultClass = Optional.empty();
+    private Option<Class<? extends AmazonWebServiceResult>> optionalResultClass = Option.none();
     private AmazonWebServiceResult result;
     private Method clientMethodReturningResult;
     private Method clientMethodReturningListT;
@@ -45,7 +46,7 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
     @Override
     public Stream<T> stream() {
         Iterator<T> iterator = new Iterator<T>() {
-            List<T> output = new ArrayList<>();
+            List<T> output = List.empty();
             boolean started = false;
             String nextToken = null;
             AmazonWebServiceRequest request;
@@ -61,7 +62,7 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
 
                 result = queryNextResults(request);
 
-                output.addAll(getResultData());
+                output = output.appendAll(getResultData());
 
                 nextToken = getNextToken();
 
@@ -84,23 +85,22 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
                     performRequest();
                 }
 
-                if (output.size() != 0) {
-                    // Output array is not empty, there is at least one more element
-                    return true;
-                }
-
-                // Output array is empty and the next token is NULL
-                return false;
+                // Next token is NULL, return whether or not the output array is empty
+                return output.size() != 0;
             }
 
             @Override
             public T next() {
-                return output.remove(0);
+                T returnValue = output.get();
+
+                output = output.removeAt(0);
+
+                return returnValue;
             }
         };
 
         // This stream does not have a known size, does not contain NULL elements, and can not be run in parallel
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false);
+        return Stream.ofAll(iterator);
     }
 
     private AmazonWebServiceRequest configureRequest() {
@@ -145,12 +145,12 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
 
     private Class<? extends AmazonWebServiceResult> getResultClass() {
         synchronized (this) {
-            if (!optionalResultClass.isPresent()) {
+            if (optionalResultClass.isEmpty()) {
                 String requestClassName = requestClass.getName();
                 String resultClass = requestClassName.replaceAll("Request$", "Result");
 
                 try {
-                    optionalResultClass = Optional.of((Class<? extends AmazonWebServiceResult>) Class.forName(resultClass));
+                    optionalResultClass = Option.of((Class<? extends AmazonWebServiceResult>) Class.forName(resultClass));
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                     throw new UnsupportedOperationException(e);
@@ -164,12 +164,12 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
     private List<T> getResultData() {
         if (clientMethodReturningListT == null) {
             // Look for a public method that takes no arguments and returns a List<T>.  If zero or more than one exists, fail.
-            clientMethodReturningListT = getMethodWithParameterAndReturnType(getResultClass(), null, new TypeToken<List<T>>(getClass()) {
+            clientMethodReturningListT = getMethodWithParameterAndReturnType(getResultClass(), null, new TypeToken<java.util.List<T>>(getClass()) {
             }.getRawType());
         }
 
         try {
-            return (List<T>) clientMethodReturningListT.invoke(result);
+            return List.ofAll((java.util.List<T>) clientMethodReturningListT.invoke(result));
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new UnsupportedOperationException(e);
@@ -209,10 +209,10 @@ public class V1ResultsIterator<T> implements ResultsIterator<T> {
     }
 
     private Method getMethodWithParameterReturnTypeAndName(Class clazz, Class parameter, Class returnType, String name) {
-        List<String> names = new ArrayList<>();
+        List<String> names = List.empty();
 
         if (name != null) {
-            names.add(name);
+            names = names.append(name);
         }
 
         return getMethodWithParameterReturnTypeAndNames(clazz, parameter, returnType, names);

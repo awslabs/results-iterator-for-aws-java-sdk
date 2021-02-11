@@ -1,6 +1,6 @@
 package com.awslabs.resultsiterator.interfaces;
 
-import java.util.stream.Stream;
+import io.vavr.collection.Stream;
 
 public interface ResultsIterator<T> {
     Stream<T> stream();

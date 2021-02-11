@@ -1,8 +1,7 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.amazonaws.services.identitymanagement.model.Role;
-
-import java.util.stream.Stream;
+import io.vavr.collection.Stream;
 
 public interface V1IamHelper {
     Stream<Role> listRoles();

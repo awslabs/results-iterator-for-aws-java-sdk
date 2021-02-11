@@ -3,6 +3,9 @@ package com.awslabs.sqs.helpers.implementations;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.sqs.data.*;
 import com.awslabs.sqs.helpers.interfaces.V2SqsHelper;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
@@ -13,9 +16,6 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class BasicV2SqsHelper implements V2SqsHelper {
     private final Logger log = LoggerFactory.getLogger(BasicV2SqsHelper.class);
@@ -31,23 +31,23 @@ public class BasicV2SqsHelper implements V2SqsHelper {
 
     @Override
     public List<Message> receiveMessage(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout) {
-        return receiveMessages(queueUrl, Optional.ofNullable(visibilityTimeout), Optional.of(ImmutableMaxNumberOfMessages.builder().value(1).build()));
+        return receiveMessages(queueUrl, Option.of(visibilityTimeout), Option.of(ImmutableMaxNumberOfMessages.builder().value(1).build()));
     }
 
     @Override
     public List<Message> receiveMessages(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout, MaxNumberOfMessages maxNumberOfMessages) {
-        return receiveMessages(queueUrl, Optional.ofNullable(visibilityTimeout), Optional.of(maxNumberOfMessages));
+        return receiveMessages(queueUrl, Option.of(visibilityTimeout), Option.of(maxNumberOfMessages));
     }
 
     @Override
-    public List<Message> receiveMessages(QueueUrl queueUrl, Optional<VisibilityTimeout> optionalVisibilityTimeout, Optional<MaxNumberOfMessages> optionalMaxNumberOfMessages) {
+    public List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> optionalVisibilityTimeout, Option<MaxNumberOfMessages> optionalMaxNumberOfMessages) {
         ReceiveMessageRequest.Builder receiveMessageRequestBuilder = ReceiveMessageRequest.builder();
         receiveMessageRequestBuilder.queueUrl(queueUrl.getUrl());
-        optionalVisibilityTimeout.ifPresent(visibilityTimeout -> receiveMessageRequestBuilder.visibilityTimeout(Math.toIntExact(visibilityTimeout.getDuration().getSeconds())));
-        optionalMaxNumberOfMessages.ifPresent(maxNumberOfMessages -> receiveMessageRequestBuilder.maxNumberOfMessages(maxNumberOfMessages.getValue()));
+        optionalVisibilityTimeout.forEach(visibilityTimeout -> receiveMessageRequestBuilder.visibilityTimeout(Math.toIntExact(visibilityTimeout.getDuration().getSeconds())));
+        optionalMaxNumberOfMessages.forEach(maxNumberOfMessages -> receiveMessageRequestBuilder.maxNumberOfMessages(maxNumberOfMessages.getValue()));
 
         ReceiveMessageResponse receiveMessageResponse = getRegionSpecificClientForQueue(queueUrl).receiveMessage(receiveMessageRequestBuilder.build());
-        return receiveMessageResponse.messages();
+        return List.ofAll(receiveMessageResponse.messages());
     }
 
     @Override

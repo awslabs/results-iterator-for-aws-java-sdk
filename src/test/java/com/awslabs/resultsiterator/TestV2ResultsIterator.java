@@ -7,6 +7,8 @@ import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
@@ -26,10 +28,6 @@ import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static org.hamcrest.Matchers.equalTo;
@@ -81,9 +79,9 @@ public class TestV2ResultsIterator {
         Stream<ThingAttribute> thingAttributes = thingAttributesIterator.stream();
         thingAttributes.map(ThingAttribute::toString).forEach(log::info);
         thingAttributes = thingAttributesIterator.stream();
-        long count = thingAttributes.count();
+        int count = thingAttributes.size();
         log.info(String.join(" ", "Thing attribute count:", String.valueOf(count)));
-        MatcherAssert.assertThat(count, greaterThan(0L));
+        MatcherAssert.assertThat(count, greaterThan(0));
     }
 
     @Test
@@ -94,7 +92,7 @@ public class TestV2ResultsIterator {
         Stream<Bucket> buckets = bucketIterator.stream();
         buckets.map(Bucket::toString).forEach(log::info);
         buckets = bucketIterator.stream();
-        log.info(String.join(" ", "Bucket count:", String.valueOf(buckets.count())));
+        log.info(String.join(" ", "Bucket count:", String.valueOf(buckets.size())));
     }
 
     @Test
@@ -104,8 +102,8 @@ public class TestV2ResultsIterator {
 
         Stream<Bucket> buckets = bucketIterator.stream();
 
-        Long totalNumberOfObjects = buckets.map(this::listAll)
-                .reduce(0L, Long::sum);
+        int totalNumberOfObjects = buckets.map(this::listAll)
+                .size();
 
         testNotMeaningfulWithout("S3 objects", totalNumberOfObjects);
     }
@@ -115,7 +113,7 @@ public class TestV2ResultsIterator {
         V2ResultsIterator<GroupInformation> groupInformationIterator = new V2ResultsIterator<>(greengrassClient, ListGroupsRequest.class);
         testNotMeaningfulWithout("Greengrass groups", groupInformationIterator.stream());
 
-        List<GroupInformation> groupInformationList = groupInformationIterator.stream().collect(Collectors.toList());
+        List<GroupInformation> groupInformationList = List.ofAll(groupInformationIterator.stream());
         groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
     }
 
@@ -127,7 +125,7 @@ public class TestV2ResultsIterator {
 
         Stream<ThingAttribute> thingAttributesStream1 = thingAttributesIterator.stream();
         Stream<ThingAttribute> thingAttributesStream2 = thingAttributesIterator.stream();
-        MatcherAssert.assertThat(thingAttributesStream1.count(), equalTo(thingAttributesStream2.count()));
+        MatcherAssert.assertThat(thingAttributesStream1.size(), equalTo(thingAttributesStream2.size()));
     }
 
     private long listAll(Bucket bucket) {
@@ -145,7 +143,7 @@ public class TestV2ResultsIterator {
         Stream<S3Object> s3Objects = s3ObjectIterator.stream();
         s3Objects.map(S3Object::toString).forEach(log::info);
         s3Objects = s3ObjectIterator.stream();
-        long count = s3Objects.count();
+        long count = s3Objects.size();
         log.info(String.join(" ", "Object count:", String.valueOf(count)));
 
         return count;

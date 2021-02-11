@@ -2,6 +2,10 @@ package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.resultsiterator.interfaces.ResultsIterator;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
+import io.vavr.collection.Iterator;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,28 +17,25 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.*;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T> {
     private final Logger log = LoggerFactory.getLogger(V2ResultsIteratorAbstract.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
-    private final List<String> primaryTokenMethodNames = new ArrayList<>(Arrays.asList("nextToken", "nextMarker"));
-    private final List<String> secondaryTokenMethodNames = new ArrayList<>(Arrays.asList("marker"));
+    private final List<String> primaryTokenMethodNames = List.of("nextToken", "nextMarker");
+    private final List<String> secondaryTokenMethodNames = List.of("marker");
     private final AwsRequest originalAwsRequest;
     private final V2ReflectionHelper v2ReflectionHelper;
-    private Optional<? extends Class<? extends AwsResponse>> optionalResponseClass = Optional.empty();
+    private Option<? extends Class<? extends AwsResponse>> optionalResponseClass = Option.none();
     private AwsResponse awsResponse;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
-    private Optional<Method> clientMethodReturningResult = null;
+    private Option<Method> clientMethodReturningResult = null;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
-    private Optional<Method> clientMethodReturningListT = null;
+    private Option<Method> clientMethodReturningListT = null;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
-    private Optional<Method> clientGetMethodReturningString = null;
+    private Option<Method> clientGetMethodReturningString = null;
     // NOTE: This is initialized to null so we can determine if we have tried to initialize it already
-    private Optional<Method> clientSetMethodAcceptingString = null;
+    private Option<Method> clientSetMethodAcceptingString = null;
 
     public V2ResultsIteratorAbstract(V2ReflectionHelper v2ReflectionHelper, SdkClient sdkClient, Class<? extends AwsRequest> awsRequestClass) {
         this.v2ReflectionHelper = v2ReflectionHelper;
@@ -67,7 +68,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
     @Override
     public Stream<T> stream() {
         Iterator<T> iterator = new Iterator<T>() {
-            List<T> output = new ArrayList<>();
+            List<T> output = List.empty();
             boolean started = false;
             String nextToken = null;
             AwsRequest request;
@@ -83,7 +84,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
 
                 awsResponse = queryNextResults(request);
 
-                output.addAll(getResultData());
+                output = output.appendAll(getResultData());
 
                 nextToken = getNextToken();
 
@@ -106,23 +107,21 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
                     performRequest();
                 }
 
-                if (output.size() != 0) {
-                    // Output array is not empty, there is at least one more element
-                    return true;
-                }
-
-                // Output array is empty and the next token is NULL
-                return false;
+                // Next token is NULL, return whether or not the output array is empty
+                return output.size() != 0;
             }
 
             @Override
             public T next() {
-                return output.remove(0);
+                T nextValue = output.get();
+                output = output.removeAt(0);
+
+                return nextValue;
             }
         };
 
         // This stream does not have a known size, does not contain NULL elements, and can not be run in parallel
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false);
+        return Stream.ofAll(iterator);
     }
 
     private AwsRequest configureRequest() {
@@ -140,7 +139,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
             clientMethodReturningResult = v2ReflectionHelper.getMethodWithParameterAndReturnType(sdkClient.getClass(), awsRequestClass, getResponseClass());
         }
 
-        if (!clientMethodReturningResult.isPresent()) {
+        if (clientMethodReturningResult.isEmpty()) {
             throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
         }
 
@@ -168,12 +167,12 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
 
     private Class<? extends AwsResponse> getResponseClass() {
         synchronized (this) {
-            if (!optionalResponseClass.isPresent()) {
+            if (optionalResponseClass.isEmpty()) {
                 String requestClassName = awsRequestClass.getName();
                 String responseClassName = requestClassName.replaceAll("Request$", "Response");
 
                 try {
-                    optionalResponseClass = Optional.of((Class<? extends AwsResponse>) Class.forName(responseClassName));
+                    optionalResponseClass = Option.of((Class<? extends AwsResponse>) Class.forName(responseClassName));
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                     throw new UnsupportedOperationException(e);
@@ -186,20 +185,20 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
 
     private List<T> getResultData() {
         if (clientMethodReturningListT == null) {
-            // Look for a public method that takes no arguments and returns a List<T>.  If zero or more than one exists, fail.
+            // Look for a public method that takes no arguments and returns a java.util.List<T>.  If zero or more than one exists, fail.
             // From: https://stackoverflow.com/a/1901275/796579
             Class<T> returnClass = Try.of(() -> (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0])
                     .orElse(Try.of(() -> (Class<T>) getClass().getGenericSuperclass()))
-                    .getOrElse((Class<T>) List.class);
+                    .getOrElse((Class<T>) java.util.List.class);
             clientMethodReturningListT = v2ReflectionHelper.getMethodWithParameterAndReturnType(getResponseClass(), null, returnClass);
         }
 
-        if (!clientMethodReturningListT.isPresent()) {
+        if (clientMethodReturningListT.isEmpty()) {
             throw new UnsupportedOperationException("Failed to find a method returning the expected list type, this should never happen.");
         }
 
         try {
-            return (List<T>) clientMethodReturningListT.get().invoke(awsResponse);
+            return List.ofAll((java.util.List<T>) clientMethodReturningListT.get().invoke(awsResponse));
         } catch (IllegalAccessException |
                 InvocationTargetException e) {
             e.printStackTrace();
@@ -213,13 +212,13 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
             // Look for a public method that takes no arguments and returns a string that matches our list of expected names.  If zero or more than one exists, fail.
             clientGetMethodReturningString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, primaryTokenMethodNames);
 
-            if (!clientGetMethodReturningString.isPresent()) {
+            if (clientGetMethodReturningString.isEmpty()) {
                 // Only look for the secondary method if the primary methods aren't there
                 v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(getResponseClass(), null, String.class, secondaryTokenMethodNames);
             }
         }
 
-        if (!clientGetMethodReturningString.isPresent()) {
+        if (clientGetMethodReturningString.isEmpty()) {
             // Some methods like S3's listBuckets do not have pagination
             return null;
         }
@@ -233,7 +232,7 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
     }
 
     private AwsRequest setNextToken(AwsRequest request, String nextToken) {
-        if (!clientGetMethodReturningString.isPresent()) {
+        if (clientGetMethodReturningString.isEmpty()) {
             throw new UnsupportedOperationException("Trying to set the next token on a method that does not support pagination, this should never happen.");
         }
 
@@ -242,13 +241,13 @@ public abstract class V2ResultsIteratorAbstract<T> implements ResultsIterator<T>
             Class<? extends AwsRequest.Builder> builderClass = request.toBuilder().getClass();
             clientSetMethodAcceptingString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, primaryTokenMethodNames);
 
-            if (!clientSetMethodAcceptingString.isPresent()) {
+            if (clientSetMethodAcceptingString.isEmpty()) {
                 // Only look for these methods if the first search fails
                 clientSetMethodAcceptingString = v2ReflectionHelper.getMethodWithParameterReturnTypeAndNames(builderClass, String.class, builderClass, secondaryTokenMethodNames);
             }
         }
 
-        if (!clientSetMethodAcceptingString.isPresent()) {
+        if (clientSetMethodAcceptingString.isEmpty()) {
             throw new UnsupportedOperationException("Failed to find the set next token method, this should never happen.");
         }
 

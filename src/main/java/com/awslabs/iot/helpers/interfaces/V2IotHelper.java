@@ -1,13 +1,12 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.awslabs.iot.data.*;
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.model.*;
-
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface V2IotHelper {
     String IMMUTABLE = "immutable";
@@ -28,7 +27,7 @@ public interface V2IotHelper {
 
     Stream<ThingPrincipal> getThingPrincipals(ThingName thingName);
 
-    Optional<ThingArn> getThingArn(ThingName thingName);
+    Option<ThingArn> getThingArn(ThingName thingName);
 
     String getCredentialProviderUrl();
 
@@ -38,9 +37,9 @@ public interface V2IotHelper {
 
     CertificateArn signCsrAndReturnCertificateArn(CertificateSigningRequest certificateSigningRequest);
 
-    Optional<CertificatePem> getCertificatePem(CertificateArn certificateArn);
+    Option<CertificatePem> getCertificatePem(CertificateArn certificateArn);
 
-    Optional<CertificatePem> getCertificatePem(CertificateId certificateId);
+    Option<CertificatePem> getCertificatePem(CertificateId certificateId);
 
     ThingArn createThing(ThingName thingName);
 

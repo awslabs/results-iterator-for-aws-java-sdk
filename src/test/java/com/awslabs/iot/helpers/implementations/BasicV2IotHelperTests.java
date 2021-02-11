@@ -8,6 +8,7 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
+import io.vavr.collection.Stream;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.After;
@@ -21,7 +22,6 @@ import software.amazon.awssdk.services.iot.model.*;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static com.awslabs.iot.helpers.implementations.BasicV2IotHelper.DELIMITER;
@@ -83,11 +83,9 @@ public class BasicV2IotHelperTests {
         Callable<Stream<Certificate>> getCertificatesStream = () -> v2IotHelper.getCertificates();
         testNotMeaningfulWithout("certificates", getCertificatesStream.call());
 
-        Long numberOfAttachedThings = getCertificatesStream.call()
+        int numberOfAttachedThings = TestHelper.logAndCount(getCertificatesStream.call()
                 .map(certificate -> ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build())
-                .map(v2IotHelper::getAttachedThings)
-                .map(TestHelper::logAndCount)
-                .reduce(0L, Long::sum);
+                .flatMap(v2IotHelper::getAttachedThings));
 
         testNotMeaningfulWithout("things attached to certificates", numberOfAttachedThings);
     }
@@ -97,11 +95,9 @@ public class BasicV2IotHelperTests {
         Callable<Stream<Certificate>> getCertificatesStream = () -> v2IotHelper.getCertificates();
         testNotMeaningfulWithout("certificates", getCertificatesStream.call());
 
-        Long numberOfAttachedThings = getCertificatesStream.call()
+        int numberOfAttachedThings = TestHelper.logAndCount(getCertificatesStream.call()
                 .map(certificate -> ImmutableCertificateArn.builder().arn(certificate.certificateArn()).build())
-                .map(v2IotHelper::getAttachedPolicies)
-                .map(TestHelper::logAndCount)
-                .reduce(0L, Long::sum);
+                .flatMap(v2IotHelper::getAttachedPolicies));
 
         testNotMeaningfulWithout("policies attached to certificates", numberOfAttachedThings);
     }
@@ -111,11 +107,9 @@ public class BasicV2IotHelperTests {
         Callable<Stream<ThingAttribute>> getThingsStream = () -> v2IotHelper.getThings();
         testNotMeaningfulWithout("things", getThingsStream.call());
 
-        Long numberOfThingPrincipals = getThingsStream.call()
+        int numberOfThingPrincipals = TestHelper.logAndCount(getThingsStream.call()
                 .map(thingAttribute -> ImmutableThingName.builder().name(thingAttribute.thingName()).build())
-                .map(v2IotHelper::getThingPrincipals)
-                .map(TestHelper::logAndCount)
-                .reduce(0L, Long::sum);
+                .flatMap(v2IotHelper::getThingPrincipals));
 
         testNotMeaningfulWithout("principals attached to things", numberOfThingPrincipals);
     }
@@ -131,7 +125,7 @@ public class BasicV2IotHelperTests {
         Callable<Stream<JobSummary>> getJobsStream = () -> v2IotHelper.getJobs();
         testNotMeaningfulWithout("jobs", getJobsStream.call());
 
-        JobSummary jobSummary = getJobsStream.call().findFirst().get();
+        JobSummary jobSummary = getJobsStream.call().get();
         Callable<Stream<JobExecutionSummaryForJob>> getJobsExecutionsStream = () -> v2IotHelper.getJobExecutions(jobSummary);
 
         testNotMeaningfulWithout("job executions", getJobsExecutionsStream.call());
@@ -140,14 +134,14 @@ public class BasicV2IotHelperTests {
 
     private void waitForNonZeroFleetIndexResult(Callable<Stream> streamCallable) {
         // Wait for the fleet index to settle
-        RetryPolicy<Long> fleetIndexRetryPolicy = new RetryPolicy<Long>()
-                .handleResult(0L)
+        RetryPolicy<Integer> fleetIndexRetryPolicy = new RetryPolicy<Integer>()
+                .handleResult(0)
                 .withDelay(Duration.ofSeconds(5))
                 .withMaxRetries(10)
                 .onRetry(failure -> log.warn("Waiting for non-zero fleet index result..."))
                 .onRetriesExceeded(failure -> log.error("Fleet index never returned results, giving up"));
 
-        Failsafe.with(fleetIndexRetryPolicy).get(() -> streamCallable.call().count());
+        Failsafe.with(fleetIndexRetryPolicy).get(() -> streamCallable.call().size());
     }
 
     @Test
@@ -166,7 +160,7 @@ public class BasicV2IotHelperTests {
                 .queryString(queryString)
                 .build();
 
-        UnsupportedOperationException unsupportedOperationException = Assert.assertThrows(UnsupportedOperationException.class, () -> new V2ResultsIterator<ThingDocument>(iotClient, searchIndexRequest).stream().count());
+        UnsupportedOperationException unsupportedOperationException = Assert.assertThrows(UnsupportedOperationException.class, () -> new V2ResultsIterator<ThingDocument>(iotClient, searchIndexRequest).stream().size());
         Assert.assertTrue(unsupportedOperationException.getMessage().contains("Multiple methods found"));
     }
 }

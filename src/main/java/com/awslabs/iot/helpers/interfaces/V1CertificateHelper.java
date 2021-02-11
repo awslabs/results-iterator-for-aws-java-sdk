@@ -6,8 +6,7 @@ import com.amazonaws.services.iot.model.CreateKeysAndCertificateResult;
 import com.awslabs.iot.data.CertificateIdFilename;
 import com.awslabs.iot.data.ClientCertFilename;
 import com.awslabs.iot.data.ClientPrivateKeyFilename;
-
-import java.util.stream.Stream;
+import io.vavr.collection.Stream;
 
 public interface V1CertificateHelper {
     String CACERT_IDENTIFIER = ":cacert/";
