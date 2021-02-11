@@ -7,9 +7,9 @@ import io.vavr.control.Option;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 public interface V2SqsHelper {
-    io.vavr.collection.List<Message> receiveMessage(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout);
+    List<Message> receiveMessage(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout);
 
-    io.vavr.collection.List<Message> receiveMessages(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout, MaxNumberOfMessages maxNumberOfMessages);
+    List<Message> receiveMessages(QueueUrl queueUrl, VisibilityTimeout visibilityTimeout, MaxNumberOfMessages maxNumberOfMessages);
 
     List<Message> receiveMessages(QueueUrl queueUrl, Option<VisibilityTimeout> optionalVisibilityTimeout, Option<MaxNumberOfMessages> optionalMaxNumberOfMessages);
 

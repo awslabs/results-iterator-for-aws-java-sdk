@@ -8,35 +8,35 @@ import io.vavr.control.Option;
 public interface V1GreengrassHelper {
     Stream<GroupInformation> listGroups();
 
-    io.vavr.collection.Stream<String> listGroupArns();
+    Stream<String> listGroupArns();
 
-    io.vavr.collection.Stream<String> listGroupIds();
+    Stream<String> listGroupIds();
 
     Map<String, VersionInformation> listLatestGroupVersions();
 
     Map<String, VersionInformation> listLatestImmutableGroupVersions();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableCoreDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableCoreDefinitionInformation();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableDeviceDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableDeviceDefinitionInformation();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableFunctionDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableFunctionDefinitionInformation();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableLoggerDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableLoggerDefinitionInformation();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableResourceDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableResourceDefinitionInformation();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableConnectorDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableConnectorDefinitionInformation();
 
-    io.vavr.collection.Stream<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation();
+    Stream<DefinitionInformation> listNonImmutableSubscriptionDefinitionInformation();
 
-    io.vavr.collection.Stream<VersionInformation> listGroupVersions(String groupId);
+    Stream<VersionInformation> listGroupVersions(String groupId);
 
     Option<VersionInformation> getLatestGroupVersion(String groupId);
 
-    io.vavr.collection.Stream<Deployment> listDeployments(String groupId);
+    Stream<Deployment> listDeployments(String groupId);
 
-    io.vavr.collection.Stream<String> listDeploymentIds(String groupId);
+    Stream<String> listDeploymentIds(String groupId);
 
     Option<Deployment> getLatestDeployment(String groupId);
 
@@ -74,19 +74,19 @@ public interface V1GreengrassHelper {
 
     GetConnectorDefinitionVersionResult getConnectorDefinitionVersion(String groupId, VersionInformation versionInformation);
 
-    io.vavr.collection.Stream<DefinitionInformation> listCoreDefinitions();
+    Stream<DefinitionInformation> listCoreDefinitions();
 
     void deleteCoreDefinition(DefinitionInformation definitionInformation);
 
-    io.vavr.collection.Stream<DefinitionInformation> listFunctionDefinitions();
+    Stream<DefinitionInformation> listFunctionDefinitions();
 
     void deleteFunctionDefinition(DefinitionInformation definitionInformation);
 
-    io.vavr.collection.Stream<DefinitionInformation> listSubscriptionDefinitions();
+    Stream<DefinitionInformation> listSubscriptionDefinitions();
 
     void deleteSubscriptionDefinition(DefinitionInformation definitionInformation);
 
-    io.vavr.collection.Stream<DefinitionInformation> listDeviceDefinitions();
+    Stream<DefinitionInformation> listDeviceDefinitions();
 
     void deleteDeviceDefinition(DefinitionInformation definitionInformation);
 
@@ -94,13 +94,13 @@ public interface V1GreengrassHelper {
 
     void deleteLoggerDefinition(DefinitionInformation definitionInformation);
 
-    io.vavr.collection.Stream<DefinitionInformation> listLoggerDefinitions();
+    Stream<DefinitionInformation> listLoggerDefinitions();
 
     GetResourceDefinitionVersionResult getResourceDefinitionVersion(String groupId, VersionInformation versionInformation);
 
-    io.vavr.collection.Stream<DefinitionInformation> listResourceDefinitions();
+    Stream<DefinitionInformation> listResourceDefinitions();
 
-    io.vavr.collection.Stream<DefinitionInformation> listConnectorDefinitions();
+    Stream<DefinitionInformation> listConnectorDefinitions();
 
     void deleteResourceDefinition(DefinitionInformation definitionInformation);
 

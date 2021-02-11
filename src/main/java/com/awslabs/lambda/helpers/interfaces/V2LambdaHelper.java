@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
 import software.amazon.awssdk.services.lambda.model.PublishVersionResponse;
 
 public interface V2LambdaHelper {
-    io.vavr.collection.Stream<FunctionConfiguration> findFunctionConfigurationsByPartialName(String partialName);
+    Stream<FunctionConfiguration> findFunctionConfigurationsByPartialName(String partialName);
 
     boolean functionExists(FunctionName functionName);
 
