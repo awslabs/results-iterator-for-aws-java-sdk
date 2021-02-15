@@ -1,6 +1,7 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.general.helpers.interfaces.JsonHelper;
+import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.interfaces.SslContextHelper;
@@ -40,4 +41,6 @@ public interface V2TestInjector {
     V2GreengrassHelper v2GreengrassHelper();
 
     SslContextHelper sslContextHelper();
+
+    V2IamHelper v2IamHelper();
 }
