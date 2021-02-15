@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThrows;
@@ -81,7 +82,7 @@ public class TestV2ResultsIterator {
         thingAttributes = thingAttributesIterator.stream();
         int count = thingAttributes.size();
         log.info(String.join(" ", "Thing attribute count:", String.valueOf(count)));
-        MatcherAssert.assertThat(count, greaterThan(0));
+        assertThat(count, greaterThan(0));
     }
 
     @Test
@@ -125,7 +126,7 @@ public class TestV2ResultsIterator {
 
         Stream<ThingAttribute> thingAttributesStream1 = thingAttributesIterator.stream();
         Stream<ThingAttribute> thingAttributesStream2 = thingAttributesIterator.stream();
-        MatcherAssert.assertThat(thingAttributesStream1.size(), equalTo(thingAttributesStream2.size()));
+        assertThat(thingAttributesStream1.size(), equalTo(thingAttributesStream2.size()));
     }
 
     private long listAll(Bucket bucket) {

@@ -121,6 +121,7 @@ dependencies {
     testImplementation "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
     testImplementation "software.amazon.awssdk:greengrass:$awsSdk2Version"
     testImplementation "org.hamcrest:hamcrest:$hamcrestVersion"
+    testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
     testImplementation "com.jcabi:jcabi-log:$jcabiVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "net.jodah:failsafe:$jodahFailsafeVersion"

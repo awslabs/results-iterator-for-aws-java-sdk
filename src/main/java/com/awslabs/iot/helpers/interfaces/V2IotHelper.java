@@ -1,17 +1,31 @@
 package com.awslabs.iot.helpers.interfaces;
 
 import com.awslabs.iot.data.*;
+import io.vavr.Tuple2;
+import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.bouncycastle.jcajce.provider.asymmetric.X509;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.model.*;
 
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+
 public interface V2IotHelper {
-    String IMMUTABLE = "immutable";
+    String FLEET_INDEXING_QUERY_STRING_DELIMITER = ":";
+    String THING_GROUP_NAMES = "thingGroupNames";
+    String SHA_256_WITH_RSA = "SHA256WithRSA";
+    String SUBJECT_KEY_VALUE_SEPARATOR = "=";
+    String SUBJECT_ELEMENT_SEPARATOR = ",";
+    String IMMUTABLE_ATTRIBUTE_NAME_OR_VALUE = "immutable";
     String CACERT_IDENTIFIER = ":cacert/";
-    String CERT_IDENTIFIER = ":cert/";
+    String CN = "CN";
+    String O = "O";
 
     String getEndpoint(V2IotEndpointType v2IotEndpointType);
 
@@ -114,4 +128,18 @@ public interface V2IotHelper {
     Stream<JobExecutionSummaryForJob> getJobExecutions(JobSummary jobSummary);
 
     Stream<ThingDocument> getThingsByGroupName(String groupName);
+
+    <T> Try<T> tryGetObjectFromPem(String pemString, Class<T> returnClass);
+
+    <T> Try<T> tryGetObjectFromPem(byte[] pemBytes, Class<T> returnClass);
+
+    RSAPublicKey getRsaPublicKeyFromCsrPem(String csrString);
+
+    RSAPublicKey getRsaPublicKeyFromCsrPem(byte[] csrBytes);
+
+    X509Certificate generateX509Certificate(PublicKey publicKey, List<Tuple2<String, String>> signerName, List<Tuple2<String, String>> commonName);
+
+    String toPem(Object object);
+
+    PKCS10CertificationRequest generateCertificateSigningRequest(java.security.KeyPair keyPair, List<Tuple2<String, String>> certificateName);
 }
