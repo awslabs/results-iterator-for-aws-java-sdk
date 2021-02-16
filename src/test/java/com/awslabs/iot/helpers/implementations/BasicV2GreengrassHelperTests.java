@@ -4,13 +4,14 @@ import com.awslabs.TestHelper;
 import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iam.data.ImmutableRoleName;
 import com.awslabs.iam.data.RoleName;
-import com.awslabs.iot.data.ImmutableGreengrassGroupId;
-import com.awslabs.iot.data.ImmutableThingName;
-import com.awslabs.iot.data.ThingName;
+import com.awslabs.iam.helpers.interfaces.V2IamHelper;
+import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2GreengrassHelper;
+import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import io.vavr.Tuple2;
+import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.Deployment;
 import software.amazon.awssdk.services.greengrass.model.GroupInformation;
+import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
 import java.time.Instant;
 import java.util.concurrent.Callable;
@@ -35,11 +37,15 @@ public class BasicV2GreengrassHelperTests {
     private GreengrassClient greengrassClient;
     private JsonHelper jsonHelper;
     private V2GreengrassHelper v2GreengrassHelper;
+    private V2IamHelper v2IamHelper;
+    private V2IotHelper v2IotHelper;
 
     @Before
     public void setup() {
         V2TestInjector injector = DaggerV2TestInjector.create();
         v2GreengrassHelper = injector.v2GreengrassHelper();
+        v2IamHelper = injector.v2IamHelper();
+        v2IotHelper = injector.v2IotHelper();
         greengrassClient = injector.greengrassClient();
         jsonHelper = injector.jsonHelper();
     }
@@ -163,10 +169,18 @@ public class BasicV2GreengrassHelperTests {
 
     @Test
     public void shouldCreateARaspbianSoftwareUpdateJobAndNotThrowAnException() {
-        String thingNameString = "pi_Core";
-        ThingName thingName = ImmutableThingName.builder().name(thingNameString).build();
+        String groupNameString = "pi";
+        GreengrassGroupName greengrassGroupName = ImmutableGreengrassGroupName.builder().groupName(groupNameString).build();
+        testNotMeaningfulWithout("pi_Core Greengrass group", v2GreengrassHelper.getGroupInformation(greengrassGroupName));
+
+        String coreNameString = String.join("_", groupNameString, "Core");
+        testNotMeaningfulWithout("pi_Core thing", v2IotHelper.getThings().filter(thingAttribute -> thingAttribute.thingName().equals(coreNameString)));
+
         String roleNameString = "IotS3UrlPresigningRole";
         RoleName roleName = ImmutableRoleName.builder().name(roleNameString).build();
+        testNotMeaningfulWithout("IotS3UrlPresigning role in IAM", v2IamHelper.getRole(roleName).toStream());
+
+        ThingName thingName = ImmutableThingName.builder().name(coreNameString).build();
         v2GreengrassHelper.updateRaspbianCore(thingName, roleName);
     }
 }

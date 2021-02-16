@@ -14,7 +14,7 @@ public class TestHelper {
     private static final Logger log = LoggerFactory.getLogger(TestHelper.class);
 
     public static String testNotMeaningfulWithoutError(String nameOfRequiredObjects) {
-        return String.join(" ", "This test is not meaningful unless one or more", nameOfRequiredObjects, "are defined");
+        return String.join(" ", "This test is not meaningful without one (or more, if applicable)", nameOfRequiredObjects);
     }
 
     public static String testNotMeaningfulWithoutAtLeastError(String nameOfRequiredObjects, long count) {
