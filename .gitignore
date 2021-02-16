@@ -5,3 +5,4 @@ out
 generated
 *.swp
 .DS_Store
+*.pem

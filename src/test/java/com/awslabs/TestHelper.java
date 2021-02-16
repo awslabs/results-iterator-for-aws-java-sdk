@@ -29,7 +29,7 @@ public class TestHelper {
         assertTrue(testNotMeaningfulWithoutAtLeastError(nameOfRequiredObjects, count), stream.size() >= count);
     }
 
-    public static <T> void testNotMeaningfulWithout(String nameOfRequiredObjects, int itemCount) {
+    public static void testNotMeaningfulWithout(String nameOfRequiredObjects, int itemCount) {
         assertTrue(testNotMeaningfulWithoutError(nameOfRequiredObjects), itemCount > 0);
     }
 

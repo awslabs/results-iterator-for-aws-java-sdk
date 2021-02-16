@@ -4,27 +4,63 @@ import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIteratorAbstract;
+import io.vavr.Tuple2;
 import io.vavr.Value;
 import io.vavr.collection.HashMap;
+import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.IotClient;
+import software.amazon.awssdk.services.iot.model.Certificate;
+import software.amazon.awssdk.services.iot.model.Policy;
 import software.amazon.awssdk.services.iot.model.*;
 import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
 import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 
 import javax.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.*;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.RSAPublicKeySpec;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.stream.Collectors;
 
 public class BasicV2IotHelper implements V2IotHelper {
-    public static final String DELIMITER = ":";
-    public static final String THING_GROUP_NAMES = "thingGroupNames";
+    public static final int RSA_SIGNER_KEY_SIZE = 4096;
+    private static final KeyFactory rsaKeyFactory = Try.of(() -> KeyFactory.getInstance("RSA")).get();
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
 
     @Inject
@@ -259,7 +295,7 @@ public class BasicV2IotHelper implements V2IotHelper {
                 // Use an none stream if no values are present
                 .getOrElse(Stream.empty())
                 // Check if any of the keys are equal to the immutable string
-                .exists(IMMUTABLE::equals);
+                .exists(IMMUTABLE_ATTRIBUTE_NAME_OR_VALUE::equals);
     }
 
     @Override
@@ -587,7 +623,7 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public Stream<ThingDocument> getThingsByGroupName(String groupName) {
-        String queryString = String.join(DELIMITER, THING_GROUP_NAMES, groupName);
+        String queryString = String.join(FLEET_INDEXING_QUERY_STRING_DELIMITER, THING_GROUP_NAMES, groupName);
 
         SearchIndexRequest searchIndexRequest = SearchIndexRequest.builder()
                 .queryString(queryString)
@@ -599,4 +635,137 @@ public class BasicV2IotHelper implements V2IotHelper {
         return Stream.ofAll(new V2ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
         }.stream());
     }
+
+    @Override
+    public <T> Try<T> tryGetObjectFromPem(String pemString, Class<T> returnClass) {
+        return tryGetObjectFromPem(pemString.getBytes(StandardCharsets.UTF_8), returnClass);
+    }
+
+    @Override
+    public <T> Try<T> tryGetObjectFromPem(byte[] pemBytes, Class<T> returnClass) {
+        return Try.withResources(() -> new ByteArrayInputStream(pemBytes))
+                .of(InputStreamReader::new)
+                .map(PEMParser::new)
+                // Read the object from the PEM
+                .mapTry(PEMParser::readObject)
+                // Cast the object to the requested type
+                .map(returnClass::cast);
+    }
+
+    @Override
+    public RSAPublicKey getRsaPublicKeyFromCsrPem(String csrString) {
+        return getRsaPublicKeyFromCsrPem(csrString.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public RSAPublicKey getRsaPublicKeyFromCsrPem(byte[] csrBytes) {
+        return tryGetObjectFromPem(csrBytes, PKCS10CertificationRequest.class)
+                // Extract the public key info
+                .map(PKCS10CertificationRequest::getSubjectPublicKeyInfo)
+                // Create an asymmetric key parameter object
+                .mapTry(PublicKeyFactory::createKey)
+                // Cast the asymmetric key parameter object to RSA key parameters
+                .map(RSAKeyParameters.class::cast)
+                // Create an RSA public key spec from the key parameters
+                .map(rsaKeyParameters -> new RSAPublicKeySpec(rsaKeyParameters.getModulus(), rsaKeyParameters.getExponent()))
+                // Generate an public key object from the public key spec
+                .mapTry(rsaKeyFactory::generatePublic)
+                // Cast the public key object to an RSA public key
+                .map(RSAPublicKey.class::cast)
+                // Throw an exception if any step fails, otherwise get the result
+                .get();
+    }
+
+    @Override
+    public X509Certificate generateX509Certificate(PublicKey publicKey, List<Tuple2<String, String>> signerName, List<Tuple2<String, String>> certificateName) {
+        X500Name x500SignerName = toX500Name(signerName);
+        X500Name x500CertificateName = toX500Name(certificateName);
+
+        SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
+
+        // Valid from yesterday
+        final Date start = Date.from(LocalDate.now().minus(1, ChronoUnit.DAYS).atStartOfDay().toInstant(ZoneOffset.UTC));
+
+        // Until Dec 31st, 2049
+        final Date until = Date.from(LocalDate.of(2049, Month.DECEMBER, 31).atStartOfDay().toInstant(ZoneOffset.UTC));
+
+        final X509v3CertificateBuilder builder = new X509v3CertificateBuilder(x500SignerName,
+                new BigInteger(10, new SecureRandom()),
+                start,
+                until,
+                x500CertificateName,
+                subPubKeyInfo
+        );
+
+        // Get an RSA signer
+        ContentSigner rsaSigner = Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_RSA)
+                .setProvider(new BouncyCastleProvider())
+                .build(getRandomRsaKeypair(RSA_SIGNER_KEY_SIZE).getPrivate())).get();
+
+        final X509CertificateHolder holder = builder.build(rsaSigner);
+
+        return Try.of(() -> new JcaX509CertificateConverter()
+                .setProvider(new BouncyCastleProvider())
+                .getCertificate(holder)).get();
+    }
+
+    @Override
+    public String toPem(Object object) {
+        StringWriter stringWriter = new StringWriter();
+
+        // Throw exception on failure
+        Try.withResources(() -> new JcaPEMWriter(stringWriter))
+                .of(pemWriter -> writeObject(pemWriter, object))
+                .get();
+
+        return stringWriter.toString();
+    }
+
+    private Void writeObject(JcaPEMWriter writer, Object object) throws IOException {
+        writer.writeObject(object);
+
+        // Need to return NULL because Try.of(...) needs a return value. We cannot use Try.run(...) with
+        //   Try.withResources(...).
+        return null;
+    }
+
+    @Override
+    public PKCS10CertificationRequest generateCertificateSigningRequest(KeyPair keyPair, List<Tuple2<String, String>> certificateName) {
+        // Guidance from - https://stackoverflow.com/a/20550258
+        X500Name x500CertificateName = toX500Name(certificateName);
+        PKCS10CertificationRequestBuilder jcaPKCS10CertificationRequestBuilder = new JcaPKCS10CertificationRequestBuilder(x500CertificateName, keyPair.getPublic());
+        ContentSigner contentSigner = Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_RSA)
+                .build(keyPair.getPrivate()))
+                .get();
+
+        return jcaPKCS10CertificationRequestBuilder.build(contentSigner);
+    }
+
+    public KeyPair getRandomRsaKeypair(int keySize) {
+        KeyPairGenerator keyPairGenerator = Try.of(() -> KeyPairGenerator.getInstance("RSA")).get();
+        keyPairGenerator.initialize(keySize, new SecureRandom());
+
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    private X500Name toX500Name(List<Tuple2<String, String>> input) {
+        String data = input.map(tuple2 -> String.join(SUBJECT_KEY_VALUE_SEPARATOR, tuple2._1, tuple2._2)).collect(Collectors.joining(SUBJECT_ELEMENT_SEPARATOR));
+
+        return new X500Name(data);
+    }
+
+    /*
+    NOTE: Using toPem instead
+    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERT = "-----END CERTIFICATE-----";
+    private String toPemEncodedCert(X509Certificate x509Certificate) {
+        String encodedString = Try.of(() -> new String(Base64.encode(x509Certificate.getEncoded()))).get()
+                // Split the base64 encoded cert into lines, max. 64 characters per line. OpenSSL will not read certificates without this.
+                .replaceAll("(.{64})", "$1\n")
+                // If the last character is a newline we remove it so OpenSSL doesn't get confused
+                .replaceFirst("\n$", "");
+
+        return String.join("\n", BEGIN_CERT, encodedString, END_CERT);
+    }
+     */
 }
