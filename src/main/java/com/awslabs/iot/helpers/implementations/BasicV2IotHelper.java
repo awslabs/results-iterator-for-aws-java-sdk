@@ -723,6 +723,9 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     private Void writeObject(JcaPEMWriter writer, Object object) throws IOException {
         writer.writeObject(object);
+
+        // Need to return NULL because Try.of(...) needs a return value. We cannot use Try.run(...) with
+        //   Try.withResources(...).
         return null;
     }
 
