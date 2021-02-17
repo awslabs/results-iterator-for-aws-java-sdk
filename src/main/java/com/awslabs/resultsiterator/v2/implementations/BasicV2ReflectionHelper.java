@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.greengrass.model.GreengrassResponse;
 
 import javax.inject.Inject;
 import java.lang.reflect.*;
+import java.util.function.Predicate;
 
 public class BasicV2ReflectionHelper implements V2ReflectionHelper {
     private final List<String> methodsToIgnore = List.of("sdkFields", "commonPrefixes", "copy");
@@ -49,21 +50,28 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
         String expectedListSignature = toGenericListSignature(returnType);
         String expectedSignature = toGenericSignature(returnType);
 
+        Predicate<Method> methodShouldNotBeIgnored = method -> !methodsToIgnore.contains(method.getName());
+        Predicate<Method> noNamesSpecifiedOrSpecifiedNameMatches = method -> names.size() == 0 || names.contains(method.getName());
+        Predicate<Method> zeroOrOneParametersSpecified = method -> (parameter == null) || (method.getParameterCount() == 1);
+        Predicate<Method> zeroParametersOrParameterMatchesExpectedType = method -> (parameter == null) || method.getParameterTypes()[0].equals(parameter);
+        Predicate<Method> methodReturnTypeIsAssignableFromReturnType = method -> method.getReturnType().isAssignableFrom(returnType);
+        Predicate<Method> expectedListSignatureEqualsGenericSignature = method -> expectedListSignature.equals(toGenericSignature(method.getGenericReturnType()));
+        Predicate<Method> expectedSingleValueSignatureEqualsGenericSignature = method -> expectedSignature.equals(toGenericSignature(method.getGenericReturnType()));
+        Predicate<Method> returnTypeMatchesOrListOrSingleValueSignatureMatches = methodReturnTypeIsAssignableFromReturnType.or(expectedListSignatureEqualsGenericSignature).or(expectedSingleValueSignatureEqualsGenericSignature);
+
         List<Method> methodsFound = Stream.of(clazz.getMethods())
                 // Only public methods
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 // Only methods that aren't ignored
-                .filter(method -> !methodsToIgnore.contains(method.getName()))
-                // Either no specifically named method was requested or the name matches the specified one
-                .filter(method -> (names.size() == 0) || names.contains(method.getName()))
+                .filter(methodShouldNotBeIgnored::test)
+                // Either no names were specified or specified name matches
+                .filter(noNamesSpecifiedOrSpecifiedNameMatches::test)
                 // Either there were zero or one parameters
-                .filter(method -> (parameter == null) || (method.getParameterCount() == 1))
+                .filter(zeroOrOneParametersSpecified::test)
                 // If there was a parameter it must match the expected type
-                .filter(method -> (parameter == null) || method.getParameterTypes()[0].equals(parameter))
+                .filter(zeroParametersOrParameterMatchesExpectedType::test)
                 // The return type must match OR the signature (list or single value) must match the generic signature
-                .filter(method -> method.getReturnType().isAssignableFrom(returnType) ||
-                        expectedListSignature.equals(toGenericSignature(method.getGenericReturnType())) ||
-                        expectedSignature.equals(toGenericSignature(method.getGenericReturnType())))
+                .filter(returnTypeMatchesOrListOrSingleValueSignatureMatches::test)
                 .toList();
 
         if (methodsFound.size() > 1) {
