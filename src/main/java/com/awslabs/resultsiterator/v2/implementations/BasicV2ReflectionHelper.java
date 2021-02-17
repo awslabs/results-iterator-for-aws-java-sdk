@@ -4,6 +4,7 @@ import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.resultsiterator.v2.interfaces.V2ReflectionHelper;
 import com.google.gson.internal.$Gson$Types;
 import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import software.amazon.awssdk.awscore.AwsRequest;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.services.greengrass.model.GreengrassResponse;
 
 import javax.inject.Inject;
 import java.lang.reflect.*;
+import java.util.function.Predicate;
 
 public class BasicV2ReflectionHelper implements V2ReflectionHelper {
     private final List<String> methodsToIgnore = List.of("sdkFields", "commonPrefixes", "copy");
@@ -48,56 +50,36 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
         String expectedListSignature = toGenericListSignature(returnType);
         String expectedSignature = toGenericSignature(returnType);
 
-        Method returnMethod = null;
+        Predicate<Method> methodShouldNotBeIgnored = method -> !methodsToIgnore.contains(method.getName());
+        Predicate<Method> noNamesSpecifiedOrSpecifiedNameMatches = method -> names.size() == 0 || names.contains(method.getName());
+        Predicate<Method> zeroOrOneParametersSpecified = method -> (parameter == null) || (method.getParameterCount() == 1);
+        Predicate<Method> zeroParametersOrParameterMatchesExpectedType = method -> (parameter == null) || method.getParameterTypes()[0].equals(parameter);
+        Predicate<Method> methodReturnTypeIsAssignableFromReturnType = method -> method.getReturnType().isAssignableFrom(returnType);
+        Predicate<Method> expectedListSignatureEqualsGenericSignature = method -> expectedListSignature.equals(toGenericSignature(method.getGenericReturnType()));
+        Predicate<Method> expectedSingleValueSignatureEqualsGenericSignature = method -> expectedSignature.equals(toGenericSignature(method.getGenericReturnType()));
+        Predicate<Method> returnTypeMatchesOrListOrSingleValueSignatureMatches = methodReturnTypeIsAssignableFromReturnType.or(expectedListSignatureEqualsGenericSignature).or(expectedSingleValueSignatureEqualsGenericSignature);
 
-        for (Method method : clazz.getMethods()) {
-            if (!Modifier.isPublic(method.getModifiers())) {
-                // Not public, ignore
-                continue;
-            }
+        List<Method> methodsFound = Stream.of(clazz.getMethods())
+                // Only public methods
+                .filter(method -> Modifier.isPublic(method.getModifiers()))
+                // Only methods that aren't ignored
+                .filter(methodShouldNotBeIgnored::test)
+                // Either no names were specified or specified name matches
+                .filter(noNamesSpecifiedOrSpecifiedNameMatches::test)
+                // Either there were zero or one parameters
+                .filter(zeroOrOneParametersSpecified::test)
+                // If there was a parameter it must match the expected type
+                .filter(zeroParametersOrParameterMatchesExpectedType::test)
+                // The return type must match OR the signature (list or single value) must match the generic signature
+                .filter(returnTypeMatchesOrListOrSingleValueSignatureMatches::test)
+                .toList();
 
-            String methodName = method.getName();
-
-            if (methodsToIgnore.contains(methodName)) {
-                // Always ignore these methods
-                continue;
-            }
-
-            if ((names.size() > 0) && (!names.contains(method.getName()))) {
-                // Not an expected name, ignore
-                continue;
-            }
-
-            if (parameter != null) {
-                if (method.getParameterCount() != 1) {
-                    // Not the right number of parameters, ignore
-                    continue;
-                }
-
-                if (!method.getParameterTypes()[0].equals(parameter)) {
-                    // Not the right parameter type, ignore
-                    continue;
-                }
-            }
-
-            String currentSignature = toGenericSignature(method.getGenericReturnType());
-
-            if (!method.getReturnType().isAssignableFrom(returnType) &&
-                    !expectedListSignature.equals(currentSignature) &&
-                    !expectedSignature.equals(currentSignature)) {
-                // Not the right return type, signature of a list with the return type, or signature of the return type itself, ignore
-                continue;
-            }
-
-            if (returnMethod != null) {
-                // More than one match found, fail
-                throw new UnsupportedOperationException("Multiple methods found, cannot continue. Try using V2ResultsIteratorAbstract as an anonymous class to avoid compile time type erasure.");
-            }
-
-            returnMethod = method;
+        if (methodsFound.size() > 1) {
+            // More than one match found, fail
+            throw new UnsupportedOperationException("Multiple methods found, cannot continue. Try using V2ResultsIteratorAbstract as an anonymous class to avoid compile time type erasure.");
         }
 
-        return Option.of(returnMethod);
+        return Option.of(methodsFound.getOrNull());
     }
 
     // From: https://stackoverflow.com/a/29801335/796579
