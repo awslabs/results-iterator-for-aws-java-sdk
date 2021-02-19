@@ -56,6 +56,7 @@ import java.time.Month;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BasicV2IotHelper implements V2IotHelper {
@@ -648,6 +649,8 @@ public class BasicV2IotHelper implements V2IotHelper {
                 .map(PEMParser::new)
                 // Read the object from the PEM
                 .mapTry(PEMParser::readObject)
+                // Make sure it isn't NULL
+                .filter(Objects::nonNull, () -> new RuntimeException("pemBytes could not be converted to the requested object type"))
                 // Cast the object to the requested type
                 .map(returnClass::cast);
     }
