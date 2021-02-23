@@ -39,13 +39,11 @@ import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
 import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.*;
 import java.security.cert.X509Certificate;
@@ -635,6 +633,12 @@ public class BasicV2IotHelper implements V2IotHelper {
         //   and ThingGroupDocument)
         return Stream.ofAll(new V2ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
         }.stream());
+    }
+
+    @Override
+    public <T> Try<T> tryGetObjectFromPem(File file, Class<T> returnClass) {
+        return Try.of(() -> Files.readAllBytes(file.toPath()))
+                .flatMap(data -> tryGetObjectFromPem(data, returnClass));
     }
 
     @Override

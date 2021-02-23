@@ -12,6 +12,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iot.model.*;
 
+import java.io.File;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
@@ -128,6 +129,8 @@ public interface V2IotHelper {
     Stream<JobExecutionSummaryForJob> getJobExecutions(JobSummary jobSummary);
 
     Stream<ThingDocument> getThingsByGroupName(String groupName);
+
+    <T> Try<T> tryGetObjectFromPem(File file, Class<T> returnClass);
 
     <T> Try<T> tryGetObjectFromPem(String pemString, Class<T> returnClass);
 
