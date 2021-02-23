@@ -744,6 +744,7 @@ public class BasicV2IotHelper implements V2IotHelper {
         return jcaPKCS10CertificationRequestBuilder.build(contentSigner);
     }
 
+    @Override
     public KeyPair getRandomRsaKeypair(int keySize) {
         KeyPairGenerator keyPairGenerator = Try.of(() -> KeyPairGenerator.getInstance("RSA")).get();
         keyPairGenerator.initialize(keySize, new SecureRandom());

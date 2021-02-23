@@ -142,4 +142,6 @@ public interface V2IotHelper {
     String toPem(Object object);
 
     PKCS10CertificationRequest generateCertificateSigningRequest(java.security.KeyPair keyPair, List<Tuple2<String, String>> certificateName);
+
+    java.security.KeyPair getRandomRsaKeypair(int keySize);
 }
