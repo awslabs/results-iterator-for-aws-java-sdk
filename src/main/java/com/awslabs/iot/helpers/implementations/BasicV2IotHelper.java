@@ -757,19 +757,4 @@ public class BasicV2IotHelper implements V2IotHelper {
 
         return new X500Name(data);
     }
-
-    /*
-    NOTE: Using toPem instead
-    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
-    public static final String END_CERT = "-----END CERTIFICATE-----";
-    private String toPemEncodedCert(X509Certificate x509Certificate) {
-        String encodedString = Try.of(() -> new String(Base64.encode(x509Certificate.getEncoded()))).get()
-                // Split the base64 encoded cert into lines, max. 64 characters per line. OpenSSL will not read certificates without this.
-                .replaceAll("(.{64})", "$1\n")
-                // If the last character is a newline we remove it so OpenSSL doesn't get confused
-                .replaceFirst("\n$", "");
-
-        return String.join("\n", BEGIN_CERT, encodedString, END_CERT);
-    }
-     */
 }
