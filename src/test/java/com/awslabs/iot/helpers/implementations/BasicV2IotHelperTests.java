@@ -1,7 +1,6 @@
 package com.awslabs.iot.helpers.implementations;
 
 import com.awslabs.TestHelper;
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
 import com.awslabs.iot.data.ImmutableCertificateArn;
 import com.awslabs.iot.data.ImmutableThingName;
@@ -48,7 +47,6 @@ public class BasicV2IotHelperTests {
     public static final String COMMON_NAME_PREFIX = CN + "=";
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelperTests.class);
     private IotClient iotClient;
-    private JsonHelper jsonHelper;
     private V2IotHelper v2IotHelper;
     private V2IamHelper v2IamHelper;
     private List<Tuple2<String, String>> issuerName;
@@ -62,7 +60,6 @@ public class BasicV2IotHelperTests {
         v2IotHelper = injector.v2IotHelper();
         iotClient = injector.iotClient();
         v2IamHelper = injector.v2IamHelper();
-        jsonHelper = injector.jsonHelper();
 
         CreateThingRequest createThingRequest = CreateThingRequest.builder()
                 .thingName(JUNKFORTHINGTESTING_V2)

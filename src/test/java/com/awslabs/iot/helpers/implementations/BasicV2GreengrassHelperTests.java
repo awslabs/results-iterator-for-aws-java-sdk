@@ -1,7 +1,6 @@
 package com.awslabs.iot.helpers.implementations;
 
 import com.awslabs.TestHelper;
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iam.data.ImmutableRoleName;
 import com.awslabs.iam.data.RoleName;
 import com.awslabs.iam.helpers.interfaces.V2IamHelper;
@@ -11,7 +10,6 @@ import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import io.vavr.Tuple2;
-import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import org.junit.Before;
@@ -21,13 +19,13 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.Deployment;
 import software.amazon.awssdk.services.greengrass.model.GroupInformation;
-import software.amazon.awssdk.services.iot.model.ThingAttribute;
 
 import java.time.Instant;
 import java.util.concurrent.Callable;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static com.awslabs.TestHelper.testNotMeaningfulWithoutAtLeast;
+import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,7 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class BasicV2GreengrassHelperTests {
     private final Logger log = LoggerFactory.getLogger(BasicV2GreengrassHelperTests.class);
     private GreengrassClient greengrassClient;
-    private JsonHelper jsonHelper;
     private V2GreengrassHelper v2GreengrassHelper;
     private V2IamHelper v2IamHelper;
     private V2IotHelper v2IotHelper;
@@ -47,7 +44,6 @@ public class BasicV2GreengrassHelperTests {
         v2IamHelper = injector.v2IamHelper();
         v2IotHelper = injector.v2IotHelper();
         greengrassClient = injector.greengrassClient();
-        jsonHelper = injector.jsonHelper();
     }
 
     @Test
@@ -59,7 +55,7 @@ public class BasicV2GreengrassHelperTests {
     }
 
     private <T> void logStreamData(Callable<Stream<T>> getStream) throws Exception {
-        getStream.call().forEach(object -> log.info(jsonHelper.toJson(object)));
+        getStream.call().forEach(object -> log.info(toJson(object)));
     }
 
     @Test

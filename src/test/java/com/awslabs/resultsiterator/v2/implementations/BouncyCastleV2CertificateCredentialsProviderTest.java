@@ -1,6 +1,5 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
@@ -29,6 +28,7 @@ import java.nio.file.Paths;
 import java.security.Security;
 import java.util.function.BiFunction;
 
+import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
 import static com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -133,7 +133,6 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
             "o4dvJ56FzIYZ1wzg8Na3aIha5+Fj/T6nmDqCU4lpwrsEBa/cvrllMMTfo4E4hrrr\n" +
             "-----END RSA PRIVATE KEY-----\n";
     private BouncyCastleV2CertificateCredentialsProvider bouncyCastleV2CertificateCredentialsProvider;
-    private JsonHelper jsonHelper;
     private ImmutableCredentialProviderUrl immutableCredentialProviderUrl;
     private ImmutableThingName immutableThingName;
     private ImmutableRoleAlias immutableRoleAlias;
@@ -150,7 +149,6 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
     @Before
     public void setup() {
         V2TestInjector injector = DaggerV2TestInjector.create();
-        jsonHelper = injector.jsonHelper();
         v2IotHelper = injector.v2IotHelper();
 
         Security.addProvider(new BouncyCastleProvider());
@@ -185,10 +183,7 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
         HttpEntity mockEntity = mock(HttpEntity.class);
 
         // Data
-        String json = jsonHelper.toJson(immutableIotCredentialsProviderCredentials);
-
-        // Normal wiring
-        bouncyCastleV2CertificateCredentialsProvider.jsonHelper = jsonHelper;
+        String json = toJson(immutableIotCredentialsProviderCredentials);
 
         // Mock wiring
         when(bouncyCastleV2CertificateCredentialsProvider.getHttpClient(immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword)).thenReturn(mockHttpClient);

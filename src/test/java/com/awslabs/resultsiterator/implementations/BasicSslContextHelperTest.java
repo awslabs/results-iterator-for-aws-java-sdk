@@ -1,6 +1,5 @@
 package com.awslabs.resultsiterator.implementations;
 
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.V2IotHelper;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
@@ -125,7 +124,6 @@ public class BasicSslContextHelperTest {
             "o4dvJ56FzIYZ1wzg8Na3aIha5+Fj/T6nmDqCU4lpwrsEBa/cvrllMMTfo4E4hrrr\n" +
             "-----END RSA PRIVATE KEY-----\n";
     private BasicSslContextHelper basicSslContextHelper;
-    private JsonHelper jsonHelper;
     private ImmutableCredentialProviderUrl immutableCredentialProviderUrl;
     private ImmutableThingName immutableThingName;
     private ImmutableRoleAlias immutableRoleAlias;
@@ -142,7 +140,6 @@ public class BasicSslContextHelperTest {
     @Before
     public void setup() {
         V2TestInjector injector = DaggerV2TestInjector.create();
-        jsonHelper = injector.jsonHelper();
         v2IotHelper = injector.v2IotHelper();
 
         Security.addProvider(new BouncyCastleProvider());
