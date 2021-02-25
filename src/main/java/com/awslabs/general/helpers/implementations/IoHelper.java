@@ -1,12 +1,14 @@
 package com.awslabs.general.helpers.implementations;
 
 import io.vavr.control.Try;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -50,5 +52,9 @@ public class IoHelper {
         return HttpClientBuilder.create()
                 .setDefaultRequestConfig(requestBuilder.build())
                 .build();
+    }
+
+    public static byte[] toByteArray(InputStream inputStream) {
+        return Try.of(() -> IOUtils.toByteArray(inputStream)).get();
     }
 }
