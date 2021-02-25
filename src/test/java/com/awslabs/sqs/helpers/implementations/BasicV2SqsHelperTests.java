@@ -1,6 +1,5 @@
 package com.awslabs.sqs.helpers.implementations;
 
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
 import com.awslabs.sqs.data.ImmutableQueueName;
@@ -25,19 +24,18 @@ import java.util.function.Predicate;
 import java.util.stream.LongStream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
+import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BasicV2SqsHelperTests {
     private final Logger log = LoggerFactory.getLogger(BasicV2SqsHelperTests.class);
     private V2SqsHelper v2SqsHelper;
-    private JsonHelper jsonHelper;
 
     @Before
     public void setup() {
         V2TestInjector injector = DaggerV2TestInjector.create();
         v2SqsHelper = injector.v2SqsHelper();
-        jsonHelper = injector.jsonHelper();
     }
 
     @Test
@@ -49,7 +47,7 @@ public class BasicV2SqsHelperTests {
     }
 
     private <T> void logStreamData(Callable<Stream<T>> getStream) throws Exception {
-        getStream.call().forEach(object -> log.info(jsonHelper.toJson(object)));
+        getStream.call().forEach(object -> log.info(toJson(object)));
     }
 
     @Test

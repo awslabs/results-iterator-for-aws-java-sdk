@@ -1,6 +1,5 @@
 package com.awslabs.resultsiterator;
 
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
 import com.awslabs.resultsiterator.v2.implementations.V2ResultsIterator;
@@ -9,7 +8,6 @@ import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvide
 import com.awslabs.s3.helpers.interfaces.V2S3Helper;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
-import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
+import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -45,7 +44,6 @@ public class TestV2ResultsIterator {
     private V2S3Helper v2S3Helper;
     private S3Client s3Client;
     private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
-    private JsonHelper jsonHelper;
 
     @Before
     public void setup() {
@@ -55,7 +53,6 @@ public class TestV2ResultsIterator {
         v2S3Helper = injector.v2S3Helper();
         s3Client = injector.s3Client();
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
-        jsonHelper = injector.jsonHelper();
 
         CreateThingRequest createThingRequest = CreateThingRequest.builder()
                 .thingName(JUNKFORTHINGTESTING_V2)
@@ -115,7 +112,7 @@ public class TestV2ResultsIterator {
         testNotMeaningfulWithout("Greengrass groups", groupInformationIterator.stream());
 
         List<GroupInformation> groupInformationList = List.ofAll(groupInformationIterator.stream());
-        groupInformationList.forEach(groupInformation -> log.info(jsonHelper.toJson(groupInformation)));
+        groupInformationList.forEach(groupInformation -> log.info(toJson(groupInformation)));
     }
 
     @Test

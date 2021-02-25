@@ -12,7 +12,7 @@ import dagger.Provides;
 @Module
 public class SharedModule {
     @Provides
-    public JsonHelper jsonHelper(BasicJsonHelper basicJsonHelper) {
+    public JsonHelper jsonHelper(JsonHelper basicJsonHelper) {
         return basicJsonHelper;
     }
 

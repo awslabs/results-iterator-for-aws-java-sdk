@@ -1,7 +1,6 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
 import com.awslabs.general.helpers.interfaces.IoHelper;
-import com.awslabs.general.helpers.interfaces.JsonHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
 import com.awslabs.resultsiterator.interfaces.SslContextHelper;
@@ -25,11 +24,11 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import static com.awslabs.general.helpers.implementations.JsonHelper.fromJson;
+
 public class BouncyCastleV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
     @Inject
     IoHelper ioHelper;
-    @Inject
-    JsonHelper jsonHelper;
     @Inject
     SslContextHelper sslContextHelper;
 
@@ -166,7 +165,7 @@ public class BouncyCastleV2CertificateCredentialsProvider implements V2Certifica
         IotCredentialsProviderCredentials iotCredentialsProviderCredentials = Try.of(() -> httpClient.execute(httpGet))
                 .map(HttpResponse::getEntity)
                 .mapTry(EntityUtils::toByteArray)
-                .map(responseBytes -> jsonHelper.fromJson(IotCredentialsProviderCredentials.class, responseBytes))
+                .map(responseBytes -> fromJson(IotCredentialsProviderCredentials.class, responseBytes))
                 .get();
 
         return iotCredentialsProviderCredentials.getCredentials().toAwsSessionCredentials();
