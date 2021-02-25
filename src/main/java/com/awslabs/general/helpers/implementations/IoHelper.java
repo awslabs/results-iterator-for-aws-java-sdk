@@ -6,10 +6,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.charset.Charset;
@@ -56,5 +53,10 @@ public class IoHelper {
 
     public static byte[] toByteArray(InputStream inputStream) {
         return Try.of(() -> IOUtils.toByteArray(inputStream)).get();
+    }
+
+    public static void write(OutputStream outputStream, String input) {
+        Try.withResources(() -> new OutputStreamWriter(outputStream, Charset.defaultCharset()))
+                .of(outputStreamWriter -> Try.run(() -> outputStreamWriter.write(input)).get());
     }
 }
