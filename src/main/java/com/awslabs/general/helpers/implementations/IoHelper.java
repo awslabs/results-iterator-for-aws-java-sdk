@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class IoHelper {
-    public static void writeFile(String filename, String contents) throws FileNotFoundException {
+    public static void writeFile(String filename, String contents) {
         Try.withResources(() -> new PrintWriter(filename))
                 .of(printWriter -> Try.run(() -> printWriter.print(contents)));
     }

@@ -189,7 +189,7 @@ public class BasicV2ReflectionHelper implements V2ReflectionHelper {
 
         Method clientMethodReturningResult = clientMethodReturningResultOption.get();
 
-        // This method throws an exception if the definition does not exist
+        // callMethod throws an exception if the definition does not exist
         return (T) Try.of(() -> callMethod(greengrassClient, clientMethodReturningResult, request))
                 .getOrNull();
     }
