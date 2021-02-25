@@ -17,7 +17,7 @@ public class SharedModule {
     }
 
     @Provides
-    public IoHelper ioHelper(BasicIoHelper basicIoHelper) {
+    public IoHelper ioHelper(IoHelper basicIoHelper) {
         return basicIoHelper;
     }
 
@@ -29,11 +29,6 @@ public class SharedModule {
     @Provides
     public IotIdExtractor iotIdExtractor(BasicIotIdExtractor basicIotIdExtractor) {
         return basicIotIdExtractor;
-    }
-
-    @Provides
-    public AwsHelper awsHelper(BasicAwsHelper basicAwsHelper) {
-        return basicAwsHelper;
     }
 
     @Provides

@@ -1,7 +1,6 @@
 package com.awslabs.ec2.implementations;
 
 import com.awslabs.ec2.interfaces.V2Ec2Helper;
-import com.awslabs.general.helpers.interfaces.AwsHelper;
 import io.vavr.control.Option;
 import org.slf4j.Logger;
 import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
@@ -12,10 +11,10 @@ import software.amazon.awssdk.services.ec2.model.Instance;
 
 import javax.inject.Inject;
 
+import static com.awslabs.general.helpers.implementations.AwsHelper.isEc2;
+
 public class BasicV2Ec2Helper implements V2Ec2Helper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicV2Ec2Helper.class);
-    @Inject
-    AwsHelper awsHelper;
     @Inject
     Ec2Client ec2Client;
 
@@ -25,7 +24,7 @@ public class BasicV2Ec2Helper implements V2Ec2Helper {
 
     @Override
     public Option<Instance> describeInstance() {
-        if (!awsHelper.isEc2()) {
+        if (!isEc2()) {
             // No instance ID unless we're on EC2
             return Option.none();
         }

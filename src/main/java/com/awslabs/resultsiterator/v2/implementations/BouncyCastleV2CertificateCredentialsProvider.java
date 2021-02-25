@@ -1,6 +1,5 @@
 package com.awslabs.resultsiterator.v2.implementations;
 
-import com.awslabs.general.helpers.interfaces.IoHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
 import com.awslabs.resultsiterator.interfaces.SslContextHelper;
@@ -27,8 +26,6 @@ import java.util.Properties;
 import static com.awslabs.general.helpers.implementations.JsonHelper.fromJson;
 
 public class BouncyCastleV2CertificateCredentialsProvider implements V2CertificateCredentialsProvider {
-    @Inject
-    IoHelper ioHelper;
     @Inject
     SslContextHelper sslContextHelper;
 
