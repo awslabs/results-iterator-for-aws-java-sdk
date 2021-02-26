@@ -12,6 +12,8 @@ import io.vavr.collection.Map;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -738,9 +740,18 @@ public class BasicV2IotHelper implements V2IotHelper {
 
     @Override
     public PKCS10CertificationRequest generateCertificateSigningRequest(KeyPair keyPair, List<Tuple2<String, String>> certificateName) {
+        return generateCertificateSigningRequest(keyPair, certificateName, List.empty());
+    }
+
+    @Override
+    public PKCS10CertificationRequest generateCertificateSigningRequest(KeyPair keyPair, List<Tuple2<String, String>> certificateName, List<Tuple2<ASN1ObjectIdentifier, ASN1Encodable>> attributes) {
         // Guidance from - https://stackoverflow.com/a/20550258
         X500Name x500CertificateName = toX500Name(certificateName);
         PKCS10CertificationRequestBuilder jcaPKCS10CertificationRequestBuilder = new JcaPKCS10CertificationRequestBuilder(x500CertificateName, keyPair.getPublic());
+
+        // Add attributes if there are any
+        attributes.forEach(attribute -> jcaPKCS10CertificationRequestBuilder.addAttribute(attribute._1, attribute._2));
+
         ContentSigner contentSigner = Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_RSA)
                 .build(keyPair.getPrivate()))
                 .get();
@@ -757,6 +768,10 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     private X500Name toX500Name(List<Tuple2<String, String>> input) {
+        if (input.isEmpty()) {
+            throw new RuntimeException("The list of input values can not be empty when generating an X500 name");
+        }
+
         String data = input.map(tuple2 -> String.join(SUBJECT_KEY_VALUE_SEPARATOR, tuple2._1, tuple2._2)).collect(Collectors.joining(SUBJECT_ELEMENT_SEPARATOR));
 
         return new X500Name(data);
