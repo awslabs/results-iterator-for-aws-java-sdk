@@ -6,9 +6,6 @@ plugins {
     id("java-library")
     id("maven")
 
-    // Creates fat JAR
-    id("com.github.johnrengelman.shadow") version "6.1.0"
-
     // Adds dependencyUpdates task
     id("com.github.ben-manes.versions") version "0.36.0"
 }
@@ -22,9 +19,6 @@ idea.module.setDownloadSources(true)
 idea.module.setDownloadJavadoc(true)
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-
-// Required for shadow JAR but we don"t use it. Can not be replaced with application.mainClass.set.
-application.mainClassName = "not-necessary"
 
 val gradleDependencyVersion = "6.8.2"
 
@@ -40,10 +34,6 @@ repositories {
     maven(url = "https://repo.gradle.org/gradle/libs-releases-local/")
 }
 
-tasks.distZip { enabled = false }
-tasks.distTar { enabled = false }
-tasks.shadowDistZip { enabled = false }
-tasks.shadowDistTar { enabled = false }
 
 java {
     withSourcesJar()
