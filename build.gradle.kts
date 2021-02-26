@@ -4,6 +4,7 @@ plugins {
     id("java")
     id("idea")
     id("java-library")
+    id("maven")
 
     // Creates fat JAR
     id("com.github.johnrengelman.shadow") version "6.1.0"
