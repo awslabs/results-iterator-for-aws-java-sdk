@@ -42,7 +42,6 @@ java {
 
 // Specify all of our dependency versions
 val slf4jVersion = "2.0.0-alpha1"
-val jcabiVersion = "0.19.0"
 val awsSdk2Version = "2.16.3"
 val junitVersion = "4.13.2"
 val guavaVersion = "30.1-jre"
@@ -76,7 +75,10 @@ dependencies {
     implementation("org.immutables:value:$immutablesValueVersion")
     implementation("org.immutables:gson:$immutablesValueVersion")
 
-    implementation("org.slf4j:slf4j-log4j12:$slf4jVersion")
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+    implementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("io.vavr:vavr:$vavrVersion")
     implementation("org.apache.commons:commons-text:$commonsTextVersion")
@@ -111,7 +113,6 @@ dependencies {
     testImplementation("software.amazon.awssdk:greengrass:$awsSdk2Version")
     testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
     testImplementation("org.hamcrest:hamcrest-core:$hamcrestVersion")
-    testImplementation("com.jcabi:jcabi-log:$jcabiVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("net.jodah:failsafe:$jodahFailsafeVersion")
 }
