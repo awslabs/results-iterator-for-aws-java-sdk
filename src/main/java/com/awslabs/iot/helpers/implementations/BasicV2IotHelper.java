@@ -29,6 +29,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
@@ -55,6 +56,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -765,6 +767,40 @@ public class BasicV2IotHelper implements V2IotHelper {
         keyPairGenerator.initialize(keySize, new SecureRandom());
 
         return keyPairGenerator.generateKeyPair();
+    }
+
+    private String javaCertificateToPem(java.security.cert.Certificate certificate) {
+        return "-----BEGIN CERTIFICATE-----" +
+                Base64.getEncoder().encodeToString(Try.of(certificate::getEncoded).get()) +
+                "-----END CERTIFICATE-----";
+    }
+
+    @Override
+    public String getFingerprint(java.security.cert.Certificate certificate) {
+        return getFingerprint(javaCertificateToPem(certificate));
+    }
+
+    @Override
+    public String getFingerprint(String pem) {
+        // Get an X509CertificateHolder from the PEM string and then get the fingerprint from that, rethrow all exceptions
+        return getFingerprint(tryGetObjectFromPem(pem, X509CertificateHolder.class).get());
+    }
+
+    @Override
+    public String getFingerprint(X509CertificateHolder x509CertificateHolder) {
+        // Get the DER encoded version of the certificate, rethrow all exceptions
+        byte[] derEncodedCert = Try.of(x509CertificateHolder::getEncoded).get();
+
+        // Get a message digester for SHA-256
+        return Try.of(() -> MessageDigest.getInstance("SHA-256"))
+                // Digest the DER encoded certificate data
+                .map(messageDigest -> messageDigest.digest(derEncodedCert))
+                // Turn it into a hex encoded string (actually an array of characters/bytes that represent the string)
+                .map(Hex::encode)
+                // Convert the array of characters to a string
+                .map(String::new)
+                // Throw an exception if anything fails and return the result to the caller
+                .get();
     }
 
     private X500Name toX500Name(List<Tuple2<String, String>> input) {

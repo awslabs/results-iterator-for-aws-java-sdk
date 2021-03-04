@@ -8,6 +8,7 @@ import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jcajce.provider.asymmetric.X509;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import software.amazon.awssdk.core.SdkBytes;
@@ -151,4 +152,10 @@ public interface V2IotHelper {
     PKCS10CertificationRequest generateCertificateSigningRequest(java.security.KeyPair keyPair, List<Tuple2<String, String>> certificateName, List<Tuple2<ASN1ObjectIdentifier, ASN1Encodable>> attributes);
 
     java.security.KeyPair getRandomRsaKeypair(int keySize);
+
+    String getFingerprint(java.security.cert.Certificate certificate);
+
+    String getFingerprint(X509CertificateHolder x509CertificateHolder);
+
+    String getFingerprint(String pem);
 }
