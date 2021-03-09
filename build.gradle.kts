@@ -41,7 +41,6 @@ java {
 }
 
 // Specify all of our dependency versions
-val slf4jVersion = "2.0.0-alpha1"
 val awsSdk2Version = "2.16.3"
 val junitVersion = "4.13.2"
 val guavaVersion = "30.1-jre"
@@ -56,6 +55,7 @@ val mockitoVersion = "3.7.7"
 val bouncyCastleVersion = "1.68"
 val jodahFailsafeVersion = "2.4.0"
 val gsonVersion = "2.8.6"
+val log4jVersion = "2.13.0"
 
 group = "local"
 version = "1.0-SNAPSHOT"
@@ -75,9 +75,9 @@ dependencies {
     implementation("org.immutables:value:$immutablesValueVersion")
     implementation("org.immutables:gson:$immutablesValueVersion")
 
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
-    implementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    api("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
 
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("io.vavr:vavr:$vavrVersion")
