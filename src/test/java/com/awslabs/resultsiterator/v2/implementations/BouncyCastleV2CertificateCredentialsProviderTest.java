@@ -151,7 +151,6 @@ public class BouncyCastleV2CertificateCredentialsProviderTest {
         V2TestInjector injector = DaggerV2TestInjector.create();
         v2IotHelper = injector.v2IotHelper();
 
-        Security.addProvider(new BouncyCastleProvider());
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
         awsCredentialsProvider = injector.awsCredentialsProvider();
         bouncyCastleV2CertificateCredentialsProvider = mock(BouncyCastleV2CertificateCredentialsProvider.class);

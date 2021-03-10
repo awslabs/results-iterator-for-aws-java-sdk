@@ -8,9 +8,17 @@ import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
 import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
 import dagger.Module;
 import dagger.Provides;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.security.Security;
 
 @Module
 public class SharedModule {
+    static {
+        // Add BouncyCastle as a security provider in just one place
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     @Provides
     public JsonHelper jsonHelper(JsonHelper basicJsonHelper) {
         return basicJsonHelper;

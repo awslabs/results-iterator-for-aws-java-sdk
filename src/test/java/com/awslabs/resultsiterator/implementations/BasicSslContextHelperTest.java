@@ -142,7 +142,6 @@ public class BasicSslContextHelperTest {
         V2TestInjector injector = DaggerV2TestInjector.create();
         v2IotHelper = injector.v2IotHelper();
 
-        Security.addProvider(new BouncyCastleProvider());
         v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
         awsCredentialsProvider = injector.awsCredentialsProvider();
         basicSslContextHelper = mock(BasicSslContextHelper.class);

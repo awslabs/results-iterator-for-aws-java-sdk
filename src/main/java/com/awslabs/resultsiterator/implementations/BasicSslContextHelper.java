@@ -49,7 +49,6 @@ public class BasicSslContextHelper implements SslContextHelper {
                                     ImmutableClientCertFilename clientCertFilename,
                                     ImmutableClientPrivateKeyFilename clientPrivateKeyFilename,
                                     ImmutablePassword password) {
-        Security.addProvider(new BouncyCastleProvider());
 
         JcaX509CertificateConverter jcaX509CertificateConverter = new JcaX509CertificateConverter()
                 .setProvider(BOUNCY_CASTLE_PROVIDER_NAME);

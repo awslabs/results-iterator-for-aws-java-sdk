@@ -9,7 +9,7 @@ import io.vavr.control.Try;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.jcajce.provider.asymmetric.X509;
+import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.iam.model.Role;
@@ -24,6 +24,7 @@ public interface V2IotHelper {
     String FLEET_INDEXING_QUERY_STRING_DELIMITER = ":";
     String THING_GROUP_NAMES = "thingGroupNames";
     String SHA_256_WITH_RSA = "SHA256WithRSA";
+    String SHA_256_WITH_ECDSA = "SHA256withECDSA";
     String SUBJECT_KEY_VALUE_SEPARATOR = "=";
     String SUBJECT_ELEMENT_SEPARATOR = ",";
     String IMMUTABLE_ATTRIBUTE_NAME_OR_VALUE = "immutable";
@@ -139,11 +140,15 @@ public interface V2IotHelper {
 
     <T> Try<T> tryGetObjectFromPem(byte[] pemBytes, Class<T> returnClass);
 
-    RSAPublicKey getRsaPublicKeyFromCsrPem(String csrString);
+    PublicKey getPublicKeyFromCsrPem(String csrString);
 
-    RSAPublicKey getRsaPublicKeyFromCsrPem(byte[] csrBytes);
+    PublicKey getPublicKeyFromCsrPem(byte[] csrBytes);
 
     X509Certificate generateX509Certificate(PublicKey publicKey, List<Tuple2<String, String>> signerName, List<Tuple2<String, String>> commonName);
+
+    ContentSigner getRsaContentSigner(Option<java.security.KeyPair> keyPairOption);
+
+    ContentSigner getEcdsaContentSigner(Option<java.security.KeyPair> keyPairOption);
 
     String toPem(Object object);
 
@@ -152,6 +157,10 @@ public interface V2IotHelper {
     PKCS10CertificationRequest generateCertificateSigningRequest(java.security.KeyPair keyPair, List<Tuple2<String, String>> certificateName, List<Tuple2<ASN1ObjectIdentifier, ASN1Encodable>> attributes);
 
     java.security.KeyPair getRandomRsaKeypair(int keySize);
+
+    java.security.KeyPair getRandomEcKeypair(int keySize);
+
+    java.security.KeyPair getRandomEcdsaKeypair(int keySize);
 
     String getFingerprint(java.security.cert.Certificate certificate);
 

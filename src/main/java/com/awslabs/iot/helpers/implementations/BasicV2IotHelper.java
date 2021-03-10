@@ -21,8 +21,13 @@ import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.ECPointUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -50,7 +55,12 @@ import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.*;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.LocalDate;
 import java.time.Month;
@@ -63,9 +73,19 @@ import java.util.stream.Collectors;
 
 public class BasicV2IotHelper implements V2IotHelper {
     public static final int RSA_SIGNER_KEY_SIZE = 4096;
-    private static final KeyFactory rsaKeyFactory = Try.of(() -> KeyFactory.getInstance("RSA")).get();
-    private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
+    public static final int ECDSA_SIGNER_KEY_SIZE = 256;
+    public static final int RSA_KEY_SIZE = 4096;
+    public static final int EC_KEY_SIZE = 256;
+    public static final String RSA = "RSA";
+    public static final String ECDSA = "ECDSA";
+    public static final String EC = "EC";
+    public static final String PRIME_256_V_1 = "prime256v1";
+    public static final String BC = "BC";
+    public static final String SHA_256 = "SHA-256";
+    private static final KeyFactory rsaKeyFactory = Try.of(() -> KeyFactory.getInstance(RSA)).get();
+    private static final KeyFactory ecKeyFactory = Try.of(() -> KeyFactory.getInstance(EC, new BouncyCastleProvider())).get();
 
+    private final Logger log = LoggerFactory.getLogger(BasicV2IotHelper.class);
     @Inject
     IotClient iotClient;
     @Inject
@@ -664,25 +684,19 @@ public class BasicV2IotHelper implements V2IotHelper {
     }
 
     @Override
-    public RSAPublicKey getRsaPublicKeyFromCsrPem(String csrString) {
-        return getRsaPublicKeyFromCsrPem(csrString.getBytes(StandardCharsets.UTF_8));
+    public PublicKey getPublicKeyFromCsrPem(String csrString) {
+        return getPublicKeyFromCsrPem(csrString.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public RSAPublicKey getRsaPublicKeyFromCsrPem(byte[] csrBytes) {
+    public PublicKey getPublicKeyFromCsrPem(byte[] csrBytes) {
+        JcaPEMKeyConverter pemKeyConverter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
+
         return tryGetObjectFromPem(csrBytes, PKCS10CertificationRequest.class)
                 // Extract the public key info
                 .map(PKCS10CertificationRequest::getSubjectPublicKeyInfo)
-                // Create an asymmetric key parameter object
-                .mapTry(PublicKeyFactory::createKey)
-                // Cast the asymmetric key parameter object to RSA key parameters
-                .map(RSAKeyParameters.class::cast)
-                // Create an RSA public key spec from the key parameters
-                .map(rsaKeyParameters -> new RSAPublicKeySpec(rsaKeyParameters.getModulus(), rsaKeyParameters.getExponent()))
-                // Generate an public key object from the public key spec
-                .mapTry(rsaKeyFactory::generatePublic)
-                // Cast the public key object to an RSA public key
-                .map(RSAPublicKey.class::cast)
+                // Use the PEM key converter to get the public key
+                .mapTry(pemKeyConverter::getPublicKey)
                 // Throw an exception if any step fails, otherwise get the result
                 .get();
     }
@@ -708,16 +722,32 @@ public class BasicV2IotHelper implements V2IotHelper {
                 subPubKeyInfo
         );
 
-        // Get an RSA signer
-        ContentSigner rsaSigner = Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_RSA)
-                .setProvider(new BouncyCastleProvider())
-                .build(getRandomRsaKeypair(RSA_SIGNER_KEY_SIZE).getPrivate())).get();
+        // Get an ECDSA signer
+        ContentSigner ecdsaSigner = getEcdsaContentSigner(Option.none());
 
-        final X509CertificateHolder holder = builder.build(rsaSigner);
+        final X509CertificateHolder holder = builder.build(ecdsaSigner);
 
         return Try.of(() -> new JcaX509CertificateConverter()
                 .setProvider(new BouncyCastleProvider())
                 .getCertificate(holder)).get();
+    }
+
+    @Override
+    public ContentSigner getRsaContentSigner(Option<KeyPair> keyPairOption) {
+        return Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_RSA)
+                .setProvider(new BouncyCastleProvider())
+                .build(keyPairOption.map(KeyPair::getPrivate).getOrElse(() -> getRandomRsaKeypair(RSA_SIGNER_KEY_SIZE).getPrivate())))
+                // Rethrow all exceptions
+                .get();
+    }
+
+    @Override
+    public ContentSigner getEcdsaContentSigner(Option<KeyPair> keyPairOption) {
+        return Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_ECDSA)
+                .setProvider(new BouncyCastleProvider())
+                .build(keyPairOption.map(KeyPair::getPrivate).getOrElse(() -> getRandomEcdsaKeypair(ECDSA_SIGNER_KEY_SIZE).getPrivate())))
+                // Rethrow all exceptions
+                .get();
     }
 
     @Override
@@ -754,16 +784,38 @@ public class BasicV2IotHelper implements V2IotHelper {
         // Add attributes if there are any
         attributes.forEach(attribute -> jcaPKCS10CertificationRequestBuilder.addAttribute(attribute._1, attribute._2));
 
-        ContentSigner contentSigner = Try.of(() -> new JcaContentSignerBuilder(SHA_256_WITH_RSA)
-                .build(keyPair.getPrivate()))
-                .get();
+        ContentSigner contentSigner;
+
+        if (keyPair.getPublic() instanceof RSAPublicKey) {
+            contentSigner = getRsaContentSigner(Option.of(keyPair));
+        } else if (keyPair.getPublic() instanceof ECPublicKey) {
+            contentSigner = getEcdsaContentSigner(Option.of(keyPair));
+        } else {
+            throw new RuntimeException("Unexpected public key type when generating a certificate signing request");
+        }
 
         return jcaPKCS10CertificationRequestBuilder.build(contentSigner);
     }
 
     @Override
     public KeyPair getRandomRsaKeypair(int keySize) {
-        KeyPairGenerator keyPairGenerator = Try.of(() -> KeyPairGenerator.getInstance("RSA")).get();
+        KeyPairGenerator keyPairGenerator = Try.of(() -> KeyPairGenerator.getInstance(RSA, BC)).get();
+        keyPairGenerator.initialize(keySize, new SecureRandom());
+
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    @Override
+    public KeyPair getRandomEcKeypair(int keySize) {
+        KeyPairGenerator keyPairGenerator = Try.of(() -> KeyPairGenerator.getInstance(EC, BC)).get();
+        keyPairGenerator.initialize(keySize, new SecureRandom());
+
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    @Override
+    public KeyPair getRandomEcdsaKeypair(int keySize) {
+        KeyPairGenerator keyPairGenerator = Try.of(() -> KeyPairGenerator.getInstance(ECDSA, BC)).get();
         keyPairGenerator.initialize(keySize, new SecureRandom());
 
         return keyPairGenerator.generateKeyPair();
@@ -792,7 +844,7 @@ public class BasicV2IotHelper implements V2IotHelper {
         byte[] derEncodedCert = Try.of(x509CertificateHolder::getEncoded).get();
 
         // Get a message digester for SHA-256
-        return Try.of(() -> MessageDigest.getInstance("SHA-256"))
+        return Try.of(() -> MessageDigest.getInstance(SHA_256))
                 // Digest the DER encoded certificate data
                 .map(messageDigest -> messageDigest.digest(derEncodedCert))
                 // Turn it into a hex encoded string (actually an array of characters/bytes that represent the string)
@@ -811,5 +863,14 @@ public class BasicV2IotHelper implements V2IotHelper {
         String data = input.map(tuple2 -> String.join(SUBJECT_KEY_VALUE_SEPARATOR, tuple2._1, tuple2._2)).collect(Collectors.joining(SUBJECT_ELEMENT_SEPARATOR));
 
         return new X500Name(data);
+    }
+
+    private PublicKey getPublicKeyFromBytes(byte[] pubKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec(PRIME_256_V_1);
+        ECNamedCurveSpec params = new ECNamedCurveSpec(PRIME_256_V_1, spec.getCurve(), spec.getG(), spec.getN());
+        ECPoint point = ECPointUtil.decodePoint(params.getCurve(), pubKey);
+        ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
+        ECPublicKey pk = (ECPublicKey) ecKeyFactory.generatePublic(pubKeySpec);
+        return pk;
     }
 }

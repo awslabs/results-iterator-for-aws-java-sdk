@@ -26,13 +26,13 @@ import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.*;
 
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
-import static com.awslabs.iot.helpers.implementations.BasicV2IotHelper.FLEET_INDEXING_QUERY_STRING_DELIMITER;
-import static com.awslabs.iot.helpers.implementations.BasicV2IotHelper.THING_GROUP_NAMES;
+import static com.awslabs.iot.helpers.implementations.BasicV2IotHelper.*;
 import static com.awslabs.iot.helpers.interfaces.V2IotHelper.CN;
 import static com.awslabs.iot.helpers.interfaces.V2IotHelper.SUBJECT_KEY_VALUE_SEPARATOR;
 import static com.awslabs.resultsiterator.TestV2ResultsIterator.JUNKFORGROUPTESTING_V2;
@@ -42,7 +42,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
 
 public class BasicV2IotHelperTests {
-    public static final String CSR_TEST_SUBJECT = "test1";
+    public static final String CSR_TEST_SUBJECT = "thing";
     public static final String CERTIFICATE_TEST_ORG = "partner-name";
     public static final String COMMON_NAME_PREFIX = CN + "=";
     private final Logger log = LoggerFactory.getLogger(BasicV2IotHelperTests.class);
@@ -158,7 +158,6 @@ public class BasicV2IotHelperTests {
         testNotMeaningfulWithout("job executions", getJobsExecutionsStream.call());
     }
 
-
     private void waitForNonZeroFleetIndexResult(Callable<Stream> streamCallable) {
         // Wait for the fleet index to settle
         RetryPolicy<Integer> fleetIndexRetryPolicy = new RetryPolicy<Integer>()
@@ -192,12 +191,21 @@ public class BasicV2IotHelperTests {
     }
 
     @Test
-    public void shouldGenerateRandomKeypair() {
+    public void shouldGenerateRandomRsaKeypair() {
         getRandomRsaKeyPair();
     }
 
+    @Test
+    public void shouldGenerateRandomEcKeypair() {
+        getRandomEcKeyPair();
+    }
+
     private java.security.KeyPair getRandomRsaKeyPair() {
-        return new BasicV2IotHelper().getRandomRsaKeypair(4096);
+        return new BasicV2IotHelper().getRandomRsaKeypair(RSA_KEY_SIZE);
+    }
+
+    private java.security.KeyPair getRandomEcKeyPair() {
+        return new BasicV2IotHelper().getRandomEcKeypair(EC_KEY_SIZE);
     }
 
     @Test
@@ -213,20 +221,28 @@ public class BasicV2IotHelperTests {
     }
 
     @Test
-    public void shouldGenerateCertificateSigningRequestAndExtractPublicKey() {
+    public void shouldGenerateRsaCertificateSigningRequestAndExtractPublicKey() {
         java.security.KeyPair randomRsaKeyPair = getRandomRsaKeyPair();
         RSAPublicKey expectedRsaPublicKey = (RSAPublicKey) randomRsaKeyPair.getPublic();
         PKCS10CertificationRequest pkcs10CertificationRequest = v2IotHelper.generateCertificateSigningRequest(randomRsaKeyPair, subjectNameBeforeSigning);
-        RSAPublicKey rsaPublicKeyFromCsrPem = v2IotHelper.getRsaPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
-        assertThat(expectedRsaPublicKey.getPublicExponent(), is(rsaPublicKeyFromCsrPem.getPublicExponent()));
-        assertThat(expectedRsaPublicKey.getModulus(), is(rsaPublicKeyFromCsrPem.getModulus()));
+        RSAPublicKey rsaPublicKeyFromCsrPem = (RSAPublicKey) v2IotHelper.getPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
+        assertThat(expectedRsaPublicKey, is(rsaPublicKeyFromCsrPem));
+    }
+
+    @Test
+    public void shouldGenerateEcCertificateSigningRequestAndExtractPublicKey() {
+        java.security.KeyPair randomEcKeyPair = getRandomEcKeyPair();
+        ECPublicKey expectedEcPublicKey = (ECPublicKey) randomEcKeyPair.getPublic();
+        PKCS10CertificationRequest pkcs10CertificationRequest = v2IotHelper.generateCertificateSigningRequest(randomEcKeyPair, subjectNameBeforeSigning);
+        ECPublicKey ecPublicKeyFromCsrPem = (ECPublicKey) v2IotHelper.getPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
+        assertThat(expectedEcPublicKey, is(ecPublicKeyFromCsrPem));
     }
 
     @Test
     public void shouldGenerateCertificateWithDifferentSubject() {
         PKCS10CertificationRequest pkcs10CertificationRequest = v2IotHelper.generateCertificateSigningRequest(getRandomRsaKeyPair(), subjectNameBeforeSigning);
 
-        RSAPublicKey rsaPublicKeyFromCsrPem = v2IotHelper.getRsaPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
+        RSAPublicKey rsaPublicKeyFromCsrPem = (RSAPublicKey) v2IotHelper.getPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
         X509Certificate x509Certificate = v2IotHelper.generateX509Certificate(rsaPublicKeyFromCsrPem, issuerName, subjectNameAfterSigning);
 
         String issuerPrincipalString = x509Certificate.getIssuerX500Principal().getName();
@@ -239,13 +255,24 @@ public class BasicV2IotHelperTests {
     }
 
     @Test
-    public void shouldRegisterCsr() {
-        // Make sure that the CSRs we generate are valid
-        java.security.KeyPair randomRsaKeyPair = getRandomRsaKeyPair();
+    public void shouldRegisterRsaCsr() {
+        // Make sure that the CSRs we generate for RSA keys are valid
+        createCsrFromKeyPairAndRegister(getRandomRsaKeyPair());
+    }
+
+    @Test
+    public void shouldRegisterEcCsr() {
+        // Make sure that the CSRs we generate for EC keys are valid
+        createCsrFromKeyPairAndRegister(getRandomEcKeyPair());
+    }
+
+    private void createCsrFromKeyPairAndRegister(java.security.KeyPair randomRsaKeyPair) {
         PKCS10CertificationRequest pkcs10CertificationRequest = v2IotHelper.generateCertificateSigningRequest(randomRsaKeyPair, subjectNameBeforeSigning);
 
+        String csr = v2IotHelper.toPem(pkcs10CertificationRequest);
+
         CreateCertificateFromCsrRequest createCertificateFromCsrRequest = CreateCertificateFromCsrRequest.builder()
-                .certificateSigningRequest(v2IotHelper.toPem(pkcs10CertificationRequest))
+                .certificateSigningRequest(csr)
                 // Do not set it as active so we can delete it more easily later
                 .setAsActive(false)
                 .build();
@@ -270,7 +297,7 @@ public class BasicV2IotHelperTests {
         java.security.KeyPair randomRsaKeyPair = getRandomRsaKeyPair();
         PKCS10CertificationRequest pkcs10CertificationRequest = v2IotHelper.generateCertificateSigningRequest(randomRsaKeyPair, subjectNameBeforeSigning);
 
-        RSAPublicKey rsaPublicKeyFromCsrPem = v2IotHelper.getRsaPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
+        RSAPublicKey rsaPublicKeyFromCsrPem = (RSAPublicKey) v2IotHelper.getPublicKeyFromCsrPem(v2IotHelper.toPem(pkcs10CertificationRequest));
         X509Certificate x509Certificate = v2IotHelper.generateX509Certificate(rsaPublicKeyFromCsrPem, issuerName, subjectNameAfterSigning);
 
         RegisterCertificateWithoutCaRequest registerCertificateWithoutCaRequest = RegisterCertificateWithoutCaRequest.builder()
