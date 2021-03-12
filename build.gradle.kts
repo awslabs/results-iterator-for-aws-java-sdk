@@ -55,7 +55,7 @@ val mockitoVersion = "3.7.7"
 val bouncyCastleVersion = "1.68"
 val jodahFailsafeVersion = "2.4.0"
 val gsonVersion = "2.8.6"
-val log4jVersion = "2.13.0"
+val log4jVersion = "2.14.1"
 
 group = "local"
 version = "1.0-SNAPSHOT"
