@@ -41,7 +41,7 @@ java {
 }
 
 // Specify all of our dependency versions
-val awsSdk2Version = "2.16.3"
+val awsSdk2Version = "2.16.19"
 val junitVersion = "4.13.2"
 val guavaVersion = "30.1-jre"
 val hamcrestVersion = "2.2"
