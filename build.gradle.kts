@@ -7,7 +7,7 @@ plugins {
     id("maven")
 
     // Adds dependencyUpdates task
-    id("com.github.ben-manes.versions") version "0.36.0"
+    id("com.github.ben-manes.versions") version "0.38.0"
 }
 
 extensions.findByName("buildScan")?.withGroovyBuilder {
