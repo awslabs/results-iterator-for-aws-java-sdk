@@ -279,9 +279,23 @@ public class BasicIotHelper implements IotHelper {
                 .thingName(thingName.getName())
                 .build();
 
-        return Try.of(() -> iotClient.createThing(createThingRequest).thingArn())
+        return Try.of(() -> iotClient.createThing(createThingRequest))
+                .map(CreateThingResponse::thingArn)
                 .map(thingArnString -> ImmutableThingArn.builder().arn(thingArnString).build())
                 .recover(ResourceAlreadyExistsException.class, throwable -> recoverFromResourceAlreadyExistsException(thingName, throwable))
+                .get();
+    }
+
+    @Override
+    public ThingGroupArn createThingGroup(ThingGroup thingGroup) {
+        CreateThingGroupRequest createThingGroupRequest = CreateThingGroupRequest.builder()
+                .thingGroupName(thingGroup.getName())
+                .build();
+
+        return Try.of(() -> iotClient.createThingGroup(createThingGroupRequest))
+                .map(CreateThingGroupResponse::thingGroupArn)
+                .map(thingGroupArnString -> ImmutableThingGroupArn.builder().arn(thingGroupArnString).build())
+                .recover(ResourceAlreadyExistsException.class, throwable -> recoverFromResourceAlreadyExistsException(thingGroup, throwable))
                 .get();
     }
 
@@ -297,6 +311,20 @@ public class BasicIotHelper implements IotHelper {
                 .build();
 
         return ImmutableThingArn.builder().arn(iotClient.describeThing(describeThingRequest).thingArn()).build();
+    }
+
+    private ImmutableThingGroupArn recoverFromResourceAlreadyExistsException(ThingGroup thingGroup, ResourceAlreadyExistsException throwable) {
+        if (!throwable.getMessage().contains("with different properties")) {
+            throw new RuntimeException(throwable);
+        }
+
+        log.debug(String.join("", "The thing [", thingGroup.getName(), "] already exists with different tags/attributes (e.g. immutable or other attributes)"));
+
+        DescribeThingGroupRequest describeThingGroupRequest = DescribeThingGroupRequest.builder()
+                .thingGroupName(thingGroup.getName())
+                .build();
+
+        return ImmutableThingGroupArn.builder().arn(iotClient.describeThingGroup(describeThingGroupRequest).thingGroupArn()).build();
     }
 
     @Override

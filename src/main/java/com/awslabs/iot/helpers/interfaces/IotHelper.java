@@ -18,7 +18,6 @@ import software.amazon.awssdk.services.iot.model.*;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
 
 public interface IotHelper {
     String FLEET_INDEXING_QUERY_STRING_DELIMITER = ":";
@@ -61,6 +60,8 @@ public interface IotHelper {
     Option<CertificatePem> getCertificatePem(CertificateId certificateId);
 
     ThingArn createThing(ThingName thingName);
+
+    ThingGroupArn createThingGroup(ThingGroup thingGroup);
 
     boolean isThingImmutable(ThingName thingName);
 
