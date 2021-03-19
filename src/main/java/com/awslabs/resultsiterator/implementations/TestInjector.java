@@ -3,6 +3,7 @@ package com.awslabs.resultsiterator.implementations;
 import com.awslabs.iam.helpers.interfaces.IamHelper;
 import com.awslabs.iot.helpers.interfaces.GreengrassHelper;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
+import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
 import com.awslabs.resultsiterator.ResultsIteratorModule;
 import com.awslabs.resultsiterator.interfaces.SslContextHelper;
 import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
@@ -40,4 +41,6 @@ public interface TestInjector {
     SslContextHelper sslContextHelper();
 
     IamHelper iamHelper();
+
+    IotIdExtractor iotIdExtractor();
 }
