@@ -8,25 +8,15 @@ import com.awslabs.general.helpers.interfaces.LambdaPackagingHelper;
 import com.awslabs.general.helpers.interfaces.ProcessHelper;
 import com.awslabs.iam.helpers.implementations.BasicIamHelper;
 import com.awslabs.iam.helpers.interfaces.IamHelper;
-import com.awslabs.iot.helpers.implementations.BasicGreengrassIdExtractor;
-import com.awslabs.iot.helpers.implementations.BasicIotIdExtractor;
-import com.awslabs.iot.helpers.implementations.BasicGreengrassHelper;
-import com.awslabs.iot.helpers.implementations.BasicIotHelper;
-import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
-import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
-import com.awslabs.iot.helpers.interfaces.GreengrassHelper;
-import com.awslabs.iot.helpers.interfaces.IotHelper;
+import com.awslabs.iot.helpers.implementations.*;
+import com.awslabs.iot.helpers.interfaces.*;
 import com.awslabs.lambda.helpers.implementations.BasicLambdaHelper;
 import com.awslabs.lambda.helpers.interfaces.LambdaHelper;
-import com.awslabs.resultsiterator.implementations.BasicSslContextHelper;
-import com.awslabs.resultsiterator.interfaces.SslContextHelper;
+import com.awslabs.resultsiterator.implementations.*;
 import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
 import com.awslabs.resultsiterator.interfaces.ReflectionHelper;
 import com.awslabs.resultsiterator.interfaces.SdkErrorHandler;
-import com.awslabs.resultsiterator.implementations.BasicReflectionHelper;
-import com.awslabs.resultsiterator.implementations.BasicSdkErrorHandler;
-import com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider;
-import com.awslabs.resultsiterator.implementations.SafeProvider;
+import com.awslabs.resultsiterator.interfaces.SslContextHelper;
 import com.awslabs.s3.helpers.implementations.BasicS3Helper;
 import com.awslabs.s3.helpers.interfaces.S3Helper;
 import com.awslabs.sqs.helpers.implementations.BasicSqsHelper;
@@ -250,6 +240,11 @@ public class ResultsIteratorModule {
     @Provides
     public GreengrassHelper greengrassHelper(BasicGreengrassHelper basicGreengrassHelper) {
         return basicGreengrassHelper;
+    }
+
+    @Provides
+    public GreengrassV2Helper greengrassV2Helper(BasicGreengrassV2Helper basicGreengrassV2Helper) {
+        return basicGreengrassV2Helper;
     }
 
     @Provides
