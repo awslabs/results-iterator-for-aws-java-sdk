@@ -94,6 +94,7 @@ dependencies {
     api("software.amazon.awssdk:sts:$awsSdk2Version")
     api("software.amazon.awssdk:s3:$awsSdk2Version")
     api("software.amazon.awssdk:greengrass:$awsSdk2Version")
+    api("software.amazon.awssdk:greengrassv2:$awsSdk2Version")
     api("software.amazon.awssdk:iot:$awsSdk2Version")
     api("software.amazon.awssdk:iotdataplane:$awsSdk2Version")
     api("software.amazon.awssdk:lambda:$awsSdk2Version")

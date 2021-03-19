@@ -1,14 +1,10 @@
 package com.awslabs.resultsiterator.implementations;
 
 import com.awslabs.iot.data.*;
-import com.awslabs.iot.helpers.interfaces.V2IotHelper;
+import com.awslabs.iot.helpers.interfaces.IotHelper;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
-import com.awslabs.resultsiterator.v2.implementations.BouncyCastleV2CertificateCredentialsProvider;
-import com.awslabs.resultsiterator.v2.implementations.DaggerV2TestInjector;
-import com.awslabs.resultsiterator.v2.implementations.V2TestInjector;
-import com.awslabs.resultsiterator.v2.interfaces.V2CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.EncryptionException;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -17,8 +13,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-
-import java.security.Security;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.isA;
@@ -33,7 +27,7 @@ public class BasicSslContextHelperTest {
     public static final String ACCESS_KEY_ID = "accessKeyId";
     public static final String SESSION_TOKEN = "sessionToken";
     public static final String SECRET_ACCESS_KEY = "secretAccessKey";
-    private final Logger log = LoggerFactory.getLogger(BouncyCastleV2CertificateCredentialsProvider.class);
+    private final Logger log = LoggerFactory.getLogger(BouncyCastleCertificateCredentialsProvider.class);
     private final String testCertificate = "-----BEGIN CERTIFICATE-----\n" +
             "MIIDWjCCAkKgAwIBAgIVAPOVItTLTODHH0+aoX32T4RalKPoMA0GCSqGSIb3DQEB\n" +
             "CwUAME0xSzBJBgNVBAsMQkFtYXpvbiBXZWIgU2VydmljZXMgTz1BbWF6b24uY29t\n" +
@@ -54,75 +48,128 @@ public class BasicSslContextHelperTest {
             "has6RX04RZXKCr8Y+ZM0C8JR47dhAW7jGqdaaZ+3hHlb9H4M265IZXKnzxXCPjVM\n" +
             "AF+Re8o48kIkLdw7EPvtoqM64+hB6l0ODOHhNNDxt2oBcXgNbZ0XcMZXTnR/Dw==\n" +
             "-----END CERTIFICATE-----\n";
-    private final String testPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
-            "MIIEpAIBAAKCAQEAvMhm1NoIAchOjka3ArmfIRyeDxlTJ56bPya9TSaGb96fcBzv\n" +
-            "QeSElaVi/xYUXOitBbHqlugvpbBSlu19Y/t7RDNRI1Qn1N458mTdjowUnIkGKRFA\n" +
-            "jQQM+kuyLaFhyBdGNTuINYreR7S1IpzZp3u/CJO5KDVkMZIsjdiwc4+3kZ4lEtrH\n" +
-            "FQq2hlYCp4fRBNZ2SXeneWBof/CAkAQZfpj1+WMtg4r9F7xyXWiCFlfvm/2xdwNX\n" +
-            "zZ5pZmVSaSnKyluYrWUbDW8/72LcP84nTUnGekzchMTXE5AtYoB/IpyVLvkc0UfP\n" +
-            "N4VZYPqnBj7LXNFD/2PpNNfAW4oBU1Zbq2zz1QIDAQABAoIBAQCYz3r1hrt+fd6g\n" +
-            "qjsPuKNHkTucKzq1UlyGRNxsq+ecfE8A2FsPMmPkIii9JOk8v5b2iirDFpUjAFQK\n" +
-            "GZkrKnCAJy3hdAh99ZhgTidNcLRqdTwIWA+xVfsPS+ChsQVOixBonJTICm2dC3in\n" +
-            "2OESAkgDMFhrZLSCr7ji5OkH0eictEo90Nq8YRZJJ6xhjdCMl263PAAy3vPaG0Aj\n" +
-            "mkYEJRz5EF4SLGafwA8HxRKpvgmFD90+xSLNnTKCkAipTcRQyPa+MHN+J0bvhvXW\n" +
-            "5S6VFXtMBNdvSap4fAXqHEvOMWvD6KpnplesbisgG+dKP937+fj1VKdMNK9IWWTH\n" +
-            "QpvlmCjBAoGBAO/JDsr8WBjKznlbF4V7nLwmZyv7NXnR8RYjjLscEnoIzZhCxkJG\n" +
-            "o//j/DM5wwRk2i7XKG5zPRgtVbIdwGkNgK7CwFu8TIAsxsIWB+h6CZXwHqK8k6e5\n" +
-            "Eo3dptGhO/Vv8nnPfsv8IPVxwAPgiGjrRzr34Jx5QjcACHbh5Ru8jm/lAoGBAMmM\n" +
-            "b1BLbTbSnujYzbr0jfkg+KzMRDwm0Gqx1Eyv2OqpEL1gVgsDypIVagmyBS7qP6DX\n" +
-            "D0IdJYB1UTifMaCObidd3JZc5uegYGa/h/UbKdXCtpp4OrZN4PL6sE/hC9/yMiOg\n" +
-            "JIV1zbMUdF7QdJ+MMSBa/rltmHuTM4hEtfob0NUxAoGBAK4XjfP2bofhhzM43cT+\n" +
-            "UHeScknOY68ErENkoCKhaRDNH2gy4vrvitaY0lzmzR59kqN7d1Fpvau2Dof5bd9X\n" +
-            "/Fvl7f8soWZWHCCCGk/BewAvjC6fN50Ik94IVbvRklTKaIPkEK1NayiI495swN1c\n" +
-            "JSU9Hwi8SUThc0PNEqimp8u5AoGAYAStiz1D3Jhe6GNRL74OXR+eGQR/hYCgThRG\n" +
-            "JfqohrLgrLfWhgzaVtoo2FGdMoqaoY+TT1X/ZcF+XlFJHUp9o/eNfXzo7HR1OL4K\n" +
-            "kXTNa28F+3VH004q2tcfZA68z4Xc6SgD/ijvRF98SSdaSCBLzzRKoiBaQpUQOd0y\n" +
-            "LONPjCECgYAlx5nYiywp3S/f9p298h+OiJNz4mrkMb9WomOecUNefpkzEokaLhkG\n" +
-            "vLQasrkMQ6sb5CKH/N/zC6ng0qcouKvOs5U8Vwm7gMMcrELBgsBJEkBz8mRIcaQ2\n" +
-            "7e0dLVnXSvKE5szHL9W+qnYeEad8wsPEn9SD5IqmLYCj+UUw89pshA==\n" +
+    // Generated with "openssl genrsa 4096 | pbcopy"
+    private final String testRSAPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
+            "MIIJJwIBAAKCAgEAscU2DonndcpYIK5fVvnsK+p6N91rTFqimmE9hf6o3ggBqcLC\n" +
+            "Hpq7CvcXZMTMPTjU/FlNGALMR1SJdJTIds0T8AuZaaa9VPT5hxGU0DyuuMXtttuP\n" +
+            "aYgSS1dIhKHnwyETWLujrTgl/jhnt929sl8K/Dda6n27uWyBesjDa8T+8O0a52Q4\n" +
+            "GiZo8YHnsigaqckn/ZkobyQKT2ru+8j0fFZ0nvRx/68RH5jAiM78eTcwM7S5dPkB\n" +
+            "V48svFhixtn2KWn4RSN2EmtDwtCHyqAf/xHZ/19mOMkjUSat4bD4d7GUxwjn9qnc\n" +
+            "oJ2mLALY7gvCkVyHz3CrHMl+tk5lOmOo7AhOwUfGCMdMBEVHdLBQDDueI5cXfWnI\n" +
+            "dWmDZx7kCX+8fnzIYwUG9HNw1Hr8nrP4TaBLHRYL5CZQxnpg/j3TO8DoVqlbl1W0\n" +
+            "rNwfiPeVtYM/5t2GVs8Tb0wmOffJl1oc0S2qHeVK8Vm4c68f6d6YvToJkZhyZRpG\n" +
+            "b0NsHtlZBS3APhEa1BkXlxP/7P148bUut9APLGpRG4OZTEIm83B2lfEYz+vKijai\n" +
+            "PcbvyWyaSfRjZDIk3Cd9zpzucwjyhWy/iCfMYtFj5fz7lMtRHE3H1prQEo2gPcSH\n" +
+            "ZJoC1Mt4gWWsK9nErNFD0HyDEc9nIa5//vZp3DszkUcIycVonxJkNGwQ/k0CAwEA\n" +
+            "AQKCAgBq2rDIgmoHam4Yjtet7yHfr9xw8f3J8nzksOiLP2x/sW5WfUOzo6wkRivg\n" +
+            "nU5qyltzp7XoZd4mThElaz0n89M1KbO4RsptY6cNYisCFEettwNRM557f5gHg1qK\n" +
+            "pssphhsb7gXPW/2yVnM5mOaqbeirfBaA9ry9ExStGjok8E+Rv+O5DIuQZGAWMtBz\n" +
+            "TRnhzpDkJYihbZdo70zhOYSDrHADD8nqN2/ify3Tzh8COYMWwV3sirQczmnEeJg/\n" +
+            "EMqfUBw0asFRBvq/AhttV1yENFXF47ENFxHMeKRyEa74O1zDWn4bzTRZswksUTXV\n" +
+            "uGnmeCkGLqIb9p3ctTixpS/nWIMFOA1fSiPzjNhTlQerJrFiwwUuNflrqZHzgQ8g\n" +
+            "a1y/7H67w2j8LxQgsAnQ4EeJ8e2Go8VHJ/JttkZ61ZMfBS/3BZFY7Qg8ufJ3W/vR\n" +
+            "XtSVTsLf+OT9dzlxpkPBjXZphJMGlsFPU2zHY41C9JfzzFFEbgQ0gb4CHZeBkjMZ\n" +
+            "7E3UN0pl/mnnJ+BqsZ1EFWiFxyAKWANFfGOhYhtJkHcMuYCrHJ+htTI5zaT12Wwv\n" +
+            "S3hy2TjLfad22r7wumjhJSQj+amgHX6beHmziMOBIl/OVPB8RZAZfWsXFX3lz96f\n" +
+            "J1p9IryLy46OANNd9YEYw5mgBLLBPNOcETY9VojbxH+IoV0TXQKCAQEA3r4M4bBw\n" +
+            "YZm6LIs8lBW9uvsJN1wGKDz0fNCbXwATufalj/KHIMv74bERgEgUXP5ABlK2DlV/\n" +
+            "bXj48QmhauZaHuWt/TIcbiRj+0W90wLLjGL7GMBOFGo3I+lblw4aLy8kxp23zew/\n" +
+            "E444fZ6w8jUKcg5mdfk4XR74aASmud2ui4bHk72rJ107iDMAB3FktBII/ngelM8t\n" +
+            "EyEQvF7PTTVJAIypI4RAd/1fL1MjmXuzPH+nLHG7eDk9XTec2ejBiUGSs8cesg4d\n" +
+            "waARxGwwpc5p1AJjLaySEG5qaQTlKeYdewmIPsr7DMEvKQ0fDNjtJQJrdcS1J6cw\n" +
+            "beHzO2eWT+bxbwKCAQEAzFAubu2tPeZUKMEIxmDU09oOV9hSCzPkzP0ZC3ivxKrJ\n" +
+            "ImmbZ3NSV8KCYY81kZKxp71R9UTFydHivW2ma+At6Eqt89HDrtlWMLCofE79cMkC\n" +
+            "fNnoogNs12o+6Y/f/MfbcSu2nRpR8LdcsJXc3Wvh4b3ZAI15RB4rrQ3RtaIT9ns1\n" +
+            "l+fNWzZWitD/Nf36aXkXBYXcaM6K12rS/3kLxn9zaielMOhAnzTVisK+CqLDzRpQ\n" +
+            "Wz1vWdQxJUATFLZDNJ+2xTGszcUGJ2PWmAnsb6tHMYon/a25qdbIsaq7PRG3YnTw\n" +
+            "/Ee7qRrxnEdEOv95BuOffGpjtfwUnZlv8jvIiJ12AwKCAQAx4hQWcyIn6XqVQTV2\n" +
+            "4IuWFWRR/ozudAA496rkEqtYSVF4tFLo2GX3fGUz+nB9Bv+lqt5UxXb9OEtgB80b\n" +
+            "mKz0IHHfs1pEnGe7vTmuyQB21y/ushqKXeMtarR1VtYsXP16cZXZSyAxK/egwmpU\n" +
+            "Q+ar9meh4gdqa2YsPWZtV6UgYDXP83kiHrIXZXyLLizkWumiu5n1r5QjpZMO7Ji2\n" +
+            "bMmFkvrKFnMtrBOmEJN3awmP8fKpdGsMmJ0ShELfVk4JhCLrmhtYuuqVE1kHSUd3\n" +
+            "yotOzJ4Te4NWpLO2Az+jK4LMrCzUCzc/+v+pzON4SBiL4kfYnw4G7F1fLmv/kMpL\n" +
+            "6KeHAoIBABH2kr6KAwtILuoOXrkiVlPx/gTXLg9yFpG3RvZtO/bslRaDdnhX+Uth\n" +
+            "/JibQLh1z0zSJlyMGV+vJmJFO7aMVTzxI+4l6TB8R0msnoOfZkT+R0u21O85od4m\n" +
+            "pzVdwvG0mKSQlVOmtsGVPX8BDhQhohB44pVb2ueUR37FkkSH5X1sQ8ABT1rPojg+\n" +
+            "O9IBbHzNeqqvpDtKvYZHDBoOCG0BU6Jnrexo3xWgTY4PpSnGObTUtW/wLNQXBeMi\n" +
+            "iQrvI2WDDUy1G15UDkB0VK+1X6ZJxs6iOPXiykoWajrEqgWqgxcS9QUZQXSSu99j\n" +
+            "nKobQAbNCH6l0/JyIVXh4afIfc8VGQUCggEASSuG3geuBcDKggtikckJwfsQM6Er\n" +
+            "GugATaGgtZbnCDr0AeNst3EvscItoX5ZBNs+ZRxcPV0mv1U+c2g+93vZqi+1Y3JC\n" +
+            "3PJ5mYY46tSjKmc2m/536kCBfQf0kk+xRM9DfTvjVbl+gslo7Tmo0uJXXfeMKhLT\n" +
+            "ak2qe7KysLu5pbhf8SFU+khpbiAgomgqq3BbF8sVyodvMoXA4KULWSdQbvGLvdet\n" +
+            "7IFC7OidgyoP0KCC5wD3v7J3sY5+UqNg1EIHNARDiohjat6f2rw81zEvU2z1tTMT\n" +
+            "9ve5xAUvfhkOLz76LEyhISNUV3sMjheyHd5qQw14jivLQITXgQzggIZqJw==\n" +
             "-----END RSA PRIVATE KEY-----\n";
-    private final String testEncryptedPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
+    // Generated with "openssl genrsa -aes128 -passout pass:password 4096 | pbcopy"
+    private final String testEncryptedRSAPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
             "Proc-Type: 4,ENCRYPTED\n" +
-            "DEK-Info: AES-128-CBC,52D50A28762C880A362E80696B5D9FC1\n" +
+            "DEK-Info: AES-128-CBC,A18E707E9F8FDA99194DC89DDE23E8FA\n" +
             "\n" +
-            "hR3M3xkzIwvr3+AQi7JCZoD0sTJnXM0jVzKMBh9grAUKE42YesKO7gUJcKIROQMh\n" +
-            "PwsFLCQ/gkDcIN7KCDhMqpnTSOxzIuKz5NMRHFJuHr4AoO33dJEZFYKCulLc6MN4\n" +
-            "xww896zPqMgjpskzB13Zh8iDDL3b0o7toQ3yIMc9DosIRgXBNOYXSGlxeTHT6k4X\n" +
-            "MvjWRjnB7Yk6PFLPp0/hFQ+Cik334xz0K+NTl1tPG34RYXY6Y98AKKbMoXFtzS6x\n" +
-            "2fXzb8wga6zT79d58la7JyR2JM8Euh+Jtx96lk9h5aZGvTSqx8hJM586NTw7PYsR\n" +
-            "fDCNBXIj24LBlC71NQxJ8aif4AOCDaXT6Mpl8iVnKa8/K5h6NXAwpiBie9nF9DVJ\n" +
-            "uvBIXgFOPGeg/xHiuwZLRsQh1zPl1CDpTZbqk4+OLOkYzDb9n4w+phy0tn9s/35e\n" +
-            "UvD99V072MIl9eMurN+X9LJvtEdGlhU6nG9HE7s7l/dvXEr3jzu8C5tyhHAiG7tX\n" +
-            "u2BHfW5RzCHuTWvd1v28xxecmQciLDmk87mCG3VFOfZynKEeJtilc0yTgwdYqgIB\n" +
-            "OXbQIO3f0BI6TKOIpGFlyU1lTQV2vEdFbrcLPfUnVXjEu3fPxcNshSRlGTrgkPT9\n" +
-            "njO0oslKW3PB7qm8XSmYh65nETmTuZKlRpIoS8aIz/OExT77uPbiUoaBTrWaMn9B\n" +
-            "XmeUfZafQDOHjx5o/SDYQy86GMX9rzJfuEFAcLtwr/LML7CkpaPce+OPmFbHC0jw\n" +
-            "ikyJphSJsZDLihldvXvPA8DSfDOmMQ3NG+kW9fgyzQ9IDLFYRagsXGAIucszv0/h\n" +
-            "eziN9rqmM2A9BD3fwbwSOm92CjGZTXkMCZ+Bt6TO9d13a9kJwqEOfNPrpMaagTIt\n" +
-            "coLRwOoEBdaXp9j4gdSFZBxazfSel4ZjxdXroE/6fBD8yqXaqaroXTIoG4GjEZGr\n" +
-            "n/9tHEhdnjloSk1GAbu5ZKADdqPfNdW3UWQl4DoLYpMTFP7uOV1ZAFUzOBibUn/n\n" +
-            "G1yG5cSXSf+Hb/WsKZFNn8+4YkaLONZeIeniqhGWS6y4oWCrHEEoUx1bODIpUhEs\n" +
-            "PWd2ycIWk5ZxgEPizGJLXa9V4/6j1/OU6qM0FLJvD+atrPYmFEtZzNgzeasa/Vx4\n" +
-            "Osif88HK2/QgN+5GM86jmlmtrGroIKaO4tH+JOV1HnrNp/5SEtITcslQkXxeqMo0\n" +
-            "fOD9Nw5o3PvwAbuagKHolKc/DD28In8nqShpkztU+fqd90UtAQNBlRVgRaI+Ag7a\n" +
-            "aJaGrAeoZ8VlX53INd0J2ByviwrPyDK07OoyADer2+ghy26j590yLOJp9efGXYkv\n" +
-            "CHbYQLath8dCUlrPeClA76qYmDpgxdYporDmU1ijmo+mj3tybpfK/CAJjTFjsI1G\n" +
-            "LVzrQDmhbx81W7POBzUjrqvmPL3NxUlHBGoNnd3OBfAJRT5ll5JrLL6l+oSoztff\n" +
-            "ScgLNwjl1PM+PsMd+3AB6voFKEP5C9N8tp3vvajBZXoPnrQMn+udZwD7Stjam3A1\n" +
-            "EHbBUMAcFmV2xbvbWKfftwzfxy+DCek4NJ0yOnNhng99gFZH5VmWU+/+uaHmddE9\n" +
-            "aR7FyeJRX5QJPzsq/5sBraq3rsUsqZwmFRPQa657O1ZoAqLXrn/X3mZtY/Kp39LS\n" +
-            "mROYEDfgo4BGXzAVnl51sEkKQUtk/0Nd1zmt0hFpXc0LSH1ZP5FIAESuBq1Mm5ga\n" +
-            "WnLocFibtyrIIMEN4fb5IP3D2j3999L2xLx/p1yVxBqwmPrHChY8ptlxQJzLpCmH\n" +
-            "pOMpJM/YmyMLrJZIG9irUJLFCyeID+do6ZvDF5W2j8ackb21FoLHEwH4J9YqTEmA\n" +
-            "KyvvzODJeAD6xQJjks7VhF8WtcRfgpxWpSxao1ooPL571Yf40QeaKzeTowfnBtdl\n" +
-            "FnSCpC9CY2+nkHdm56BD2coQxzy3aO4bw3p9MmyCZPtJTjgP8YA6HROkOGGIRQzn\n" +
-            "DsvQ9y/Yec2IS5EWFRT/44YFZlCDpTEwXqRriuqD40gXZO//PE1DDc2GXuVvCyDD\n" +
-            "DkaUD+8gDUURQmIw1KGsidC1kfQnWI/05GkPieH+lIf59NQqpbSNA6YADz+YY9zi\n" +
-            "AEWMcSITxhydyiGCTn98QAhuWEqTqv39pgRqszxluQpMZtfLvZXBFuBIItoxO+mA\n" +
-            "g3gSUT4/H8tf9IqXgMYt6aclPmee0SXtKmmad3uApqy41xP3VNG4lrDNMzRUi0Q3\n" +
-            "9EAENOf7P0KvbjPP+o7gPe8DKlnzRuqMBSWODUiNp7h1yo2c93/Uy8nOTh47nWn5\n" +
-            "o4dvJ56FzIYZ1wzg8Na3aIha5+Fj/T6nmDqCU4lpwrsEBa/cvrllMMTfo4E4hrrr\n" +
+            "Y4sH++r6za2WheAAuhwyFQcbdeXqxft+4vPFtHxRi8O71K78qD3m3ppagHwuXzAp\n" +
+            "Xbu5/GkgMH6iV0p0rRqrzWNGzhK8wCraMWl9g6QQ3KqDqqn4hgbdyLXxKriq7Hmg\n" +
+            "XRHt0YbCdPD0XgZ2LldcX9DnlkJCiLh/eW4QTBfeZZ5t3I06Hzk7aqhVED/n573k\n" +
+            "VMFAo7hlQch7pGCbZo6tQnUt1ZVVtqfQJX2XWwNZH1qXPlVuumchB9ze4HtDPiZl\n" +
+            "t3Y+CGIvnp5nz8CIcU5W0DTqov+NeHYbn2+YtWjcANccOhpqlF4DnwU44BwzJvOD\n" +
+            "12qDoNuxOZ5T3XrsEljv8V8VaOGF6mlKqLcFa0WIswuN3spSIjbB5QJRgzl5BIJw\n" +
+            "+yqa6kVUqG58a7rT3W5mLQ2tCGSJnmBMtXjvwA1T4IoZdhqKbDrF7Ab0BTt9AAnZ\n" +
+            "Gp2x8i4zfb8vHJq3fvFho35XBFotnlHHtzbq4gj+D5My1Pk0JsxazNdVQlIFzQzS\n" +
+            "JLNSxTmN0+EzpqtI5LSvDJDqSbeFV4ZaEtGp12D67bctfv3h6fxznVlrnq3w01Ol\n" +
+            "z/jLd0s/qzFRjLzr3zs8hzo5Oz7DxDKV3SIDaEDm5+oYFH4kOpRuP1dJy57RXk92\n" +
+            "Djj1ccne7PGXRygRv3LrH755gzPnYrxI3U0jdi++TPuFbIlJNURBPusTNQfSt2D+\n" +
+            "4BkoSBcnd6m30xyYWpSgmsbCnRAhzk7sW/BiIbaEBmQOkQmSvHrDeMp7ZOhzphEJ\n" +
+            "m/7AcYgMFkj/Pvb2qD82kpj9jezUccMoVY0iaym3DK2Jb5Rppc4Q3BV7Ds6tysP7\n" +
+            "hiF1jx5UfhuSWBAU4eZDSFTQ+p4JFp1knDfCcpmj520iSiK+8p8nhQXNrT+qeHhl\n" +
+            "TnYapak9khXjo5+6Xw2l000cJFgDsoiGMKxHlJwU57T6+RY52Dl8VikCiBt5xCAq\n" +
+            "WtpmMyMoErgUu9VZ9zGdXr3TBg8dTkYKC9Rlbc/l0NAonOr/9do6zKqwaFhij/u9\n" +
+            "nnxRNNsxfDIGm1cIArJgInUicN/9XKBRyy4r8r+4Zksx1bfbIbpovAKkGWKD/wEQ\n" +
+            "JcPu38fBrn/WLbewPRLpfdXP+D3tsJ5Wl9ACbXo1oLFqQR9CKkTLRjMyd7BZc+P2\n" +
+            "IfwQ83Fkjuc93B9569Qgj/w+Pzq1gxzswqKHpV0jj40Fb5YR7gnLvKL0TEO4TZDJ\n" +
+            "Qd3FT9s2tjp+wD8AC0ybDYq10+po1wKj0+7vBN7Rs8EUo0ypeP5F+DVOeDFt3rL3\n" +
+            "XRZ/EdggIB7tRetR6yIEgCFVzzP28l53zan0FSSBu5b39rCwyz9Y1osXMy4Mm1MZ\n" +
+            "yw3jB+hqkBi1nrbEplARWXKA6Zbcai5uwt7GjtkWBa1h+bqNs/C9WEOMWbIyBL2H\n" +
+            "y+3evyhYp4ojeJN40w8UoGz4N+KX8pHxfbnYd9Pk0JpDri8JD7omkknREHBfAX6T\n" +
+            "4glimVPNK2M2Dpm497749F0BlodCaNmH0js4jJ7PytEP2uZH5ySUqkjxC/lQuj8/\n" +
+            "TDXeH6MO4J+W2Z4L+PLijOaltoLO73ZjZ1Y2GmOk+oqWNzB5tGTfaUmkp8FsyPiU\n" +
+            "tzqTHr8uGbZgh6tSiw3dOCDXLWjhIIzhh7gD/BoAsvw5gP+DSX0lSpcPWf2pH9uG\n" +
+            "4uGU0gALpZFEHm+jJM5B27HgbaWfTcGfGNVseNwqs235JQ2hpb743MRVXTdHLbL5\n" +
+            "qQoX/cGUDnZwknQhVDw8kqDGqiV9FxfO9AXSRzlreV5rUzx8QxppnuIMqAqwo02Q\n" +
+            "8Mi0gvBHQrULfD0A51/oN1Y9caQutsjYYzirRCnddN0kNI3qomr2FFsZDLGWn1XB\n" +
+            "JWO9PaH7mLvI7tQ/XnLXJoCQQBidS9nCm8ZhKnKR5Gs1Zau9d3TKTcGstTlwbyTq\n" +
+            "oV2MVwS/50/QeIzVOHOY1YS9NHiCYezmnIeTB+3HvZbmSEmJYNgZDbV38BhUh6hi\n" +
+            "VoE+hwPU224VGmisRLBsXU1QyvVh8flm7L7mnrgdMoUy6h5piTPisyLu2UTAhpmq\n" +
+            "YVwDfCOrRhYCA3gTtB5AjXFfxi9eYBQXYjJH+bGZVe5nKFpdHbk0Nma4ujOT23A4\n" +
+            "79bGncVYp4lYE1v3hViWtraR6TneF4G7DGR8UZp1XJ8D4edzo75qj+YYfJfd94w9\n" +
+            "B0CJ0RaoFxDA6HuBqtzNwP9knqj4STPIDydXLZp4XZZHJN4GYKRYas8+7V8oD+8a\n" +
+            "v/bQra+PYuxXdCsUESpOHBmBYLAKS3/ZksOuOmztf156VkfXuiR4RwsaLmAHfXXq\n" +
+            "yXtGngadNU1/AlxVgmMDmbNfaG6XXZxOIQd5UhhOfo9jJTpTlJBmuZKT0gHwbLVc\n" +
+            "ir8moiZluBx650Nw/mqLpz273QhxpnpPwaJ1noQPyMmL6xWIfXRNsFqGGjTGVviN\n" +
+            "69hDFvvDP3epY0AHeCjo4c0RPXTqdbYbij8yckLMeHLn5w0l5+zan5X7VdyBfgYR\n" +
+            "qKfDG6aatzpTeLsxBqgMKkn6Rdc8DPPs1ApdFcUS2QZ+T6lcGpsVSdljf2V6B8Tj\n" +
+            "C6KG3bRfeNpvD5WyUswGjNQIlkSAuZD/KPUckThftK4VvGtWX9HsBaW4ILf4zvfi\n" +
+            "TSdrxN8WeDb2CDwcLOy310lJNEcbwrYy+GZ2szn3kn6yEUjSu+SLkkVL29JHGu5L\n" +
+            "6m9y2tVWbx2pqrznvnwjHWysX9Nv1s1/SIGBzNXuvwUXZvY8Y77JbgYiLsN8t+k6\n" +
+            "UgXBQxz5F/6YIvaJkLWZp/fCF5Uc7xMUUrpc4VFgG5judcFwrsj8fdocPeoVxNOx\n" +
+            "d9EHgU8/FAutqecmKSzDFgsRG8G7pwyUX8X0o00SQi/vid2C2WbkI/TN+WyTxbgv\n" +
+            "CcdF63PVWVOfI68PQBz8Aa5hU+jHYaVvLwYzu/Z/w3Pn+KZxOQGW4r25y2mX+1z1\n" +
+            "8GAPGuA2pvfZSZECGnR/s36TaJU+wMkXA8pvsIX1QW0st/i2hRgst4JR/3PARKkJ\n" +
+            "/oHMwfvex1YGXq4f10OhTL0BReYOviiPs0idASkLNg/wo/Zj3ZkaFGgoVgXJAh3c\n" +
+            "rREMfjcTRCNoYgJ9nHQMc6Vuj/oGlGRzDsVABIi+WRGH+QxLLnQE+mic0+HLNTRN\n" +
             "-----END RSA PRIVATE KEY-----\n";
+    // Generated with "openssl ecparam -name prime256v1 -genkey -noout | pbcopy"
+    private final String testECPrivateKey = "-----BEGIN EC PRIVATE KEY-----\n" +
+            "MHcCAQEEIPm1w6XlLlBnzEtkCPE55zDV0iefFWgy8Q0ThKjEFLO5oAoGCCqGSM49\n" +
+            "AwEHoUQDQgAEg8ONn7hmCLnVoXDodZH7UyAj85/fPtNg9Az+K+3Jjmc+8Pz8AWoK\n" +
+            "hLLA92N4KiphWWXRyaf/nGXqzMLX/mRhFA==\n" +
+            "-----END EC PRIVATE KEY-----\n";
+    // Generated with "openssl ecparam -genkey -name prime256v1 | openssl ec -aes128 -passout pass:password | pbcopy"
+    private final String testEncryptedECPrivateKey = "-----BEGIN EC PRIVATE KEY-----\n" +
+            "Proc-Type: 4,ENCRYPTED\n" +
+            "DEK-Info: AES-128-CBC,F755BAFC95F58D55EC28BF62BDA00779\n" +
+            "\n" +
+            "MF4UIIprneEye1t1tNClh3Pg2Dak61xJmPRvFElXy8bzRayWsYmisdZoiXXqrloI\n" +
+            "ZtSpnx6UVLI2lRyfV/vuiDnjnquE1fJ5fP3P22dMMv8wR7d8kxsCNrUYYF8v1hv6\n" +
+            "r/5KuV5s8eIKcmS2XgDOCWrAmpeJGObWVa7xClZr8lE=\n" +
+            "-----END EC PRIVATE KEY-----\n";
     private BasicSslContextHelper basicSslContextHelper;
     private ImmutableCredentialProviderUrl immutableCredentialProviderUrl;
     private ImmutableThingName immutableThingName;
@@ -133,20 +180,20 @@ public class BasicSslContextHelperTest {
     private ImmutablePassword immutablePassword;
     private ImmutableSessionCredentials immutableSessionCredentials;
     private ImmutableIotCredentialsProviderCredentials immutableIotCredentialsProviderCredentials;
-    private V2CertificateCredentialsProvider v2CertificateCredentialsProvider;
+    private CertificateCredentialsProvider certificateCredentialsProvider;
     private AwsCredentialsProvider awsCredentialsProvider;
-    private V2IotHelper v2IotHelper;
+    private IotHelper iotHelper;
 
     @Before
     public void setup() {
-        V2TestInjector injector = DaggerV2TestInjector.create();
-        v2IotHelper = injector.v2IotHelper();
+        TestInjector injector = DaggerTestInjector.create();
+        iotHelper = injector.iotHelper();
 
-        v2CertificateCredentialsProvider = injector.v2CertificateCredentialsProvider();
+        certificateCredentialsProvider = injector.certificateCredentialsProvider();
         awsCredentialsProvider = injector.awsCredentialsProvider();
         basicSslContextHelper = mock(BasicSslContextHelper.class);
 
-        immutableCredentialProviderUrl = ImmutableCredentialProviderUrl.builder().credentialProviderUrl(v2IotHelper.getCredentialProviderUrl()).build();
+        immutableCredentialProviderUrl = ImmutableCredentialProviderUrl.builder().credentialProviderUrl(iotHelper.getCredentialProviderUrl()).build();
         immutableThingName = ImmutableThingName.builder().name(JUNK_CORE).build();
         immutableRoleAlias = ImmutableRoleAlias.builder().name(JUNK).build();
         immutableCaCertFilename = ImmutableCaCertFilename.builder().caCertFilename(JUNK).build();
@@ -174,35 +221,56 @@ public class BasicSslContextHelperTest {
     @Test
     public void shouldProduceAPemKeyPairFromPrivateKeyFile() {
         when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
-        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testPrivateKey.getBytes());
+        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testRSAPrivateKey.getBytes());
         assertThat(objectFromParser, isA(PEMKeyPair.class));
     }
 
     @Test
     public void shouldProduceAPemEncryptedKeyPairFromEncryptedPrivateKeyFile() {
         when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
-        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testEncryptedPrivateKey.getBytes());
+        Object objectFromParser = basicSslContextHelper.getObjectFromParser(testEncryptedRSAPrivateKey.getBytes());
         assertThat(objectFromParser, isA(PEMEncryptedKeyPair.class));
     }
 
     @Test
-    public void shouldGetKeyPairFromPrivateKeyFile() {
+    public void shouldGetRSAKeyPairFromPrivateKeyFile() {
         when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
         when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
-        basicSslContextHelper.getKeyPair(testPrivateKey.getBytes(), ImmutablePassword.builder().build());
+        basicSslContextHelper.getKeyPair(testRSAPrivateKey.getBytes(), ImmutablePassword.builder().build());
     }
 
     @Test
-    public void shouldNotGetKeyPairFromPrivateKeyFileWithWrongPassword() {
+    public void shouldNotGetRSAKeyPairFromPrivateKeyFileWithWrongPassword() {
         when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
         when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
-        assertThrows(EncryptionException.class, () -> basicSslContextHelper.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("fake".toCharArray()).build()));
+        assertThrows(EncryptionException.class, () -> basicSslContextHelper.getKeyPair(testEncryptedRSAPrivateKey.getBytes(), ImmutablePassword.builder().password("fake".toCharArray()).build()));
     }
 
     @Test
-    public void shouldGetKeyPairFromPrivateKeyFileWithCorrectPassword() {
+    public void shouldGetRSAKeyPairFromPrivateKeyFileWithCorrectPassword() {
         when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
         when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
-        basicSslContextHelper.getKeyPair(testEncryptedPrivateKey.getBytes(), ImmutablePassword.builder().password("password".toCharArray()).build());
+        basicSslContextHelper.getKeyPair(testEncryptedRSAPrivateKey.getBytes(), ImmutablePassword.builder().password("password".toCharArray()).build());
+    }
+
+    @Test
+    public void shouldGetECKeyPairFromPrivateKeyFile() {
+        when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        basicSslContextHelper.getKeyPair(testECPrivateKey.getBytes(), ImmutablePassword.builder().build());
+    }
+
+    @Test
+    public void shouldNotGetECKeyPairFromPrivateKeyFileWithWrongPassword() {
+        when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        assertThrows(EncryptionException.class, () -> basicSslContextHelper.getKeyPair(testEncryptedECPrivateKey.getBytes(), ImmutablePassword.builder().password("fake".toCharArray()).build()));
+    }
+
+    @Test
+    public void shouldGetECKeyPairFromPrivateKeyFileWithCorrectPassword() {
+        when(basicSslContextHelper.getKeyPair(any(), any())).thenCallRealMethod();
+        when(basicSslContextHelper.getObjectFromParser(any())).thenCallRealMethod();
+        basicSslContextHelper.getKeyPair(testEncryptedECPrivateKey.getBytes(), ImmutablePassword.builder().password("password".toCharArray()).build());
     }
 }
