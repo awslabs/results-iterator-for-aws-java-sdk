@@ -1,7 +1,7 @@
 package com.awslabs.resultsiterator.implementations;
 
 import com.awslabs.iam.helpers.interfaces.IamHelper;
-import com.awslabs.iot.helpers.interfaces.GreengrassHelper;
+import com.awslabs.iot.helpers.interfaces.GreengrassV1Helper;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
 import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
 import com.awslabs.resultsiterator.ResultsIteratorModule;
@@ -36,7 +36,7 @@ public interface TestInjector {
 
     SqsHelper sqsHelper();
 
-    GreengrassHelper greengrassHelper();
+    GreengrassV1Helper greengrassHelper();
 
     SslContextHelper sslContextHelper();
 

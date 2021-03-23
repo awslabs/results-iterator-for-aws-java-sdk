@@ -73,7 +73,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
-    public GreengrassIdExtractor greengrassIdExtractor(BasicGreengrassIdExtractor basicGreengrassIdExtractor) {
+    public GreengrassV1IdExtractor greengrassIdExtractor(BasicGreengrassV1IdExtractor basicGreengrassIdExtractor) {
         return basicGreengrassIdExtractor;
     }
 
@@ -238,7 +238,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
-    public GreengrassHelper greengrassHelper(BasicGreengrassHelper basicGreengrassHelper) {
+    public GreengrassV1Helper greengrassHelper(BasicGreengrassV1Helper basicGreengrassHelper) {
         return basicGreengrassHelper;
     }
 

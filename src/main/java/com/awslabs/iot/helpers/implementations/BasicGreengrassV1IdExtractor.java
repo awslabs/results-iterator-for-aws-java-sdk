@@ -1,12 +1,12 @@
 package com.awslabs.iot.helpers.implementations;
 
-import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
+import com.awslabs.iot.helpers.interfaces.GreengrassV1IdExtractor;
 
 import javax.inject.Inject;
 
-public class BasicGreengrassIdExtractor implements GreengrassIdExtractor {
+public class BasicGreengrassV1IdExtractor implements GreengrassV1IdExtractor {
     @Inject
-    public BasicGreengrassIdExtractor() {
+    public BasicGreengrassV1IdExtractor() {
     }
 
     @Override

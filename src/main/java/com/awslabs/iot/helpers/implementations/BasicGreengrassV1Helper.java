@@ -5,10 +5,10 @@ import com.awslabs.iam.data.RoleArn;
 import com.awslabs.iam.data.RoleName;
 import com.awslabs.iam.helpers.interfaces.IamHelper;
 import com.awslabs.iot.data.*;
-import com.awslabs.iot.helpers.interfaces.GreengrassIdExtractor;
-import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
-import com.awslabs.iot.helpers.interfaces.GreengrassHelper;
+import com.awslabs.iot.helpers.interfaces.GreengrassV1Helper;
+import com.awslabs.iot.helpers.interfaces.GreengrassV1IdExtractor;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
+import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
 import com.awslabs.resultsiterator.interfaces.ReflectionHelper;
 import io.vavr.collection.List;
@@ -17,20 +17,22 @@ import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.model.*;
 import software.amazon.awssdk.services.iam.model.Role;
 
 import javax.inject.Inject;
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class BasicGreengrassHelper implements GreengrassHelper {
-    private final Logger log = LoggerFactory.getLogger(BasicGreengrassHelper.class);
+public class BasicGreengrassV1Helper implements GreengrassV1Helper {
+    private final Logger log = LoggerFactory.getLogger(BasicGreengrassV1Helper.class);
 
     @Inject
-    GreengrassIdExtractor greengrassIdExtractor;
+    GreengrassV1IdExtractor greengrassV1IdExtractor;
     @Inject
     GreengrassClient greengrassClient;
     @Inject
@@ -43,7 +45,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
     IamHelper iamHelper;
 
     @Inject
-    public BasicGreengrassHelper() {
+    public BasicGreengrassV1Helper() {
     }
 
     @Override
@@ -269,7 +271,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetFunctionDefinitionVersionResponse> getFunctionDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.functionDefinitionVersionArn(), "function", GetFunctionDefinitionVersionRequest.class, GetFunctionDefinitionVersionResponse.class));
     }
 
     @Override
@@ -286,7 +288,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetCoreDefinitionVersionResponse> getCoreDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.coreDefinitionVersionArn(), "core", GetCoreDefinitionVersionRequest.class, GetCoreDefinitionVersionResponse.class));
     }
 
     @Override
@@ -303,7 +305,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetConnectorDefinitionVersionResponse> getConnectorDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.connectorDefinitionVersionArn(), "connector", GetConnectorDefinitionVersionRequest.class, GetConnectorDefinitionVersionResponse.class));
     }
 
     @Override
@@ -320,7 +322,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetResourceDefinitionVersionResponse> getResourceDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.resourceDefinitionVersionArn(), "resource", GetResourceDefinitionVersionRequest.class, GetResourceDefinitionVersionResponse.class));
     }
 
     @Override
@@ -337,7 +339,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetLoggerDefinitionVersionResponse> getLoggerDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.loggerDefinitionVersionArn(), "logger", GetLoggerDefinitionVersionRequest.class, GetLoggerDefinitionVersionResponse.class));
     }
 
     @Override
@@ -354,7 +356,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetSubscriptionDefinitionVersionResponse> getSubscriptionDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.subscriptionDefinitionVersionArn(), "subscription", GetSubscriptionDefinitionVersionRequest.class, GetSubscriptionDefinitionVersionResponse.class));
     }
 
     @Override
@@ -371,7 +373,7 @@ public class BasicGreengrassHelper implements GreengrassHelper {
 
     @Override
     public Option<GetDeviceDefinitionVersionResponse> getDeviceDefinitionVersionResponse(GroupVersion groupVersion) {
-        return Option.of(reflectionHelper.getSingleGreengrassResult(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class));
+        return Option.of(getSingleGreengrassV1Result(groupVersion.deviceDefinitionVersionArn(), "device", GetDeviceDefinitionVersionRequest.class, GetDeviceDefinitionVersionResponse.class));
     }
 
     @Override
@@ -669,5 +671,60 @@ public class BasicGreengrassHelper implements GreengrassHelper {
                 .map(convertFromGroupVersion)
                 .filter(Option::isDefined)
                 .map(Option::get);
+    }
+
+    @Override
+    public <T extends GreengrassResponse> T getSingleGreengrassV1Result(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse) {
+        if (versionArn == null) {
+            // If no version ARN is available then we need to exit early
+            return null;
+        }
+
+        AwsRequest.Builder builder = reflectionHelper.getNewRequestBuilder(greengrassRequest);
+
+        builder = setDefinitionId(builder, prefix, greengrassV1IdExtractor.extractId(versionArn));
+        builder = setDefinitionVersionId(builder, prefix, greengrassV1IdExtractor.extractVersionId(versionArn));
+
+        AwsRequest request = builder.build();
+
+        Option<Method> clientMethodReturningResultOption = reflectionHelper.getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
+
+        if (clientMethodReturningResultOption.isEmpty()) {
+            throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
+        }
+
+        Method clientMethodReturningResult = clientMethodReturningResultOption.get();
+
+        // callMethod throws an exception if the definition does not exist
+        return (T) Try.of(() -> callMethod(greengrassClient, clientMethodReturningResult, request))
+                .getOrNull();
+    }
+
+    private AwsRequest.Builder setDefinitionId(AwsRequest.Builder builder, String prefix, String definitionId) {
+        return callMethod(builder, String.join("", prefix, "DefinitionId"), definitionId);
+    }
+
+    private AwsRequest.Builder setDefinitionVersionId(AwsRequest.Builder builder, String prefix, String definitionVersionId) {
+        return callMethod(builder, String.join("", prefix, "DefinitionVersionId"), definitionVersionId);
+    }
+
+    private AwsRequest.Builder callMethod(AwsRequest.Builder builder, String methodName, String input) {
+        return (AwsRequest.Builder) Try.of(() -> builder.getClass().getMethod(methodName, String.class))
+                .mapTry(method -> callMethod(builder, method, input))
+                .get();
+    }
+
+    private Object callMethod(Object instance, Method method, Object input) {
+        return Try.of(() -> setAccessible(method))
+                // This is necessary because these methods are not accessible by default
+                .mapTry(accessibleMethod -> accessibleMethod.invoke(instance, input))
+                .get();
+    }
+
+    private Method setAccessible(Method method) {
+        // This is necessary because these methods are not accessible by default
+        method.setAccessible(true);
+
+        return method;
     }
 }

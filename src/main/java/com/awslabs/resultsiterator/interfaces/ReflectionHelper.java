@@ -18,6 +18,4 @@ public interface ReflectionHelper {
     AwsRequest getNewRequest(Class<? extends AwsRequest> awsRequestClass);
 
     <T extends AwsRequest> T.Builder getNewRequestBuilder(Class<T> awsRequestClass);
-
-    <T extends GreengrassResponse> T getSingleGreengrassResult(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse);
 }

@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.greengrass.model.*;
 
 import java.util.function.Predicate;
 
-public interface GreengrassHelper {
+public interface GreengrassV1Helper {
     Stream<GroupInformation> getGroups();
 
     Stream<DefinitionInformation> getFunctionDefinitions();
@@ -168,4 +168,6 @@ public interface GreengrassHelper {
     CreateSoftwareUpdateJobResponse updateRaspbianCore(ThingName greengrassCoreThingName, RoleName s3UrlSignerRoleName);
 
     Stream<GroupInformation> getNonImmutableGroups();
+
+    <T extends GreengrassResponse> T getSingleGreengrassV1Result(String versionArn, String prefix, Class<? extends GreengrassRequest> greengrassRequest, Class<T> greengrassResponse);
 }
