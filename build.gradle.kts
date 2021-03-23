@@ -18,7 +18,7 @@ extensions.findByName("buildScan")?.withGroovyBuilder {
 idea.module.isDownloadSources = true
 idea.module.isDownloadJavadoc = true
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(15))
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
 val gradleDependencyVersion = "6.8.3"
 
