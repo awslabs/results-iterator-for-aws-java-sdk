@@ -679,8 +679,8 @@ public class BasicIotHelper implements IotHelper {
         // Must be abstract so we can avoid type erasure get the type information for ThingDocument at runtime.
         //   Specifically this must be done because this API has two methods that return lists (ThingDocument
         //   and ThingGroupDocument)
-        return Stream.ofAll(new ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
-        }.stream());
+        return new ResultsIteratorAbstract<ThingDocument>(iotClient, searchIndexRequest) {
+        }.stream();
     }
 
     @Override

@@ -45,7 +45,7 @@ public class BasicGreengrassV1HelperTests {
 
     @Test
     public void shouldListGreengrassGroupsAndNotThrowAnException() throws Exception {
-        Callable<Stream<GroupInformation>> getStream = () -> Stream.ofAll(greengrassV1Helper.getGroups());
+        Callable<Stream<GroupInformation>> getStream = () -> greengrassV1Helper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getStream.call());
 
         logStreamData(getStream);
@@ -57,7 +57,7 @@ public class BasicGreengrassV1HelperTests {
 
     @Test
     public void shouldListGreengrassGroupSubscriptionsAndNotThrowAnException() throws Exception {
-        Callable<Stream<GroupInformation>> getStream = () -> Stream.ofAll(greengrassV1Helper.getGroups());
+        Callable<Stream<GroupInformation>> getStream = () -> greengrassV1Helper.getGroups();
         testNotMeaningfulWithout("Greengrass groups", getStream.call());
 
         int numberOfSubscriptions = TestHelper.logAndCount(getStream.call()
