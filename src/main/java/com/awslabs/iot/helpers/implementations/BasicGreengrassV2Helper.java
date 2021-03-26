@@ -40,4 +40,9 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
 
         log.debug(String.join("", "Deleted core device [", coreDevice.coreDeviceThingName(), "]"));
     }
+
+    @Override
+    public Stream<Component> getAllComponents() {
+        return new ResultsIterator<Component>(greengrassV2Client, ListComponentsRequest.class).stream();
+    }
 }
