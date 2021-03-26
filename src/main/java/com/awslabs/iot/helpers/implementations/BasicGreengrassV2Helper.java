@@ -6,8 +6,7 @@ import io.vavr.collection.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.greengrassv2.GreengrassV2Client;
-import software.amazon.awssdk.services.greengrassv2.model.Deployment;
-import software.amazon.awssdk.services.greengrassv2.model.ListDeploymentsRequest;
+import software.amazon.awssdk.services.greengrassv2.model.*;
 
 import javax.inject.Inject;
 
@@ -24,5 +23,21 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
     @Override
     public Stream<Deployment> getAllDeployments() {
         return new ResultsIterator<Deployment>(greengrassV2Client, ListDeploymentsRequest.class).stream();
+    }
+
+    @Override
+    public Stream<CoreDevice> getAllCoreDevices() {
+        return new ResultsIterator<CoreDevice>(greengrassV2Client, ListCoreDevicesRequest.class).stream();
+    }
+
+    @Override
+    public void deleteCoreDevice(CoreDevice coreDevice) {
+        DeleteCoreDeviceRequest deleteCoreDeviceRequest = DeleteCoreDeviceRequest.builder()
+                .coreDeviceThingName(coreDevice.coreDeviceThingName())
+                .build();
+
+        greengrassV2Client.deleteCoreDevice(deleteCoreDeviceRequest);
+
+        log.debug(String.join("", "Deleted core device [", coreDevice.coreDeviceThingName(), "]"));
     }
 }
