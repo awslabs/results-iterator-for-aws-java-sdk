@@ -3,11 +3,13 @@ package com.awslabs.s3.helpers.interfaces;
 import com.awslabs.s3.helpers.data.S3Bucket;
 import com.awslabs.s3.helpers.data.S3Key;
 import com.awslabs.s3.helpers.data.S3Path;
+import io.vavr.Tuple2;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
+import java.net.URL;
 
 public interface S3Helper {
     boolean bucketExists(Bucket bucket);
@@ -23,4 +25,8 @@ public interface S3Helper {
     PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, File file);
 
     PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Key s3Key, File file);
+
+    URL getObjectUrl(S3Bucket s3Bucket, S3Key s3Key);
+
+    URL getObjectUrl(Tuple2<S3Bucket, S3Key> bucketAndKey);
 }

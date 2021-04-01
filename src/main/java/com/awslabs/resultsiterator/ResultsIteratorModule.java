@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.LambdaClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -270,5 +271,10 @@ public class ResultsIteratorModule {
     @Provides
     public SslContextHelper sslContextHelper(BasicSslContextHelper basicSslContextHelper) {
         return basicSslContextHelper;
+    }
+
+    @Provides
+    public S3Utilities s3Utilities(AwsRegionProviderChain awsRegionProviderChain) {
+        return S3Utilities.builder().region(awsRegionProviderChain.getRegion()).build();
     }
 }

@@ -3,6 +3,7 @@ package com.awslabs.s3.helpers.implementations;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
 import com.awslabs.s3.helpers.data.*;
 import com.awslabs.s3.helpers.interfaces.S3Helper;
+import io.vavr.Tuple2;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -10,17 +11,21 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.*;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
+import java.net.URL;
 
 public class BasicS3Helper implements S3Helper {
     @Inject
     Provider<S3Client> s3ClientProvider;
     @Inject
     Provider<S3ClientBuilder> s3ClientBuilderProvider;
+    @Inject
+    Provider<S3Utilities> s3UtilitiesProvider;
 
     @Inject
     public BasicS3Helper() {
@@ -148,5 +153,16 @@ public class BasicS3Helper implements S3Helper {
                 .build();
 
         return s3ClientProvider.get().putObject(putObjectRequest, RequestBody.fromFile(file));
+    }
+
+    @Override
+    public URL getObjectUrl(S3Bucket s3Bucket, S3Key s3Key) {
+        GetUrlRequest request = GetUrlRequest.builder().bucket(s3Bucket.bucket()).key(s3Key.key()).build();
+        return s3UtilitiesProvider.get().getUrl(request);
+    }
+
+    @Override
+    public URL getObjectUrl(Tuple2<S3Bucket, S3Key> bucketAndKey) {
+        return getObjectUrl(bucketAndKey._1, bucketAndKey._2);
     }
 }

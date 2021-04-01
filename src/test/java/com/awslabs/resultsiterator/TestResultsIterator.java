@@ -1,13 +1,17 @@
 package com.awslabs.resultsiterator;
 
-import com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider;
-import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
-import com.awslabs.resultsiterator.implementations.ResultsIterator;
-import com.awslabs.resultsiterator.implementations.TestInjector;
+import com.awslabs.resultsiterator.implementations.*;
 import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
+import com.awslabs.s3.helpers.data.ImmutableS3Bucket;
+import com.awslabs.s3.helpers.data.ImmutableS3Key;
+import com.awslabs.s3.helpers.data.S3Bucket;
+import com.awslabs.s3.helpers.data.S3Key;
 import com.awslabs.s3.helpers.interfaces.S3Helper;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +30,8 @@ import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
+
+import java.net.URL;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
@@ -130,13 +136,7 @@ public class TestResultsIterator {
         // NOTE: Setting the useArnRegionEnabled value does not automatically make cross-region requests. Below is some code to deal with that.
         log.info(bucket.name());
 
-        S3Client regionSpecificS3Client = s3Helper.getRegionSpecificClientForBucket(bucket);
-
-        ListObjectsRequest listObjectsRequest = ListObjectsRequest.builder()
-                .bucket(bucket.name())
-                .build();
-
-        ResultsIterator<S3Object> s3ObjectIterator = new ResultsIterator<>(regionSpecificS3Client, listObjectsRequest);
+        ResultsIterator<S3Object> s3ObjectIterator = getS3ObjectResultsIterator(bucket);
 
         Stream<S3Object> s3Objects = s3ObjectIterator.stream();
         s3Objects.map(S3Object::toString).forEach(log::info);
@@ -147,9 +147,34 @@ public class TestResultsIterator {
         return count;
     }
 
+    @NotNull
+    private ResultsIterator<S3Object> getS3ObjectResultsIterator(Bucket bucket) {
+        S3Client regionSpecificS3Client = s3Helper.getRegionSpecificClientForBucket(bucket);
+
+        ListObjectsRequest listObjectsRequest = ListObjectsRequest.builder()
+                .bucket(bucket.name())
+                .build();
+
+        return new ResultsIterator<>(regionSpecificS3Client, listObjectsRequest);
+    }
+
     @Test
     public void shouldThrowExceptionWhenThingNameNotPresent() {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> certificateCredentialsProvider.resolveCredentials());
         assertTrue(exception.getMessage().contains(BouncyCastleCertificateCredentialsProvider.AWS_CREDENTIAL_PROVIDER_URL));
+    }
+
+    @Test
+    public void shouldGetTheUrlOfAnS3ObjectAndNotThrowAnException() {
+        ResultsIterator<Bucket> bucketIterator = new ResultsIterator<>(s3Client, ListBucketsRequest.class);
+        testNotMeaningfulWithout("buckets", bucketIterator.stream());
+
+        Stream<Tuple2<S3Bucket, S3Key>> bucketAndKeyStream = bucketIterator.stream()
+                .map(bucket -> Tuple.of(ImmutableS3Bucket.builder().bucket(bucket.name()).build(), getS3ObjectResultsIterator(bucket)))
+                .flatMap(tuple -> tuple._2.stream().map(innerValue -> Tuple.of(tuple._1, ImmutableS3Key.builder().key(innerValue.key()).build())));
+
+        testNotMeaningfulWithout("S3 objects", bucketAndKeyStream);
+
+        s3Helper.getObjectUrl(bucketAndKeyStream.get());
     }
 }
