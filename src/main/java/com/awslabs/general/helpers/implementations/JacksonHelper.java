@@ -1,5 +1,6 @@
 package com.awslabs.general.helpers.implementations;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vavr.Lazy;
 import io.vavr.control.Try;
@@ -16,7 +17,12 @@ public class JacksonHelper {
         return Try.of(() -> lazyObjectMapper.get().writeValueAsBytes(object));
     }
 
+    public static Try<? extends JsonNode> toJsonNode(Object object) {
+        return Try.of(() -> lazyObjectMapper.get().valueToTree(object));
+    }
+
     private static ObjectMapper getObjectMapper() {
+        // Get an object mapper that also is able to serialize vavr objects
         return new ObjectMapper().registerModule(new VavrModule());
     }
 }
