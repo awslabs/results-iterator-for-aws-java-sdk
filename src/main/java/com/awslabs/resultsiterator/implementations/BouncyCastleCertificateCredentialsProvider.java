@@ -23,7 +23,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import static com.awslabs.general.helpers.implementations.JsonHelper.fromJson;
+import static com.awslabs.general.helpers.implementations.GsonHelper.fromJson;
 
 public class BouncyCastleCertificateCredentialsProvider implements CertificateCredentialsProvider {
     @Inject

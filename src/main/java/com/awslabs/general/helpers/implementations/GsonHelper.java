@@ -6,8 +6,8 @@ import io.vavr.Lazy;
 
 import java.util.ServiceLoader;
 
-public class JsonHelper {
-    private static Lazy<GsonBuilder> lazyGsonBuilder = Lazy.of(JsonHelper::getGsonBuilder);
+public class GsonHelper {
+    private static final Lazy<GsonBuilder> lazyGsonBuilder = Lazy.of(GsonHelper::getGsonBuilder);
 
     public static String toJson(Object object) {
         return lazyGsonBuilder.get()

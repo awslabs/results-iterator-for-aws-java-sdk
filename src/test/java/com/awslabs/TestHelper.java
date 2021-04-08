@@ -1,6 +1,6 @@
 package com.awslabs;
 
-import com.awslabs.general.helpers.implementations.JsonHelper;
+import com.awslabs.general.helpers.implementations.GsonHelper;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
@@ -41,17 +41,13 @@ public class TestHelper {
     }
 
     private static <T> int logObjects(List<T> objects) {
-        JsonHelper jsonHelper = new JsonHelper();
-
-        log.info(jsonHelper.toJson(objects));
+        log.info(GsonHelper.toJson(objects));
 
         return objects.size();
     }
 
     public static <T> int logObject(T object) {
-        JsonHelper jsonHelper = new JsonHelper();
-
-        log.info(jsonHelper.toJson(object));
+        log.info(GsonHelper.toJson(object));
 
         return 1;
     }

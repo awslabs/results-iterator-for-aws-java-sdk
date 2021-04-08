@@ -5,9 +5,6 @@ plugins {
     id("idea")
     id("java-library")
     id("maven")
-
-    // Adds dependencyUpdates task
-    id("com.github.ben-manes.versions") version "0.38.0"
 }
 
 extensions.findByName("buildScan")?.withGroovyBuilder {
@@ -29,7 +26,8 @@ tasks.wrapper {
 
 repositories {
     mavenCentral()
-    mavenLocal()
+    // For Greengrass CLI libraries
+    maven(url = "https://jitpack.io")
     // Required for Gradle Tooling API
     maven(url = "https://repo.gradle.org/gradle/libs-releases-local/")
 }
@@ -57,6 +55,11 @@ val jodahFailsafeVersion = "2.4.0"
 val gsonVersion = "2.8.6"
 val log4jVersion = "2.14.1"
 
+configurations.all {
+    // Check for updates on changing dependencies at most every 10 minutes
+    resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
+}
+
 group = "local"
 version = "1.0-SNAPSHOT"
 
@@ -81,6 +84,7 @@ dependencies {
 
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("io.vavr:vavr:$vavrVersion")
+    implementation("io.vavr:vavr-jackson:$vavrVersion")
     implementation("org.apache.commons:commons-text:$commonsTextVersion")
 
     // For building Lambda functions
@@ -108,6 +112,11 @@ dependencies {
 
     implementation("com.google.code.gson:gson:$gsonVersion")
 
+    // For GreengrassV2 ComponentRecipe class
+    implementation("com.github.aws-greengrass:aws-greengrass-component-common:main-SNAPSHOT") { isChanging = true }
+
+    implementation("net.jodah:failsafe:$jodahFailsafeVersion")
+
     testImplementation("junit:junit:$junitVersion")
     testImplementation("software.amazon.awssdk:iot:$awsSdk2Version")
     testImplementation("software.amazon.awssdk:s3:$awsSdk2Version")
@@ -115,5 +124,4 @@ dependencies {
     testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
     testImplementation("org.hamcrest:hamcrest-core:$hamcrestVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
-    testImplementation("net.jodah:failsafe:$jodahFailsafeVersion")
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
 import static com.awslabs.TestHelper.testNotMeaningfulWithoutAtLeast;
-import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
+import static com.awslabs.general.helpers.implementations.GsonHelper.toJson;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,7 +38,7 @@ public class BasicGreengrassV1HelperTests {
     @Before
     public void setup() {
         TestInjector injector = DaggerTestInjector.create();
-        greengrassV1Helper = injector.greengrassHelper();
+        greengrassV1Helper = injector.greengrassV1Helper();
         iamHelper = injector.iamHelper();
         iotHelper = injector.iotHelper();
     }

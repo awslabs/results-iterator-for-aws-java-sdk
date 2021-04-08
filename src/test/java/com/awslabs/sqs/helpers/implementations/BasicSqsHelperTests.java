@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.LongStream;
 
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
-import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
+import static com.awslabs.general.helpers.implementations.GsonHelper.toJson;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 

@@ -1,12 +1,21 @@
 package com.awslabs.resultsiterator;
 
-import com.awslabs.resultsiterator.implementations.*;
+import com.awslabs.iot.data.ComponentName;
+import com.awslabs.iot.data.ComponentVersion;
+import com.awslabs.iot.data.ImmutableComponentName;
+import com.awslabs.iot.data.ImmutableComponentVersion;
+import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
+import com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider;
+import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
+import com.awslabs.resultsiterator.implementations.ResultsIterator;
+import com.awslabs.resultsiterator.implementations.TestInjector;
 import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.data.ImmutableS3Bucket;
 import com.awslabs.s3.helpers.data.ImmutableS3Key;
 import com.awslabs.s3.helpers.data.S3Bucket;
 import com.awslabs.s3.helpers.data.S3Key;
 import com.awslabs.s3.helpers.interfaces.S3Helper;
+import com.vdurmont.semver4j.Semver;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
@@ -31,10 +40,8 @@ import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
-import java.net.URL;
-
 import static com.awslabs.TestHelper.testNotMeaningfulWithout;
-import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
+import static com.awslabs.general.helpers.implementations.GsonHelper.toJson;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -47,6 +54,7 @@ public class TestResultsIterator {
     private final Logger log = LoggerFactory.getLogger(TestResultsIterator.class);
     private IotClient iotClient;
     private GreengrassClient greengrassClient;
+    private GreengrassV2Helper greengrassV2Helper;
     private S3Helper s3Helper;
     private S3Client s3Client;
     private CertificateCredentialsProvider certificateCredentialsProvider;
@@ -56,6 +64,7 @@ public class TestResultsIterator {
         TestInjector injector = DaggerTestInjector.create();
         iotClient = injector.iotClient();
         greengrassClient = injector.greengrassClient();
+        greengrassV2Helper = injector.greengrassV2Helper();
         s3Helper = injector.s3Helper();
         s3Client = injector.s3Client();
         certificateCredentialsProvider = injector.certificateCredentialsProvider();

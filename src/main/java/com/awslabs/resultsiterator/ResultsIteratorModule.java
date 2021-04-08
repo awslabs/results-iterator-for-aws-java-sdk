@@ -3,7 +3,7 @@ package com.awslabs.resultsiterator;
 import com.awslabs.general.helpers.implementations.BasicLambdaPackagingHelper;
 import com.awslabs.general.helpers.implementations.BasicProcessHelper;
 import com.awslabs.general.helpers.implementations.IoHelper;
-import com.awslabs.general.helpers.implementations.JsonHelper;
+import com.awslabs.general.helpers.implementations.GsonHelper;
 import com.awslabs.general.helpers.interfaces.LambdaPackagingHelper;
 import com.awslabs.general.helpers.interfaces.ProcessHelper;
 import com.awslabs.iam.helpers.implementations.BasicIamHelper;
@@ -64,8 +64,8 @@ public class ResultsIteratorModule {
     }
 
     @Provides
-    public JsonHelper jsonHelper(JsonHelper basicJsonHelper) {
-        return basicJsonHelper;
+    public GsonHelper jsonHelper(GsonHelper basicGsonHelper) {
+        return basicGsonHelper;
     }
 
     @Provides

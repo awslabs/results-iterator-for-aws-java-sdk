@@ -26,7 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.BiFunction;
 
-import static com.awslabs.general.helpers.implementations.JsonHelper.toJson;
+import static com.awslabs.general.helpers.implementations.GsonHelper.toJson;
 import static com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
