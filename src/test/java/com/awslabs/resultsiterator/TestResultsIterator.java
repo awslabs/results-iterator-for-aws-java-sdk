@@ -1,9 +1,5 @@
 package com.awslabs.resultsiterator;
 
-import com.awslabs.iot.data.ComponentName;
-import com.awslabs.iot.data.ComponentVersion;
-import com.awslabs.iot.data.ImmutableComponentName;
-import com.awslabs.iot.data.ImmutableComponentVersion;
 import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
 import com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider;
 import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
@@ -15,7 +11,6 @@ import com.awslabs.s3.helpers.data.ImmutableS3Key;
 import com.awslabs.s3.helpers.data.S3Bucket;
 import com.awslabs.s3.helpers.data.S3Key;
 import com.awslabs.s3.helpers.interfaces.S3Helper;
-import com.vdurmont.semver4j.Semver;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
@@ -184,6 +179,6 @@ public class TestResultsIterator {
 
         testNotMeaningfulWithout("S3 objects", bucketAndKeyStream);
 
-        s3Helper.getObjectUrl(bucketAndKeyStream.get());
+        s3Helper.getObjectHttpsUrl(bucketAndKeyStream.get());
     }
 }

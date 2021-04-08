@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 
 public interface S3Helper {
@@ -26,7 +27,11 @@ public interface S3Helper {
 
     PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Key s3Key, File file);
 
-    URL getObjectUrl(S3Bucket s3Bucket, S3Key s3Key);
+    URL getObjectHttpsUrl(S3Bucket s3Bucket, S3Key s3Key);
 
-    URL getObjectUrl(Tuple2<S3Bucket, S3Key> bucketAndKey);
+    URL getObjectHttpsUrl(Tuple2<S3Bucket, S3Key> bucketAndKey);
+
+    URI getObjectS3Uri(S3Bucket s3Bucket, S3Key s3Key);
+
+    URI getObjectS3Uri(Tuple2<S3Bucket, S3Key> bucketAndKey);
 }

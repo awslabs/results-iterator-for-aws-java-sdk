@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.model.*;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 
 public class BasicS3Helper implements S3Helper {
@@ -156,13 +157,23 @@ public class BasicS3Helper implements S3Helper {
     }
 
     @Override
-    public URL getObjectUrl(S3Bucket s3Bucket, S3Key s3Key) {
+    public URL getObjectHttpsUrl(S3Bucket s3Bucket, S3Key s3Key) {
         GetUrlRequest request = GetUrlRequest.builder().bucket(s3Bucket.bucket()).key(s3Key.key()).build();
         return s3UtilitiesProvider.get().getUrl(request);
     }
 
     @Override
-    public URL getObjectUrl(Tuple2<S3Bucket, S3Key> bucketAndKey) {
-        return getObjectUrl(bucketAndKey._1, bucketAndKey._2);
+    public URL getObjectHttpsUrl(Tuple2<S3Bucket, S3Key> bucketAndKey) {
+        return getObjectHttpsUrl(bucketAndKey._1, bucketAndKey._2);
+    }
+
+    @Override
+    public URI getObjectS3Uri(S3Bucket s3Bucket, S3Key s3Key) {
+        return Try.of(() -> new URI(String.join("", "s3://", s3Bucket.bucket(), "/", s3Key.key()))).get();
+    }
+
+    @Override
+    public URI getObjectS3Uri(Tuple2<S3Bucket, S3Key> bucketAndKey) {
+        return getObjectS3Uri(bucketAndKey._1, bucketAndKey._2);
     }
 }
