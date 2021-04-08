@@ -17,7 +17,7 @@ public class JacksonHelper {
         return Try.of(() -> lazyObjectMapper.get().writeValueAsBytes(object));
     }
 
-    public static Try<? extends JsonNode> toJsonNode(Object object) {
+    public static <T extends JsonNode> Try<T> toJsonNode(Object object) {
         return Try.of(() -> lazyObjectMapper.get().valueToTree(object));
     }
 
