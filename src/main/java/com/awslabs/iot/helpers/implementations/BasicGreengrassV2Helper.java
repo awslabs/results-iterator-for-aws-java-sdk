@@ -87,7 +87,7 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
                 // If there is a conflict, this component version already exists
                 .handle(ConflictException.class)
                 // Retry only once
-                .withMaxAttempts(1)
+                .withMaxRetries(1)
                 // Attempt to delete the component version before retrying and emit a warning
                 .onFailedAttempt(attempt -> log.warn("Component already exists, attempting to delete and recreate it"))
                 .onRetry(attempt -> deleteComponentVersion(componentName, componentVersion));
