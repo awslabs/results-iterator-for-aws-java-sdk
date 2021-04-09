@@ -1,8 +1,13 @@
 package com.awslabs.iot.helpers.implementations;
 
 import com.awslabs.data.NoToString;
+import com.awslabs.iam.data.IamUser;
+import com.awslabs.iam.data.ImmutableIamUser;
 import com.awslabs.iot.data.CertificateArn;
+import com.awslabs.iot.data.ImmutableCertificateArn;
 import com.awslabs.iot.data.ThingPrincipal;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vavr.collection.Stream;
 import io.vavr.collection.Traversable;
 import io.vavr.control.Option;
@@ -14,7 +19,8 @@ import java.util.function.Predicate;
 
 public class ArnHelper {
     public enum ArnType {
-        IOT_CERT("cert", CertificateArn.class);
+        IOT_CERT("cert", CertificateArn.class),
+        IAM_USER("user", IamUser.class);
 
         private final String typeString;
 
@@ -70,7 +76,7 @@ public class ArnHelper {
                 .find(region -> region.id().equals(regionStringOption.get()));
     }
 
-    public static Option<String> getIotArnTypeString(String arn) {
+    public static Option<String> getArnTypeString(String arn) {
         // Split the ARN on colons and only return a value if it is valid
         return getValidArnSplitOnColons(arn)
                 // Get the last element which should be contain the type (cert, cacert, etc), a slash, and the ID
@@ -81,8 +87,8 @@ public class ArnHelper {
                 .map(Traversable::get);
     }
 
-    public static Option<ArnType> getIotArnType(String arn) {
-        return getIotArnTypeString(arn)
+    public static Option<ArnType> getArnType(String arn) {
+        return getArnTypeString(arn)
                 .flatMap(ArnType::valueOfArnTypeString);
     }
 
@@ -122,10 +128,35 @@ public class ArnHelper {
         return Stream.of(arn.split(":"));
     }
 
-    public static Predicate<ThingPrincipal> isCertificate() {
-        return thingPrincipal -> thingPrincipal.getPrincipal().isEmpty();
-//        .startsWith("arn:aws:iot:")
-//                arn:aws:iot:us-east-1:541589084637:cert/51b46a1f1ffa329b4a3914ff8c775fcab80b6084ec7649c1509f5fa5474af622
-//        return null;
+    public static Stream<Tuple2<String, ? extends Class<? extends NoToString>>> getArnStringAndTypeSafeClasses(Stream<ThingPrincipal> thingPrincipalStream) {
+        return thingPrincipalStream
+                .map(ThingPrincipal::getPrincipal)
+                .map(principalArn -> Tuple.of(principalArn, ArnHelper.getArnType(principalArn)))
+                .filter(tuple -> tuple._2.isDefined())
+                .map(tuple -> Tuple.of(tuple._1, tuple._2.get().getTypeSafeClass()));
+    }
+
+    public static Predicate<ThingPrincipal> isIotCertificate() {
+        return thingPrincipal -> getArnStringAndTypeSafeClasses(Stream.of(thingPrincipal))
+                // Make sure the type safe version of this is a CertificateArn
+                .exists(tuple -> tuple._2.isAssignableFrom(CertificateArn.class));
+    }
+
+    public static Predicate<ThingPrincipal> isIamUser() {
+        return thingPrincipal -> getArnStringAndTypeSafeClasses(Stream.of(thingPrincipal))
+                // Make sure the type safe version of this is a CertificateArn
+                .exists(tuple -> tuple._2.isAssignableFrom(IamUser.class));
+    }
+
+    public static Stream<CertificateArn> getCertificateArnsFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
+        return thingPrincipalStream
+                .filter(thingPrincipal -> isIotCertificate().test(thingPrincipal))
+                .map(thingPrincipal -> ImmutableCertificateArn.builder().arn(thingPrincipal.getPrincipal()).build());
+    }
+
+    public static Stream<IamUser> getIamUsersFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
+        return thingPrincipalStream
+                .filter(thingPrincipal -> isIamUser().test(thingPrincipal))
+                .map(thingPrincipal -> ImmutableIamUser.builder().arn(thingPrincipal.getPrincipal()).build());
     }
 }

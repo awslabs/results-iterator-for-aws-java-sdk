@@ -57,7 +57,6 @@ import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
-import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneOffset;
@@ -66,6 +65,8 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.awslabs.iot.helpers.implementations.ArnHelper.isIotCertificate;
 
 public class BasicIotHelper implements IotHelper {
     public static final int RSA_SIGNER_KEY_SIZE = 4096;
@@ -889,12 +890,11 @@ public class BasicIotHelper implements IotHelper {
         return new X500Name(data);
     }
 
-    private PublicKey getPublicKeyFromBytes(byte[] pubKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private Try<PublicKey> getPublicKeyFromBytes(byte[] pubKey) {
         ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec(PRIME_256_V_1);
         ECNamedCurveSpec params = new ECNamedCurveSpec(PRIME_256_V_1, spec.getCurve(), spec.getG(), spec.getN());
         ECPoint point = ECPointUtil.decodePoint(params.getCurve(), pubKey);
         ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
-        ECPublicKey pk = (ECPublicKey) ecKeyFactory.generatePublic(pubKeySpec);
-        return pk;
+        return Try.of(() -> ecKeyFactory.generatePublic(pubKeySpec));
     }
 }
