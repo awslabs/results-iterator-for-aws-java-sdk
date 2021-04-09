@@ -130,6 +130,11 @@ public class ArnHelper {
 
     public static Stream<Tuple2<String, ? extends Class<? extends NoToString>>> getArnStringAndTypeSafeClasses(Stream<ThingPrincipal> thingPrincipalStream) {
         return thingPrincipalStream
+                .flatMap(ArnHelper::getArnStringAndTypeSafeClass);
+    }
+
+    public static Option<Tuple2<String, ? extends Class<? extends NoToString>>> getArnStringAndTypeSafeClass(ThingPrincipal thingPrincipal) {
+        return Option.of(thingPrincipal)
                 .map(ThingPrincipal::getPrincipal)
                 .map(principalArn -> Tuple.of(principalArn, ArnHelper.getArnType(principalArn)))
                 .filter(tuple -> tuple._2.isDefined())
@@ -154,9 +159,21 @@ public class ArnHelper {
                 .map(thingPrincipal -> ImmutableCertificateArn.builder().arn(thingPrincipal.getPrincipal()).build());
     }
 
+    public static Option<CertificateArn> getCertificateArnFromThingPrincipal(ThingPrincipal thingPrincipal) {
+        return Option.of(thingPrincipal)
+                .filter(value -> isIotCertificate().test(value))
+                .map(value -> ImmutableCertificateArn.builder().arn(value.getPrincipal()).build());
+    }
+
     public static Stream<IamUser> getIamUsersFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
         return thingPrincipalStream
                 .filter(thingPrincipal -> isIamUser().test(thingPrincipal))
                 .map(thingPrincipal -> ImmutableIamUser.builder().arn(thingPrincipal.getPrincipal()).build());
+    }
+
+    public static Option<IamUser> getIamUserFromThingPrincipal(ThingPrincipal thingPrincipal) {
+        return Option.of(thingPrincipal)
+                .filter(value -> isIamUser().test(value))
+                .map(value -> ImmutableIamUser.builder().arn(value.getPrincipal()).build());
     }
 }
