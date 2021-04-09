@@ -5,6 +5,7 @@ import com.awslabs.iam.data.IamUser;
 import com.awslabs.iam.data.ImmutableIamUser;
 import com.awslabs.iot.data.CertificateArn;
 import com.awslabs.iot.data.ImmutableCertificateArn;
+import com.awslabs.iot.data.RoleAlias;
 import com.awslabs.iot.data.ThingPrincipal;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -20,7 +21,8 @@ import java.util.function.Predicate;
 public class ArnHelper {
     public enum ArnType {
         IOT_CERT("cert", CertificateArn.class),
-        IAM_USER("user", IamUser.class);
+        IAM_USER("user", IamUser.class),
+        IOT_ROLE_ALIAS("rolealias", RoleAlias.class);
 
         private final String typeString;
 
@@ -136,7 +138,7 @@ public class ArnHelper {
     public static Option<Tuple2<String, ? extends Class<? extends NoToString>>> getArnStringAndTypeSafeClass(ThingPrincipal thingPrincipal) {
         return Option.of(thingPrincipal)
                 .map(ThingPrincipal::getPrincipal)
-                .map(principalArn -> Tuple.of(principalArn, ArnHelper.getArnType(principalArn)))
+                .map(principalArn -> Tuple.of(principalArn, getArnType(principalArn)))
                 .filter(tuple -> tuple._2.isDefined())
                 .map(tuple -> Tuple.of(tuple._1, tuple._2.get().getTypeSafeClass()));
     }
@@ -155,8 +157,7 @@ public class ArnHelper {
 
     public static Stream<CertificateArn> getCertificateArnsFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
         return thingPrincipalStream
-                .filter(thingPrincipal -> isIotCertificate().test(thingPrincipal))
-                .map(thingPrincipal -> ImmutableCertificateArn.builder().arn(thingPrincipal.getPrincipal()).build());
+                .flatMap(ArnHelper::getCertificateArnFromThingPrincipal);
     }
 
     public static Option<CertificateArn> getCertificateArnFromThingPrincipal(ThingPrincipal thingPrincipal) {
@@ -167,8 +168,7 @@ public class ArnHelper {
 
     public static Stream<IamUser> getIamUsersFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
         return thingPrincipalStream
-                .filter(thingPrincipal -> isIamUser().test(thingPrincipal))
-                .map(thingPrincipal -> ImmutableIamUser.builder().arn(thingPrincipal.getPrincipal()).build());
+                .flatMap(ArnHelper::getIamUserFromThingPrincipal);
     }
 
     public static Option<IamUser> getIamUserFromThingPrincipal(ThingPrincipal thingPrincipal) {

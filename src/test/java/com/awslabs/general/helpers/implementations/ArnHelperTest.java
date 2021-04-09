@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ArnHelperTest {
+    public static final String VALID_US_EAST_1_ROLE_ALIAS_STRING = "arn:aws:iot:us-east-1:123451234512:rolealias/somealiasedrole";
     public static final String VALID_US_EAST_1_IOT_CERTIFICATE_ARN_STRING = "arn:aws:iot:us-east-1:123451234512:cert/51b46a1f1ffa329b4a3914ff8c775fcab80b6084ec7649c1509f5fa5474af622";
     public static final ThingPrincipal VALID_US_EAST_1_IOT_THING_PRINCIPAL = ImmutableThingPrincipal.builder().principal(VALID_US_EAST_1_IOT_CERTIFICATE_ARN_STRING).build();
     public static final String INVALID_IOT_CERTIFICATE_ARN_STRING_1 = "arn:aws:iot:us-eas";
@@ -29,6 +30,7 @@ public class ArnHelperTest {
         assertThat(isIotArn().test(VALID_US_EAST_1_IOT_CERTIFICATE_ARN_STRING), is(true));
         assertThat(isIotArn().test(INVALID_IOT_CERTIFICATE_ARN_STRING_1), is(true));
         assertThat(isIotArn().test(INVALID_IOT_CERTIFICATE_ARN_STRING_2), is(true));
+        assertThat(isIotArn().test(VALID_US_EAST_1_ROLE_ALIAS_STRING), is(true));
     }
 
     @Test
@@ -66,8 +68,13 @@ public class ArnHelperTest {
     }
 
     @Test
-    public void shouldReturnCorrectArnTypeOnValidCertificateArn() {
+    public void shouldReturnCorrectArnTypeOnValidCertificateArnString() {
         assertThat(ArnHelper.getArnType(VALID_US_EAST_1_IOT_CERTIFICATE_ARN_STRING), is(Option.some(ArnType.IOT_CERT)));
+    }
+
+    @Test
+    public void shouldReturnCorrectArnTypeOnValidRoleAliasArnString() {
+        assertThat(getArnType(VALID_US_EAST_1_ROLE_ALIAS_STRING), is(Option.some(ArnType.IOT_ROLE_ALIAS)));
     }
 
     @Test
