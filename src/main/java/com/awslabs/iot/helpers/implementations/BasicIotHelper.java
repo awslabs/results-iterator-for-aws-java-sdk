@@ -66,8 +66,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.awslabs.iot.helpers.implementations.ArnHelper.isIotCertificate;
-
 public class BasicIotHelper implements IotHelper {
     public static final int RSA_SIGNER_KEY_SIZE = 4096;
     public static final int ECDSA_SIGNER_KEY_SIZE = 256;
@@ -413,6 +411,16 @@ public class BasicIotHelper implements IotHelper {
                 .build();
 
         return new ResultsIterator<Policy>(iotClient, listAttachedPoliciesRequest).stream();
+    }
+
+    @Override
+    public Option<PolicyDocument> getPolicyDocument(Policy policy) {
+        GetPolicyRequest getPolicyRequest = GetPolicyRequest.builder()
+                .policyName(policy.policyName())
+                .build();
+
+        return Try.of(() -> iotClient.getPolicy(getPolicyRequest).policyDocument()).toOption()
+                .map(policyDocumentString -> ImmutablePolicyDocument.builder().document(policyDocumentString).build());
     }
 
     private CertificateId getCertificateId(CertificateArn certificateArn) {

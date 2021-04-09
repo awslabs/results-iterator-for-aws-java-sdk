@@ -85,6 +85,8 @@ public interface IotHelper {
 
     Stream<Policy> getAttachedPolicies(CertificateArn certificateArn);
 
+    Option<PolicyDocument> getPolicyDocument(Policy policy);
+
     boolean isCaCertificate(CertificateArn certificateArn);
 
     void recursiveDelete(Certificate certificate);
