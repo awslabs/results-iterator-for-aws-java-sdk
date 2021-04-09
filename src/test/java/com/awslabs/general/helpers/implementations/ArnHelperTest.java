@@ -10,7 +10,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ArnHelperTest {
-
     public static final String VALID_US_EAST_1_IOT_CERTIFICATE_ARN = "arn:aws:iot:us-east-1:123451234512:cert/51b46a1f1ffa329b4a3914ff8c775fcab80b6084ec7649c1509f5fa5474af622";
     public static final String INVALID_IOT_CERTIFICATE_ARN_1 = "arn:aws:iot:us-eas";
     public static final String INVALID_IOT_CERTIFICATE_ARN_2 = "arn:aws:iot:us-east-9:123451234512:cert/51b46a1f1ffa329b4a3914ff8c775fcab80b6084ec7649c1509f5fa5474af622";

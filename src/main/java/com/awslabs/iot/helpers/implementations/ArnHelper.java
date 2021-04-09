@@ -1,5 +1,7 @@
 package com.awslabs.iot.helpers.implementations;
 
+import com.awslabs.data.NoToString;
+import com.awslabs.iot.data.CertificateArn;
 import com.awslabs.iot.data.ThingPrincipal;
 import io.vavr.collection.Stream;
 import io.vavr.collection.Traversable;
@@ -12,17 +14,24 @@ import java.util.function.Predicate;
 
 public class ArnHelper {
     public enum ArnType {
-        IOT_CERT("cert");
+        IOT_CERT("cert", CertificateArn.class);
 
         private final String typeString;
 
-        ArnType(String typeString) {
+        private final Class<? extends NoToString> typeSafeClass;
+
+        ArnType(String typeString, Class<? extends NoToString> typeSafeClass) {
             this.typeString = typeString;
+            this.typeSafeClass = typeSafeClass;
         }
 
         public static Option<ArnType> valueOfArnTypeString(String arnTypeString) {
             return Stream.of(values())
                     .find(arnType -> arnType.typeString.equals(arnTypeString));
+        }
+
+        public Class<? extends NoToString> getTypeSafeClass() {
+            return typeSafeClass;
         }
     }
 
