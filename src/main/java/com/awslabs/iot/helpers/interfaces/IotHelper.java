@@ -30,6 +30,7 @@ public interface IotHelper {
     String CACERT_IDENTIFIER = ":cacert/";
     String CN = "CN";
     String O = "O";
+    String IOT_ASSUME_ROLE_WITH_CERTIFICATE = "iot:AssumeRoleWithCertificate";
 
     String getEndpoint(IotEndpointType iotEndpointType);
 
