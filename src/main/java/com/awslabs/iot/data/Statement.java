@@ -1,10 +1,9 @@
 package com.awslabs.iot.data;
 
 import com.awslabs.data.NoToString;
+import io.vavr.collection.List;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
-
-import java.util.List;
 
 @Gson.TypeAdapters
 @Value.Immutable
