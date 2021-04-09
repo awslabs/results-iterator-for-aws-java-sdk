@@ -164,6 +164,17 @@ public class ArnHelper {
                 .isDefined();
     }
 
+    public static Option<String> arnToId(String arn) {
+        Stream<String> splitArn = splitOnSlashes(arn);
+
+        // Valid ARNs have 2 components
+        if (splitArn.size() != 2) {
+            return Option.none();
+        }
+
+        return Option.of(splitArn.get(1));
+    }
+
     public static Stream<CertificateArn> getCertificateArnsFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
         return thingPrincipalStream
                 .flatMap(ArnHelper::getCertificateArnFromThingPrincipal);
