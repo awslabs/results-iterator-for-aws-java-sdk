@@ -9,9 +9,9 @@ import java.util.List;
 @Gson.TypeAdapters
 @Value.Immutable
 public abstract class Statement extends NoToString {
-    abstract Effect getEffect();
+    public abstract Effect getEffect();
 
-    abstract List<String> getAction();
+    public abstract List<String> getAction();
 
-    abstract List<String> getResource();
+    public abstract List<String> getResource();
 }
