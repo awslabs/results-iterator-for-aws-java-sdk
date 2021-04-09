@@ -108,6 +108,16 @@ public class ArnHelperTest {
     }
 
     @Test
+    public void shouldBeARoleAliasOnValidRoleAliasArnString() {
+        assertThat(isRoleAlias().test(VALID_US_EAST_1_ROLE_ALIAS_STRING), is(true));
+    }
+
+    @Test
+    public void shouldNotBeARoleAliasOnValidIamUserArnString() {
+        assertThat(isRoleAlias().test(VALID_IAM_USER_ARN_STRING), is(false));
+    }
+
+    @Test
     public void shouldFilterCertificateArnsFromStreamOfThingPrincipals() {
         List<CertificateArn> certificateArnList = getCertificateArnsFromThingPrincipals(thingPrincipalList.toStream()).toList();
 

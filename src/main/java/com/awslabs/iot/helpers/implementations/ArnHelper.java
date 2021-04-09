@@ -144,15 +144,24 @@ public class ArnHelper {
     }
 
     public static Predicate<ThingPrincipal> isIotCertificate() {
-        return thingPrincipal -> getArnStringAndTypeSafeClasses(Stream.of(thingPrincipal))
+        return thingPrincipal -> getArnType(thingPrincipal.getPrincipal())
                 // Make sure the type safe version of this is a CertificateArn
-                .exists(tuple -> tuple._2.isAssignableFrom(CertificateArn.class));
+                .filter(arnType -> arnType.getTypeSafeClass().isAssignableFrom(CertificateArn.class))
+                .isDefined();
     }
 
     public static Predicate<ThingPrincipal> isIamUser() {
-        return thingPrincipal -> getArnStringAndTypeSafeClasses(Stream.of(thingPrincipal))
-                // Make sure the type safe version of this is a CertificateArn
-                .exists(tuple -> tuple._2.isAssignableFrom(IamUser.class));
+        return thingPrincipal -> getArnType(thingPrincipal.getPrincipal())
+                // Make sure the type safe version of this is an IamUser
+                .filter(arnType -> arnType.getTypeSafeClass().isAssignableFrom(IamUser.class))
+                .isDefined();
+    }
+
+    public static Predicate<String> isRoleAlias() {
+        return string -> getArnType(string)
+                // Make sure the type safe version of this is a RoleAlias
+                .filter(arnType -> arnType.getTypeSafeClass().isAssignableFrom(RoleAlias.class))
+                .isDefined();
     }
 
     public static Stream<CertificateArn> getCertificateArnsFromThingPrincipals(Stream<ThingPrincipal> thingPrincipalStream) {
