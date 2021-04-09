@@ -18,8 +18,8 @@ public class TypeSafePolicyDocument {
     public static final String RESOURCE = "Resource";
     public static final String STATEMENT = "Statement";
     public static final String VERSION = "Version";
-    String Version;
-    List<Statement> Statement;
+    public final String Version;
+    public final List<Statement> Statement;
 
     private TypeSafePolicyDocument(String version, List<Statement> statement) {
         this.Version = version;
@@ -79,12 +79,6 @@ public class TypeSafePolicyDocument {
                 .toList();
 
         return new TypeSafePolicyDocument(version, statementList);
-    }
-
-    private static TypeSafePolicyDocument convertToTypeSafePolicyDocument(List<Tuple3<String, List<String>, List<String>>> processedList) {
-//processedList
-//        .map(element -> toStatement(element))
-        return null;
     }
 
     private static Statement toStatement(Tuple3<String, List<String>, List<String>> element) {
