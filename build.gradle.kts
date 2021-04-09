@@ -29,9 +29,8 @@ repositories {
     // For Greengrass CLI libraries
     maven(url = "https://jitpack.io")
     // Required for Gradle Tooling API
-    maven(url = "https://repo.gradle.org/gradle/libs-releases-local/")
+    maven(url = "https://repo.gradle.org/gradle/libs-releases/")
 }
-
 
 java {
     withSourcesJar()
