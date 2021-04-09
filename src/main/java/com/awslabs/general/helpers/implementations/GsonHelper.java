@@ -3,6 +3,7 @@ package com.awslabs.general.helpers.implementations;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import io.vavr.Lazy;
+import io.vavr.gson.VavrGson;
 
 import java.util.ServiceLoader;
 
@@ -20,6 +21,10 @@ public class GsonHelper {
     private static GsonBuilder getGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
+        // Support vavr
+        VavrGson.registerAll(gsonBuilder);
+
+        // Support immutables
         ServiceLoader.load(TypeAdapterFactory.class)
                 .forEach(gsonBuilder::registerTypeAdapterFactory);
 

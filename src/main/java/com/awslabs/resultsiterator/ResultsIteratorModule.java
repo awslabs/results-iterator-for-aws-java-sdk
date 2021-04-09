@@ -64,7 +64,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
-    public GsonHelper jsonHelper(GsonHelper basicGsonHelper) {
+    public GsonHelper gsonHelper(GsonHelper basicGsonHelper) {
         return basicGsonHelper;
     }
 

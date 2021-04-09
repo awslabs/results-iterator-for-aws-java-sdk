@@ -43,6 +43,7 @@ val junitVersion = "4.13.2"
 val guavaVersion = "30.1-jre"
 val hamcrestVersion = "2.2"
 val vavrVersion = "0.10.3"
+val vavrGsonVersion = "0.10.2"
 val immutablesValueVersion = "2.8.9-ea-1"
 val daggerVersion = "2.33"
 val commonsTextVersion = "1.9"
@@ -83,6 +84,7 @@ dependencies {
 
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("io.vavr:vavr:$vavrVersion")
+    implementation("io.vavr:vavr-gson:$vavrGsonVersion")
     implementation("io.vavr:vavr-jackson:$vavrVersion")
     implementation("org.apache.commons:commons-text:$commonsTextVersion")
 
