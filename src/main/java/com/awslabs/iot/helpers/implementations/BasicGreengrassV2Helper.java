@@ -90,8 +90,8 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
     }
 
     @Override
-    public CreateComponentVersionResponse updateComponent(ComponentRecipe componentRecipe) {
-        ComponentName componentName = ImmutableComponentName.builder().name(componentRecipe.getComponentName()).build();
+    public CreateComponentVersionResponse updateComponent(ComponentRecipe.ComponentRecipeBuilder componentRecipeBuilder) {
+        ComponentName componentName = ImmutableComponentName.builder().name(componentRecipeBuilder.build().getComponentName()).build();
 
         Semver nextVersion = getPrivateComponentByName(componentName)
                 .map(component -> component.latestVersion().componentVersion())
@@ -99,15 +99,17 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
                 .map(Semver::nextMinor)
                 .getOrElse(new Semver("1.0.0"));
 
-        if (componentRecipe.getComponentVersion().isLowerThanOrEqualTo(nextVersion)) {
-            log.warn("Specified component version [" + componentRecipe.getComponentVersion() + "] conflicts with an existing version, version bumped to [" + nextVersion + "]");
+        if (componentRecipeBuilder.build().getComponentVersion().isLowerThanOrEqualTo(nextVersion)) {
+            log.warn("Specified component version [" + componentRecipeBuilder.build().getComponentVersion() + "] conflicts with an existing version, version bumped to [" + nextVersion + "]");
         } else {
-            nextVersion = componentRecipe.getComponentVersion();
+            nextVersion = componentRecipeBuilder.build().getComponentVersion();
         }
 
         ComponentVersion componentVersion = ImmutableComponentVersion.builder().version(nextVersion).build();
 
-        byte[] inlineRecipeBytes = JacksonHelper.toJsonBytes(componentRecipe).get();
+        componentRecipeBuilder.componentVersion(nextVersion);
+
+        byte[] inlineRecipeBytes = JacksonHelper.toJsonBytes(componentRecipeBuilder.build()).get();
         SdkBytes sdkBytesRecipe = SdkBytes.fromByteArray(inlineRecipeBytes);
 
         CreateComponentVersionRequest createComponentVersionRequest = CreateComponentVersionRequest.builder()
