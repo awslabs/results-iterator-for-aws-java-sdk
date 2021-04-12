@@ -24,7 +24,7 @@ public interface GreengrassV2Helper {
 
     Stream<ComponentVersionListItem> getComponentVersions(ComponentArn componentArn);
 
-    Tuple2<ComponentVersion, CreateComponentVersionResponse> updateComponent(ComponentRecipe componentRecipe);
+    CreateComponentVersionResponse updateComponent(ComponentRecipe componentRecipe);
 
     void deleteComponentVersion(ComponentName componentName, ComponentVersion componentVersion);
 

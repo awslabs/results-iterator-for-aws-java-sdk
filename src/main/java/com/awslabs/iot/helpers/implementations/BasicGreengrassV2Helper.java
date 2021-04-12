@@ -9,8 +9,6 @@ import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
 import com.vdurmont.semver4j.Semver;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
@@ -92,7 +90,7 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
     }
 
     @Override
-    public Tuple2<ComponentVersion, CreateComponentVersionResponse> updateComponent(ComponentRecipe componentRecipe) {
+    public CreateComponentVersionResponse updateComponent(ComponentRecipe componentRecipe) {
         ComponentName componentName = ImmutableComponentName.builder().name(componentRecipe.getComponentName()).build();
 
         Semver nextVersion = getPrivateComponentByName(componentName)
@@ -116,7 +114,7 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
                 .inlineRecipe(sdkBytesRecipe)
                 .build();
 
-        return Tuple.of(componentVersion, greengrassV2Client.createComponentVersion(createComponentVersionRequest));
+        return greengrassV2Client.createComponentVersion(createComponentVersionRequest);
     }
 
     @Override
