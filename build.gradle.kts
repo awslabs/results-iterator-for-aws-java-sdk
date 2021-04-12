@@ -116,8 +116,6 @@ dependencies {
     // For GreengrassV2 ComponentRecipe class
     implementation("com.github.aws-greengrass:aws-greengrass-component-common:main-SNAPSHOT") { isChanging = true }
 
-    implementation("net.jodah:failsafe:$jodahFailsafeVersion")
-
     testImplementation("junit:junit:$junitVersion")
     testImplementation("software.amazon.awssdk:iot:$awsSdk2Version")
     testImplementation("software.amazon.awssdk:s3:$awsSdk2Version")
