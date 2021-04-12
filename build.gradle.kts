@@ -37,6 +37,40 @@ java {
     withJavadocJar()
 }
 
+sourceSets.create("integrationTest") {
+    java {
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+        compileClasspath += sourceSets.test.get().output
+        runtimeClasspath += sourceSets.test.get().output
+//        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"] + sourceSets["test"].output
+//        runtimeClasspath += output + compileClasspath + sourceSets["test"].runtimeClasspath
+
+        srcDir(file("src/integration-test/java"))
+    }
+}
+
+configurations.getByName("integrationTestImplementation") { extendsFrom(configurations.testImplementation.get()) }
+configurations.getByName("integrationTestApi") { extendsFrom(configurations.testApi.get()) }
+
+val integrationTestTask = tasks.register("integrationTest", Test::class) {
+    description = "Runs the integration tests."
+    group = "verification"
+    testClassesDirs = sourceSets.getByName("integrationTest").output.classesDirs
+    classpath = sourceSets.getByName("integrationTest").runtimeClasspath
+    outputs.upToDateWhen { false }
+    mustRunAfter(tasks.getByName("test"))
+}
+
+//sourceSets {
+//    create("integrationTest") {
+//        java.srcDir("src/integration-test/java")
+//        resources.srcDir("src/integration-test/resources")
+//        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"] + sourceSets["test"].output
+//        runtimeClasspath += output + compileClasspath + sourceSets["test"].runtimeClasspath
+//    }
+//}
+
 // Specify all of our dependency versions
 val awsSdk2Version = "2.16.20"
 val junitVersion = "4.13.2"
@@ -123,4 +157,5 @@ dependencies {
     testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
     testImplementation("org.hamcrest:hamcrest-core:$hamcrestVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("net.jodah:failsafe:$jodahFailsafeVersion")
 }

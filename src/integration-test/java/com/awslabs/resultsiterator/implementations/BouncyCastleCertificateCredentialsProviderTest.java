@@ -9,8 +9,12 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -28,11 +32,6 @@ import java.util.function.BiFunction;
 
 import static com.awslabs.general.helpers.implementations.GsonHelper.toJson;
 import static com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.Is.isA;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class BouncyCastleCertificateCredentialsProviderTest {
     public static final String JUNK = "junk";
@@ -151,7 +150,7 @@ public class BouncyCastleCertificateCredentialsProviderTest {
 
         certificateCredentialsProvider = injector.certificateCredentialsProvider();
         awsCredentialsProvider = injector.awsCredentialsProvider();
-        bouncyCastleCertificateCredentialsProvider = mock(BouncyCastleCertificateCredentialsProvider.class);
+        bouncyCastleCertificateCredentialsProvider = Mockito.mock(BouncyCastleCertificateCredentialsProvider.class);
         bouncyCastleCertificateCredentialsProvider.sslContextHelper = injector.sslContextHelper();
 
         immutableCredentialProviderUrl = ImmutableCredentialProviderUrl.builder().credentialProviderUrl(iotHelper.getCredentialProviderUrl()).build();
@@ -175,37 +174,37 @@ public class BouncyCastleCertificateCredentialsProviderTest {
     @Test
     public void shouldReturnSessionCredentialsThatMatchTheMockedJsonObject() throws IOException {
         // Mocks
-        HttpClient mockHttpClient = mock(HttpClient.class);
-        HttpResponse mockResponse = mock(HttpResponse.class);
-        HttpEntity mockEntity = mock(HttpEntity.class);
+        HttpClient mockHttpClient = Mockito.mock(HttpClient.class);
+        HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
+        HttpEntity mockEntity = Mockito.mock(HttpEntity.class);
 
         // Data
         String json = toJson(immutableIotCredentialsProviderCredentials);
 
         // Mock wiring
-        when(bouncyCastleCertificateCredentialsProvider.getHttpClient(immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword)).thenReturn(mockHttpClient);
-        when(bouncyCastleCertificateCredentialsProvider.resolveCredentials(any(), any(), any(), any(), any(), any(), any())).thenCallRealMethod();
+        Mockito.when(bouncyCastleCertificateCredentialsProvider.getHttpClient(immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword)).thenReturn(mockHttpClient);
+        Mockito.when(bouncyCastleCertificateCredentialsProvider.resolveCredentials(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenCallRealMethod();
 
-        when(mockEntity.getContent()).thenReturn(new StringInputStream(json));
-        when(mockResponse.getEntity()).thenReturn(mockEntity);
-        when(mockHttpClient.execute(any())).thenReturn(mockResponse);
+        Mockito.when(mockEntity.getContent()).thenReturn(new StringInputStream(json));
+        Mockito.when(mockResponse.getEntity()).thenReturn(mockEntity);
+        Mockito.when(mockHttpClient.execute(ArgumentMatchers.any())).thenReturn(mockResponse);
 
         // Invocation
         AwsCredentials awsCredentials = bouncyCastleCertificateCredentialsProvider.resolveCredentials(immutableCredentialProviderUrl, immutableThingName, immutableRoleAlias, immutableCaCertFilename, immutableClientCertFilename, immutableClientPrivateKeyFilename, immutablePassword);
 
         // Assertions
         // Thing name matches what was provided
-        verify(mockHttpClient).execute(argThat((HttpGet httpGet) -> httpGet.getHeaders(BouncyCastleCertificateCredentialsProvider.X_AMZN_IOT_THINGNAME)[0].getValue().equals(immutableThingName.getName())));
+        Mockito.verify(mockHttpClient).execute(ArgumentMatchers.argThat((HttpGet httpGet) -> httpGet.getHeaders(BouncyCastleCertificateCredentialsProvider.X_AMZN_IOT_THINGNAME)[0].getValue().equals(immutableThingName.getName())));
 
         // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+        MatcherAssert.assertThat(awsCredentials, Is.isA(AwsSessionCredentials.class));
 
         AwsSessionCredentials awsSessionCredentials = (AwsSessionCredentials) awsCredentials;
 
         // Session credentials match what was mocked
-        assertThat(awsSessionCredentials.accessKeyId(), is(ACCESS_KEY_ID));
-        assertThat(awsSessionCredentials.secretAccessKey(), is(SECRET_ACCESS_KEY));
-        assertThat(awsSessionCredentials.sessionToken(), is(SESSION_TOKEN));
+        MatcherAssert.assertThat(awsSessionCredentials.accessKeyId(), Is.is(ACCESS_KEY_ID));
+        MatcherAssert.assertThat(awsSessionCredentials.secretAccessKey(), Is.is(SECRET_ACCESS_KEY));
+        MatcherAssert.assertThat(awsSessionCredentials.sessionToken(), Is.is(SESSION_TOKEN));
     }
 
     @Test
@@ -215,7 +214,7 @@ public class BouncyCastleCertificateCredentialsProviderTest {
         AwsCredentials awsCredentials = certificateCredentialsProvider.resolveCredentials();
 
         // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+        MatcherAssert.assertThat(awsCredentials, Is.isA(AwsSessionCredentials.class));
     }
 
     @Test
@@ -225,7 +224,7 @@ public class BouncyCastleCertificateCredentialsProviderTest {
         AwsCredentials awsCredentials = awsCredentialsProvider.resolveCredentials();
 
         // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+        MatcherAssert.assertThat(awsCredentials, Is.isA(AwsSessionCredentials.class));
     }
 
     @Test
@@ -235,7 +234,7 @@ public class BouncyCastleCertificateCredentialsProviderTest {
         AwsCredentials awsCredentials = certificateCredentialsProvider.resolveCredentials();
 
         // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+        MatcherAssert.assertThat(awsCredentials, Is.isA(AwsSessionCredentials.class));
     }
 
     @Test
@@ -245,7 +244,7 @@ public class BouncyCastleCertificateCredentialsProviderTest {
         AwsCredentials awsCredentials = awsCredentialsProvider.resolveCredentials();
 
         // AWS credentials returned are session credentials
-        assertThat(awsCredentials, isA(AwsSessionCredentials.class));
+        MatcherAssert.assertThat(awsCredentials, Is.isA(AwsSessionCredentials.class));
     }
 
     private void setupSystemPropertiesForCertificateCredentialsProviderFromStaticValues() {
