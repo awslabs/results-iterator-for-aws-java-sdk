@@ -7,6 +7,9 @@ plugins {
     id("maven-publish")
 }
 
+// Required for Gradle 7.0 and JitPack
+publishing.publications.create<MavenPublication>("maven").from(components["java"])
+
 extensions.findByName("buildScan")?.withGroovyBuilder {
     setProperty("termsOfServiceUrl", "https://gradle.com/terms-of-service")
     setProperty("termsOfServiceAgree", "yes")
@@ -43,8 +46,6 @@ sourceSets.create("integrationTest") {
         runtimeClasspath += sourceSets.main.get().output
         compileClasspath += sourceSets.test.get().output
         runtimeClasspath += sourceSets.test.get().output
-//        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"] + sourceSets["test"].output
-//        runtimeClasspath += output + compileClasspath + sourceSets["test"].runtimeClasspath
 
         srcDir(file("src/integration-test/java"))
     }
@@ -61,15 +62,6 @@ val integrationTestTask = tasks.register("integrationTest", Test::class) {
     outputs.upToDateWhen { false }
     mustRunAfter(tasks.getByName("test"))
 }
-
-//sourceSets {
-//    create("integrationTest") {
-//        java.srcDir("src/integration-test/java")
-//        resources.srcDir("src/integration-test/resources")
-//        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"] + sourceSets["test"].output
-//        runtimeClasspath += output + compileClasspath + sourceSets["test"].runtimeClasspath
-//    }
-//}
 
 // Specify all of our dependency versions
 val awsSdk2Version = "2.16.20"
@@ -159,3 +151,4 @@ dependencies {
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("net.jodah:failsafe:$jodahFailsafeVersion")
 }
+
