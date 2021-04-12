@@ -5,6 +5,7 @@ import com.awslabs.iot.data.ComponentArn;
 import com.awslabs.iot.data.ComponentName;
 import com.awslabs.iot.data.ComponentVersion;
 import com.awslabs.iot.data.ThingName;
+import io.vavr.Tuple2;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import software.amazon.awssdk.services.greengrassv2.model.*;
@@ -23,7 +24,7 @@ public interface GreengrassV2Helper {
 
     Stream<ComponentVersionListItem> getComponentVersions(ComponentArn componentArn);
 
-    CreateComponentVersionResponse createOrOverwriteComponent(ComponentRecipe componentRecipe);
+    Tuple2<ComponentVersion, CreateComponentVersionResponse> updateComponent(ComponentRecipe componentRecipe);
 
     void deleteComponentVersion(ComponentName componentName, ComponentVersion componentVersion);
 

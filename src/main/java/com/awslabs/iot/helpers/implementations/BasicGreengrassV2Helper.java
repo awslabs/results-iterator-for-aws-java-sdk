@@ -8,12 +8,13 @@ import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
+import com.vdurmont.semver4j.Semver;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
@@ -91,9 +92,22 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
     }
 
     @Override
-    public CreateComponentVersionResponse createOrOverwriteComponent(ComponentRecipe componentRecipe) {
+    public Tuple2<ComponentVersion, CreateComponentVersionResponse> updateComponent(ComponentRecipe componentRecipe) {
         ComponentName componentName = ImmutableComponentName.builder().name(componentRecipe.getComponentName()).build();
-        ComponentVersion componentVersion = ImmutableComponentVersion.builder().version(componentRecipe.getComponentVersion()).build();
+
+        Semver nextVersion = getPrivateComponentByName(componentName)
+                .map(component -> component.latestVersion().componentVersion())
+                .map(Semver::new)
+                .map(Semver::nextMinor)
+                .getOrElse(new Semver("1.0.0"));
+
+        if (componentRecipe.getComponentVersion().isLowerThanOrEqualTo(nextVersion)) {
+            log.warn("Specified component version [" + componentRecipe.getComponentVersion() + "] conflicts with an existing version, version bumped to [" + nextVersion + "]");
+        } else {
+            nextVersion = componentRecipe.getComponentVersion();
+        }
+
+        ComponentVersion componentVersion = ImmutableComponentVersion.builder().version(nextVersion).build();
 
         byte[] inlineRecipeBytes = JacksonHelper.toJsonBytes(componentRecipe).get();
         SdkBytes sdkBytesRecipe = SdkBytes.fromByteArray(inlineRecipeBytes);
@@ -102,23 +116,12 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
                 .inlineRecipe(sdkBytesRecipe)
                 .build();
 
-        RetryPolicy<CreateComponentVersionResponse> createComponentVersionResponseRetryPolicy = new RetryPolicy<CreateComponentVersionResponse>()
-                // If there is a conflict, this component version already exists
-                .handle(ConflictException.class)
-                // Retry only once
-                .withMaxRetries(1)
-                // Attempt to delete the component version before retrying and emit a warning
-                .onFailedAttempt(attempt -> log.warn("Component already exists, attempting to delete and recreate it"))
-                .onRetry(attempt -> deleteComponentVersion(componentName, componentVersion));
-
-        return Failsafe.with(createComponentVersionResponseRetryPolicy).get(() -> greengrassV2Client.createComponentVersion(createComponentVersionRequest));
+        return Tuple.of(componentVersion, greengrassV2Client.createComponentVersion(createComponentVersionRequest));
     }
 
     @Override
     public void deleteComponentVersion(ComponentName componentName, ComponentVersion componentVersion) {
-        Option<Component> componentOption = getAllPrivateComponents()
-                .filter(component -> component.componentName().equals(componentName.getName()))
-                .toOption();
+        Option<Component> componentOption = getPrivateComponentByName(componentName);
 
         if (componentOption.isEmpty()) {
             // Component doesn't exist, do nothing
@@ -143,6 +146,12 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
                 .build();
 
         greengrassV2Client.deleteComponent(deleteComponentRequest);
+    }
+
+    private Option<Component> getPrivateComponentByName(ComponentName componentName) {
+        return getAllPrivateComponents()
+                .filter(component -> component.componentName().equals(componentName.getName()))
+                .toOption();
     }
 
     @Override
