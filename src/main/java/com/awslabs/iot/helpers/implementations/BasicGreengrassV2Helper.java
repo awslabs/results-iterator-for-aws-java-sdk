@@ -96,7 +96,7 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
         Semver nextVersion = getPrivateComponentByName(componentName)
                 .map(component -> component.latestVersion().componentVersion())
                 .map(Semver::new)
-                .map(Semver::nextMinor)
+                .map(Semver::nextPatch)
                 .getOrElse(new Semver("1.0.0"));
 
         if (componentRecipeBuilder.build().getComponentVersion().isLowerThanOrEqualTo(nextVersion)) {

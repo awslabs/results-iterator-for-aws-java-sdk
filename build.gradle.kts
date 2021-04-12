@@ -89,8 +89,6 @@ configurations.all {
 group = "local"
 version = "1.0-SNAPSHOT"
 
-description = """"""
-
 dependencies {
     annotationProcessor("org.immutables:value:$immutablesValueVersion")
     annotationProcessor("org.immutables:gson:$immutablesValueVersion")
