@@ -105,8 +105,6 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
             nextVersion = componentRecipeBuilder.build().getComponentVersion();
         }
 
-        ComponentVersion componentVersion = ImmutableComponentVersion.builder().version(nextVersion).build();
-
         componentRecipeBuilder.componentVersion(nextVersion);
 
         byte[] inlineRecipeBytes = JacksonHelper.toJsonBytes(componentRecipeBuilder.build()).get();
