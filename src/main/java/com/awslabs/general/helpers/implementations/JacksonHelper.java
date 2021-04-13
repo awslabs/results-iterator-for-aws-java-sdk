@@ -11,20 +11,24 @@ public class JacksonHelper {
     private static final Lazy<ObjectMapper> lazyObjectMapper = Lazy.of(JacksonHelper::getObjectMapper);
     private static final Lazy<ObjectMapper> lazyYamlObjectMapper = Lazy.of(JacksonHelper::getYamlObjectMapper);
 
-    public static Try<String> toJsonString(Object object) {
+    public static Try<String> tryToJsonString(Object object) {
         return Try.of(() -> lazyObjectMapper.get().writeValueAsString(object));
     }
 
-    public static Try<String> toYamlString(Object object) {
+    public static Try<String> tryToYamlString(Object object) {
         return Try.of(() -> lazyYamlObjectMapper.get().writeValueAsString(object));
     }
 
-    public static Try<byte[]> toJsonBytes(Object object) {
+    public static Try<byte[]> tryToJsonBytes(Object object) {
         return Try.of(() -> lazyObjectMapper.get().writeValueAsBytes(object));
     }
 
-    public static <T extends JsonNode> Try<T> toJsonNode(Object object) {
+    public static <T extends JsonNode> Try<T> tryToJsonNode(Object object) {
         return Try.of(() -> lazyObjectMapper.get().valueToTree(object));
+    }
+
+    public static <T> Try<T> tryParseYaml(String yaml, Class<T> clazz) {
+        return Try.of(() -> lazyYamlObjectMapper.get().readValue(yaml, clazz));
     }
 
     private static ObjectMapper getObjectMapper() {
