@@ -93,14 +93,22 @@ public class BasicGreengrassV2Helper implements GreengrassV2Helper {
     public CreateComponentVersionResponse updateComponent(ComponentRecipe.ComponentRecipeBuilder componentRecipeBuilder) {
         ComponentName componentName = ImmutableComponentName.builder().name(componentRecipeBuilder.build().getComponentName()).build();
 
+        // Get the component if it exists already
         Semver nextVersion = getPrivateComponentByName(componentName)
+                // Extract the latest version
                 .map(component -> component.latestVersion().componentVersion())
+                // Convert it to a semantic version object
                 .map(Semver::new)
+                // Bump it to the next patch level
                 .map(Semver::nextPatch)
+                // If the component doesn't exist then default to version 1.0.0
                 .getOrElse(new Semver("1.0.0"));
 
-        if (componentRecipeBuilder.build().getComponentVersion().isLowerThanOrEqualTo(nextVersion)) {
-            log.warn("Specified component version [" + componentRecipeBuilder.build().getComponentVersion() + "] conflicts with an existing version, version bumped to [" + nextVersion + "]");
+        if (componentRecipeBuilder.build().getComponentVersion().isLowerThan(nextVersion)) {
+            log.warn("Specified component version [" + componentRecipeBuilder.build().getComponentVersion() + "] is lower than the expected next version, version bumped to [" + nextVersion + "]");
+        } else if (componentRecipeBuilder.build().getComponentVersion().isEqualTo(nextVersion)) {
+            // Do nothing, this empty branch is here to prevent us from logging a conflict when the next version equals
+            //   the requested version and to ensure we didn't forget this path
         } else {
             nextVersion = componentRecipeBuilder.build().getComponentVersion();
         }
