@@ -2,8 +2,8 @@ package com.awslabs.iot.helpers.implementations;
 
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.IotIdExtractor;
-import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
-import com.awslabs.resultsiterator.implementations.TestInjector;
+import com.awslabs.resultsiterator.implementations.DaggerBasicInjector;
+import com.awslabs.resultsiterator.implementations.BasicInjector;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import org.junit.Before;
@@ -23,7 +23,7 @@ public class BasicIotIdExtractorTests {
 
     @Before
     public void setup() {
-        TestInjector injector = DaggerTestInjector.create();
+        BasicInjector injector = DaggerBasicInjector.create();
         iotIdExtractor = injector.iotIdExtractor();
     }
 

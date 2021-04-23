@@ -145,7 +145,7 @@ public class BouncyCastleCertificateCredentialsProviderTest {
 
     @Before
     public void setup() {
-        TestInjector injector = DaggerTestInjector.create();
+        BasicInjector injector = DaggerBasicInjector.create();
         iotHelper = injector.iotHelper();
 
         certificateCredentialsProvider = injector.certificateCredentialsProvider();

@@ -1,10 +1,10 @@
 package com.awslabs.resultsiterator;
 
 import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
+import com.awslabs.resultsiterator.implementations.BasicInjector;
 import com.awslabs.resultsiterator.implementations.BouncyCastleCertificateCredentialsProvider;
-import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
+import com.awslabs.resultsiterator.implementations.DaggerBasicInjector;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
-import com.awslabs.resultsiterator.implementations.TestInjector;
 import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
 import com.awslabs.s3.helpers.data.ImmutableS3Bucket;
 import com.awslabs.s3.helpers.data.ImmutableS3Key;
@@ -56,7 +56,7 @@ public class TestResultsIterator {
 
     @Before
     public void setup() {
-        TestInjector injector = DaggerTestInjector.create();
+        BasicInjector injector = DaggerBasicInjector.create();
         iotClient = injector.iotClient();
         greengrassClient = injector.greengrassClient();
         greengrassV2Helper = injector.greengrassV2Helper();

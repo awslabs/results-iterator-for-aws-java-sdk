@@ -1,7 +1,7 @@
 package com.awslabs.sqs.helpers.implementations;
 
-import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
-import com.awslabs.resultsiterator.implementations.TestInjector;
+import com.awslabs.resultsiterator.implementations.BasicInjector;
+import com.awslabs.resultsiterator.implementations.DaggerBasicInjector;
 import com.awslabs.sqs.data.ImmutableQueueName;
 import com.awslabs.sqs.data.QueueName;
 import com.awslabs.sqs.data.QueueUrl;
@@ -34,7 +34,7 @@ public class BasicSqsHelperTests {
 
     @Before
     public void setup() {
-        TestInjector injector = DaggerTestInjector.create();
+        BasicInjector injector = DaggerBasicInjector.create();
         sqsHelper = injector.sqsHelper();
     }
 

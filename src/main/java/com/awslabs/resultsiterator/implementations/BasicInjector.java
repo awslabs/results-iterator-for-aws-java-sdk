@@ -20,7 +20,7 @@ import javax.inject.Singleton;
 
 @Singleton
 @Component(modules = {ResultsIteratorModule.class})
-public interface TestInjector {
+public interface BasicInjector {
     IotClient iotClient();
 
     GreengrassClient greengrassClient();

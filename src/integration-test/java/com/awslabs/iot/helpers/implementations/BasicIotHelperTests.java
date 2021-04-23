@@ -6,9 +6,9 @@ import com.awslabs.iot.data.ImmutableCertificateArn;
 import com.awslabs.iot.data.ImmutableThingName;
 import com.awslabs.iot.data.IotEndpointType;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
-import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
+import com.awslabs.resultsiterator.implementations.DaggerBasicInjector;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
-import com.awslabs.resultsiterator.implementations.TestInjector;
+import com.awslabs.resultsiterator.implementations.BasicInjector;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
@@ -56,7 +56,7 @@ public class BasicIotHelperTests {
 
     @Before
     public void setup() {
-        TestInjector injector = DaggerTestInjector.create();
+        BasicInjector injector = DaggerBasicInjector.create();
         iotHelper = injector.iotHelper();
         iotClient = injector.iotClient();
         iamHelper = injector.iamHelper();

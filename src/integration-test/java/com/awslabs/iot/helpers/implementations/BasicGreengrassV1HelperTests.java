@@ -7,8 +7,8 @@ import com.awslabs.iam.helpers.interfaces.IamHelper;
 import com.awslabs.iot.data.*;
 import com.awslabs.iot.helpers.interfaces.GreengrassV1Helper;
 import com.awslabs.iot.helpers.interfaces.IotHelper;
-import com.awslabs.resultsiterator.implementations.DaggerTestInjector;
-import com.awslabs.resultsiterator.implementations.TestInjector;
+import com.awslabs.resultsiterator.implementations.BasicInjector;
+import com.awslabs.resultsiterator.implementations.DaggerBasicInjector;
 import io.vavr.Tuple2;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
@@ -37,7 +37,7 @@ public class BasicGreengrassV1HelperTests {
 
     @Before
     public void setup() {
-        TestInjector injector = DaggerTestInjector.create();
+        BasicInjector injector = DaggerBasicInjector.create();
         greengrassV1Helper = injector.greengrassV1Helper();
         iamHelper = injector.iamHelper();
         iotHelper = injector.iotHelper();
