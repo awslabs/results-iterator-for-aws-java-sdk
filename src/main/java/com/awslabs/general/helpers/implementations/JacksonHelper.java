@@ -8,11 +8,11 @@ import io.vavr.control.Try;
 import io.vavr.jackson.datatype.VavrModule;
 
 public class JacksonHelper {
-    private static final Lazy<ObjectMapper> lazyObjectMapper = Lazy.of(JacksonHelper::getObjectMapper);
+    private static final Lazy<ObjectMapper> lazyJsonObjectMapper = Lazy.of(JacksonHelper::getObjectMapper);
     private static final Lazy<ObjectMapper> lazyYamlObjectMapper = Lazy.of(JacksonHelper::getYamlObjectMapper);
 
     public static Try<String> tryToJsonString(Object object) {
-        return Try.of(() -> lazyObjectMapper.get().writeValueAsString(object));
+        return Try.of(() -> lazyJsonObjectMapper.get().writeValueAsString(object));
     }
 
     public static Try<String> tryToYamlString(Object object) {
@@ -20,11 +20,15 @@ public class JacksonHelper {
     }
 
     public static Try<byte[]> tryToJsonBytes(Object object) {
-        return Try.of(() -> lazyObjectMapper.get().writeValueAsBytes(object));
+        return Try.of(() -> lazyJsonObjectMapper.get().writeValueAsBytes(object));
     }
 
     public static <T extends JsonNode> Try<T> tryToJsonNode(Object object) {
-        return Try.of(() -> lazyObjectMapper.get().valueToTree(object));
+        return Try.of(() -> lazyJsonObjectMapper.get().valueToTree(object));
+    }
+
+    public static <T> Try<T> tryParseJson(String json, Class<T> clazz) {
+        return Try.of(() -> lazyJsonObjectMapper.get().readValue(json, clazz));
     }
 
     public static <T> Try<T> tryParseYaml(String yaml, Class<T> clazz) {
