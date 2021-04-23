@@ -9,8 +9,7 @@ import java.util.Scanner;
 public class StreamHelper {
     public static String inputStreamToString(InputStream inputStream) {
         return Try.withResources(() -> new Scanner(inputStream, StandardCharsets.UTF_8.name()))
-                .of(scanner -> scanner.useDelimiter("\\A"))
-                .map(Scanner::next)
+                .of(scanner -> scanner.useDelimiter("\\A").next())
                 .get();
     }
 }
