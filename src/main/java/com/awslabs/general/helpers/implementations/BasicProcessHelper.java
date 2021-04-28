@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,7 +25,7 @@ public class BasicProcessHelper implements ProcessHelper {
     private final Logger log = LoggerFactory.getLogger(BasicProcessHelper.class);
     @Inject
     // Minor hack for integration tests
-    public AwsCredentials awsCredentials;
+    public Provider<AwsCredentials> awsCredentialsProvider;
 
     @Inject
     public BasicProcessHelper() {
@@ -45,10 +46,18 @@ public class BasicProcessHelper implements ProcessHelper {
         // Add in the access key ID and secret access key for when we are running processes that need them like IDT
         java.util.Map<String, String> environment = processBuilder.environment();
         // NOTE: Device Tester v1.2 does not work in Docker without AWS_ACCESS_KEY and AWS_SECRET_KEY in the environment
-        environment.put(AWS_ACCESS_KEY, awsCredentials.accessKeyId());
-        environment.put(AWS_ACCESS_KEY_ID, awsCredentials.accessKeyId());
-        environment.put(AWS_SECRET_KEY, awsCredentials.secretAccessKey());
-        environment.put(AWS_SECRET_ACCESS_KEY, awsCredentials.secretAccessKey());
+        Try<AwsCredentials> awsCredentialsTry = Try.of(() -> awsCredentialsProvider.get());
+
+        if (awsCredentialsTry.isSuccess()) {
+            AwsCredentials awsCredentials = awsCredentialsTry.get();
+
+            environment.put(AWS_ACCESS_KEY, awsCredentials.accessKeyId());
+            environment.put(AWS_ACCESS_KEY_ID, awsCredentials.accessKeyId());
+            environment.put(AWS_SECRET_KEY, awsCredentials.secretAccessKey());
+            environment.put(AWS_SECRET_ACCESS_KEY, awsCredentials.secretAccessKey());
+        } else {
+            log.warn("Unable to obtain AWS credentials, the environment variables for them will not be set for this process");
+        }
 
         return processBuilder;
     }
