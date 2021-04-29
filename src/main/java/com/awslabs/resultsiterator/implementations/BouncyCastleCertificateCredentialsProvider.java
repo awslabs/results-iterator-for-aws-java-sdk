@@ -2,8 +2,8 @@ package com.awslabs.resultsiterator.implementations;
 
 import com.awslabs.iot.data.*;
 import com.awslabs.resultsiterator.data.ImmutablePassword;
-import com.awslabs.resultsiterator.interfaces.SslContextHelper;
 import com.awslabs.resultsiterator.interfaces.CertificateCredentialsProvider;
+import com.awslabs.resultsiterator.interfaces.SslContextHelper;
 import io.vavr.collection.HashMap;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -16,14 +16,19 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.awslabs.general.helpers.implementations.GsonHelper.fromJson;
+import static io.vavr.API.$;
+import static io.vavr.API.Case;
 
 public class BouncyCastleCertificateCredentialsProvider implements CertificateCredentialsProvider {
     @Inject
@@ -163,9 +168,18 @@ public class BouncyCastleCertificateCredentialsProvider implements CertificateCr
                 .map(HttpResponse::getEntity)
                 .mapTry(EntityUtils::toByteArray)
                 .map(responseBytes -> fromJson(IotCredentialsProviderCredentials.class, responseBytes))
+                .mapFailure(Case($(isCertificateUnknownException()), (Function<SSLHandshakeException, RuntimeException>) RuntimeException::new))
                 .get();
 
         return iotCredentialsProviderCredentials.getCredentials().toAwsSessionCredentials();
+    }
+
+    private Predicate<Exception> isCertificateUnknownException() {
+        return input -> Option.of(input)
+                .filter(exception -> SSLHandshakeException.class.isAssignableFrom(exception.getClass()))
+                .map(Throwable::getMessage)
+                .filter(message -> message.contains("certificate_unknown"))
+                .isDefined();
     }
 
     protected HttpClient getHttpClient(ImmutableCaCertFilename caCertFilename,

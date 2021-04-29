@@ -6,11 +6,8 @@ import com.google.gson.internal.$Gson$Types;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
-import software.amazon.awssdk.services.greengrass.model.GreengrassRequest;
-import software.amazon.awssdk.services.greengrass.model.GreengrassResponse;
 
 import javax.inject.Inject;
 import java.lang.reflect.*;
@@ -29,31 +26,25 @@ public class BasicReflectionHelper implements ReflectionHelper {
     }
 
     @Override
-    public Option<Method> getMethodWithParameterAndReturnType(Class clazz, Class parameter, Class returnType) {
-        return getMethodWithParameterReturnTypeAndName(clazz, parameter, returnType, null);
+    public Option<Method> getMethodWithParameterAndReturnType(Class clazz, Option<Class> parameterOption, Class returnType) {
+        return getMethodWithParameterReturnTypeAndName(clazz, parameterOption, returnType, Option.none());
     }
 
     @Override
-    public Option<Method> getMethodWithParameterReturnTypeAndName(Class clazz, Class parameter, Class returnType, String name) {
-        List<String> names = List.empty();
-
-        if (name != null) {
-            names = names.append(name);
-        }
-
-        return getMethodWithParameterReturnTypeAndNames(clazz, parameter, returnType, names);
+    public Option<Method> getMethodWithParameterReturnTypeAndName(Class clazz, Option<Class> parameterOption, Class returnType, Option<String> nameOption) {
+        return getMethodWithParameterReturnTypeAndNames(clazz, parameterOption, returnType, List.ofAll(nameOption));
     }
 
     @Override
-    public Option<Method> getMethodWithParameterReturnTypeAndNames(Class clazz, Class parameter, Class returnType, List<String> names) {
+    public Option<Method> getMethodWithParameterReturnTypeAndNames(Class clazz, Option<Class> parameterOption, Class returnType, List<String> names) {
         // To deal with generics we look at signatures if all else fails. We want to look for lists of the expected type and the expected type itself.
         String expectedListSignature = toGenericListSignature(returnType);
         String expectedSignature = toGenericSignature(returnType);
 
         Predicate<Method> methodShouldNotBeIgnored = method -> !methodsToIgnore.contains(method.getName());
         Predicate<Method> noNamesSpecifiedOrSpecifiedNameMatches = method -> names.size() == 0 || names.contains(method.getName());
-        Predicate<Method> zeroOrOneParametersSpecified = method -> (parameter == null) || (method.getParameterCount() == 1);
-        Predicate<Method> zeroParametersOrParameterMatchesExpectedType = method -> (parameter == null) || method.getParameterTypes()[0].equals(parameter);
+        Predicate<Method> zeroOrOneParametersSpecified = method -> (parameterOption.isEmpty()) || (method.getParameterCount() == 1);
+        Predicate<Method> zeroParametersOrParameterMatchesExpectedType = method -> (parameterOption.isEmpty()) || method.getParameterTypes()[0].equals(parameterOption.get());
         Predicate<Method> methodReturnTypeIsAssignableFromReturnType = method -> method.getReturnType().isAssignableFrom(returnType);
         Predicate<Method> expectedListSignatureEqualsGenericSignature = method -> expectedListSignature.equals(toGenericSignature(method.getGenericReturnType()));
         Predicate<Method> expectedSingleValueSignatureEqualsGenericSignature = method -> expectedSignature.equals(toGenericSignature(method.getGenericReturnType()));

@@ -49,6 +49,8 @@ sourceSets.create("integrationTest") {
 
         srcDir(file("src/integration-test/java"))
     }
+
+    resources.srcDir(file("src/integration-test/resources"))
 }
 
 configurations.getByName("integrationTestImplementation") { extendsFrom(configurations.testImplementation.get()) }
@@ -80,6 +82,7 @@ val bouncyCastleVersion = "1.68"
 val jodahFailsafeVersion = "2.4.0"
 val gsonVersion = "2.8.6"
 val log4jVersion = "2.14.1"
+val dockerClientVersion = "8.16.0"
 
 configurations.all {
     // Check for updates on changing dependencies at most every 10 minutes
@@ -129,7 +132,11 @@ dependencies {
     api("software.amazon.awssdk:lambda:$awsSdk2Version")
     api("software.amazon.awssdk:sqs:$awsSdk2Version")
     api("software.amazon.awssdk:ec2:$awsSdk2Version")
+    api("software.amazon.awssdk:ecr:$awsSdk2Version")
     implementation("software.amazon.awssdk:apache-client:$awsSdk2Version")
+
+    // For Docker support
+    api("com.spotify:docker-client:$dockerClientVersion")
 
     // For certificate based authentication
     implementation("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")

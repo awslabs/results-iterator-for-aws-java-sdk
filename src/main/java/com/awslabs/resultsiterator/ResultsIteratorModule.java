@@ -1,5 +1,8 @@
 package com.awslabs.resultsiterator;
 
+import com.awslabs.ecr.BasicProgressHandler;
+import com.awslabs.ecr.EcrDockerClientProvider;
+import com.awslabs.ecr.interfaces.DockerClientProvider;
 import com.awslabs.general.helpers.implementations.BasicLambdaPackagingHelper;
 import com.awslabs.general.helpers.implementations.BasicProcessHelper;
 import com.awslabs.general.helpers.implementations.IoHelper;
@@ -21,6 +24,7 @@ import com.awslabs.s3.helpers.implementations.BasicS3Helper;
 import com.awslabs.s3.helpers.interfaces.S3Helper;
 import com.awslabs.sqs.helpers.implementations.BasicSqsHelper;
 import com.awslabs.sqs.helpers.interfaces.SqsHelper;
+import com.spotify.docker.client.ProgressHandler;
 import dagger.Module;
 import dagger.Provides;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -34,6 +38,8 @@ import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
+import software.amazon.awssdk.services.ecr.EcrClient;
+import software.amazon.awssdk.services.ecr.EcrClientBuilder;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
 import software.amazon.awssdk.services.greengrass.GreengrassClientBuilder;
 import software.amazon.awssdk.services.greengrassv2.GreengrassV2Client;
@@ -95,7 +101,12 @@ public class ResultsIteratorModule {
 
     @Provides
     public AwsCredentialsProvider awsCredentialsProvider(CertificateCredentialsProvider certificateCredentialsProvider) {
-        return new SafeProvider<>(() -> AwsCredentialsProviderChain.of(certificateCredentialsProvider, DefaultCredentialsProvider.create())).get();
+        return new SafeProvider<>(() -> AwsCredentialsProviderChain.builder()
+                // Do not reuse the last provider. This allows us to fall back to other credential options if a certificate expires.
+                .reuseLastProviderEnabled(false)
+                .addCredentialsProvider(certificateCredentialsProvider)
+                .addCredentialsProvider(DefaultCredentialsProvider.create())
+                .build()).get();
     }
 
     @Provides
@@ -209,6 +220,21 @@ public class ResultsIteratorModule {
     @Provides
     public Ec2Client ec2Client(Ec2ClientBuilder ec2ClientBuilder) {
         return new SafeProvider<>(ec2ClientBuilder::build).get();
+    }
+
+    @Provides
+    public EcrClientBuilder ecrClientBuilder(AwsCredentialsProvider awsCredentialsProvider, ApacheHttpClient.Builder apacheHttpClientBuilder) {
+        return EcrClient.builder().httpClientBuilder(apacheHttpClientBuilder).credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public EcrClient ecrClient(EcrClientBuilder ecrClientBuilder) {
+        return new SafeProvider<>(ecrClientBuilder::build).get();
+    }
+
+    @Provides
+    public ProgressHandler progressHandler(BasicProgressHandler basicProgressHandler) {
+        return basicProgressHandler;
     }
 
     // Clients that need special configuration

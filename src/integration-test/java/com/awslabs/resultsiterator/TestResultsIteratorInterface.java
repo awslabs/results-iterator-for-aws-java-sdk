@@ -43,10 +43,12 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-public class TestResultsIterator {
+public class TestResultsIteratorInterface {
     public static final String JUNKFORTHINGTESTING = "JUNKFORTHINGTESTING";
     public static final String JUNKFORGROUPTESTING = "JUNKFORGROUPTESTING";
-    private final Logger log = LoggerFactory.getLogger(TestResultsIterator.class);
+    // Must be all lowercase
+    public static final String JUNKFORECRTESTING = "junkforecrtesting";
+    private final Logger log = LoggerFactory.getLogger(TestResultsIteratorInterface.class);
     private IotClient iotClient;
     private GreengrassClient greengrassClient;
     private GreengrassV2Helper greengrassV2Helper;
