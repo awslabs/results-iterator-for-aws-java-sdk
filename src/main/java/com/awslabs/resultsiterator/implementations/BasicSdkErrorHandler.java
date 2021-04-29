@@ -62,11 +62,9 @@ public class BasicSdkErrorHandler implements SdkErrorHandler {
 
         if (errors.size() != 0) {
             errors.forEach(log::error);
-            System.exit(1);
-        } else {
-            throw e;
+            log.error("Failed to obtain AWS credentials. See the above messages to determine the root cause");
         }
 
-        return null;
+        throw e;
     }
 }
