@@ -10,9 +10,9 @@ import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,7 +25,7 @@ public class BasicProcessHelper implements ProcessHelper {
     private final Logger log = LoggerFactory.getLogger(BasicProcessHelper.class);
     @Inject
     // Minor hack for integration tests
-    public Provider<AwsCredentials> awsCredentialsProvider;
+    public AwsCredentialsProvider awsCredentialsProvider;
 
     @Inject
     public BasicProcessHelper() {
@@ -46,7 +46,7 @@ public class BasicProcessHelper implements ProcessHelper {
         // Add in the access key ID and secret access key for when we are running processes that need them like IDT
         java.util.Map<String, String> environment = processBuilder.environment();
         // NOTE: Device Tester v1.2 does not work in Docker without AWS_ACCESS_KEY and AWS_SECRET_KEY in the environment
-        Try<AwsCredentials> awsCredentialsTry = Try.of(() -> awsCredentialsProvider.get());
+        Try<AwsCredentials> awsCredentialsTry = Try.of(() -> awsCredentialsProvider.resolveCredentials());
 
         if (awsCredentialsTry.isSuccess()) {
             AwsCredentials awsCredentials = awsCredentialsTry.get();
