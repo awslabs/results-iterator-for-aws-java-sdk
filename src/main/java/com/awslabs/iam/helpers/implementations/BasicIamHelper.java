@@ -15,13 +15,14 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 public class BasicIamHelper implements IamHelper {
     private final Logger log = LoggerFactory.getLogger(BasicIamHelper.class);
     @Inject
     IamClient iamClient;
     @Inject
-    StsClient stsClient;
+    Provider<StsClient> stsClientProvider;
 
     @Inject
     public BasicIamHelper() {
@@ -105,7 +106,7 @@ public class BasicIamHelper implements IamHelper {
     @Override
     public AccountId getAccountId() {
         return ImmutableAccountId.builder()
-                .id(stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).account())
+                .id(stsClientProvider.get().getCallerIdentity(GetCallerIdentityRequest.builder().build()).account())
                 .build();
     }
 
