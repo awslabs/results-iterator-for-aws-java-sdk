@@ -66,7 +66,7 @@ val integrationTestTask = tasks.register("integrationTest", Test::class) {
 // Specify all of our dependency versions
 val awsSdk2Version = "2.16.20"
 val junitVersion = "4.13.2"
-val guavaVersion = "30.1-jre"
+val guavaVersion = "30.1.1-jre"
 val hamcrestVersion = "2.2"
 val vavrVersion = "0.10.3"
 val vavrGsonVersion = "0.10.2"
