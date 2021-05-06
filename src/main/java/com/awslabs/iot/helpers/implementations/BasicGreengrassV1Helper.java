@@ -687,7 +687,7 @@ public class BasicGreengrassV1Helper implements GreengrassV1Helper {
 
         AwsRequest request = builder.build();
 
-        Option<Method> clientMethodReturningResultOption = reflectionHelper.getMethodWithParameterAndReturnType(greengrassClient.getClass(), Option.of(greengrassRequest), greengrassResponse);
+        Option<Method> clientMethodReturningResultOption = reflectionHelper.getMethodWithParameterAndReturnType(greengrassClient.getClass(), greengrassRequest, greengrassResponse);
 
         if (clientMethodReturningResultOption.isEmpty()) {
             throw new UnsupportedOperationException("Failed to find a method returning the expected response type, this should never happen.");
