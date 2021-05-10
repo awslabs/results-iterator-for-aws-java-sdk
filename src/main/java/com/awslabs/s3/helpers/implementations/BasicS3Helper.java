@@ -49,6 +49,12 @@ public class BasicS3Helper implements S3Helper {
     }
 
     @Override
+    public boolean objectExists(S3Bucket s3Bucket, S3Key s3Key) {
+        Bucket bucket = Bucket.builder().name(s3Bucket.bucket()).build();
+        return objectExists(bucket, s3Key.key());
+    }
+
+    @Override
     public boolean objectExists(Bucket bucket, String key) {
         return Try.of(() -> getRegionSpecificClientForBucket(bucket))
                 .map(s3Client -> objectExists(s3Client, bucket, key))

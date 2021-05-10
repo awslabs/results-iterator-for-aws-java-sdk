@@ -17,6 +17,8 @@ public interface S3Helper {
 
     boolean bucketExists(S3Client s3Client, Bucket bucket);
 
+    boolean objectExists(S3Bucket s3Bucket, S3Key s3Key);
+
     boolean objectExists(Bucket bucket, String key);
 
     boolean objectExists(S3Client s3Client, Bucket bucket, String key);
