@@ -4,6 +4,7 @@ import com.awslabs.s3.helpers.data.S3Bucket;
 import com.awslabs.s3.helpers.data.S3Key;
 import com.awslabs.s3.helpers.data.S3Path;
 import io.vavr.Tuple2;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.time.Duration;
 
 public interface S3Helper {
     boolean bucketExists(Bucket bucket);
@@ -22,6 +24,8 @@ public interface S3Helper {
     boolean objectExists(Bucket bucket, String key);
 
     boolean objectExists(S3Client s3Client, Bucket bucket, String key);
+
+    Region getRegionForBucket(Bucket bucket);
 
     S3Client getRegionSpecificClientForBucket(Bucket bucket);
 
@@ -36,4 +40,6 @@ public interface S3Helper {
     URI getObjectS3Uri(S3Bucket s3Bucket, S3Key s3Key);
 
     URI getObjectS3Uri(Tuple2<S3Bucket, S3Key> bucketAndKey);
+
+    URL presign(S3Bucket s3Bucket, S3Key s3Key, Duration duration);
 }

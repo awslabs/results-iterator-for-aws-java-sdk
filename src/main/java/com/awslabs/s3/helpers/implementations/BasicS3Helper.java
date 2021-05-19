@@ -13,12 +13,16 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.time.Duration;
 
 public class BasicS3Helper implements S3Helper {
     @Inject
@@ -83,6 +87,34 @@ public class BasicS3Helper implements S3Helper {
     }
 
     @Override
+    public Region getRegionForBucket(Bucket bucket) {
+        GetBucketLocationRequest getBucketLocationRequest = GetBucketLocationRequest.builder()
+                .bucket(bucket.name())
+                .build();
+
+        S3Client defaultS3Client = s3ClientProvider.get();
+
+        // Get the bucket location
+        return Try.of(() -> defaultS3Client.getBucketLocation(getBucketLocationRequest))
+                // The bucket location can be NULL if it is us-east-1
+                .map(GetBucketLocationResponse::locationConstraint)
+                // Turn the location option into a region object
+                .map(this::locationConstraintToRegion)
+                // If an exception is thrown attempt to get the region specific client
+                .recoverWith(S3Exception.class, this::getRegionForBucketAfterException)
+                // Throw an exception if it wasn't handled already
+                .get();
+    }
+
+    private Region locationConstraintToRegion(BucketLocationConstraint bucketLocationConstraint) {
+        if (bucketLocationConstraint.equals(BucketLocationConstraint.UNKNOWN_TO_SDK_VERSION)) {
+            return Region.US_EAST_1;
+        }
+
+        return Region.of(bucketLocationConstraint.name());
+    }
+
+    @Override
     public S3Client getRegionSpecificClientForBucket(Bucket bucket) {
         GetBucketLocationRequest getBucketLocationRequest = GetBucketLocationRequest.builder()
                 .bucket(bucket.name())
@@ -100,15 +132,19 @@ public class BasicS3Helper implements S3Helper {
     }
 
     private Try<S3Client> getRegionSpecificClientForBucketAfterException(S3Exception s3Exception) {
+        return getRegionForBucketAfterException(s3Exception)
+                // Create a new S3 client with the extracted region
+                .map(region -> s3ClientBuilderProvider.get().region(region).build());
+    }
+
+    private Try<Region> getRegionForBucketAfterException(S3Exception s3Exception) {
         if (!regionIsWrongException(s3Exception)) {
             // This isn't an exception that contains the info we need
             return Try.failure(s3Exception);
         }
 
         // Extract the region information
-        return Try.of(() -> extractRegionFromRegionIsWrongException(s3Exception))
-                // Create a new S3 client with the extracted region
-                .map(region -> s3ClientBuilderProvider.get().region(region).build());
+        return Try.of(() -> extractRegionFromRegionIsWrongException(s3Exception));
     }
 
     private Region extractRegionFromRegionIsWrongException(S3Exception s3Exception) {
@@ -181,5 +217,33 @@ public class BasicS3Helper implements S3Helper {
     @Override
     public URI getObjectS3Uri(Tuple2<S3Bucket, S3Key> bucketAndKey) {
         return getObjectS3Uri(bucketAndKey._1, bucketAndKey._2);
+    }
+
+    @Override
+    public URL presign(S3Bucket s3Bucket, S3Key s3Key, Duration duration) {
+        Bucket bucket = Bucket.builder().name(s3Bucket.bucket()).build();
+
+        Region region = getRegionForBucket(bucket);
+
+        // Create a GetObjectRequest to be pre-signed
+        GetObjectRequest getObjectRequest =
+                GetObjectRequest.builder()
+                        .bucket(bucket.name())
+                        .key(s3Key.key())
+                        .build();
+
+        // Create a GetObjectPresignRequest to specify the signature duration
+        GetObjectPresignRequest getObjectPresignRequest =
+                GetObjectPresignRequest.builder()
+                        .signatureDuration(duration)
+                        .getObjectRequest(getObjectRequest)
+                        .build();
+
+        S3Presigner s3Presigner = S3Presigner.builder().region(region).build();
+
+        PresignedGetObjectRequest presignedGetObjectRequest =
+                s3Presigner.presignGetObject(getObjectPresignRequest);
+
+        return presignedGetObjectRequest.url();
     }
 }
