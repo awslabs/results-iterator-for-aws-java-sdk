@@ -63,7 +63,7 @@ Example: Get a region-specific S3 client for a bucket, regardless of your defaul
 
 ## How do I use it?
 
-Check out an [example in the IoT reference architectures repo](https://github.com/aws-samples/iot-reference-architectures/tree/master/results-iterator-jitpack/java).
+Check out an [example in the IoT reference architectures repo](https://github.com/aws-samples/iot-reference-architectures/tree/master/results-iterator-jitpack).
 
 ## What are some of the other features that are useful?
 
