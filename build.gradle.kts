@@ -78,7 +78,7 @@ val ztZipVersion = "1.14"
 val mockitoVersion = "3.10.0"
 val bouncyCastleVersion = "1.68"
 val jodahFailsafeVersion = "2.4.0"
-val gsonVersion = "2.8.6"
+val gsonVersion = "2.8.7"
 val log4jVersion = "2.14.1"
 
 configurations.all {
