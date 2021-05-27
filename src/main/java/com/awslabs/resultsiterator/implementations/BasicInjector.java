@@ -1,5 +1,6 @@
 package com.awslabs.resultsiterator.implementations;
 
+import com.awslabs.cloudformation.interfaces.CloudFormationHelper;
 import com.awslabs.iam.helpers.interfaces.IamHelper;
 import com.awslabs.iot.helpers.interfaces.GreengrassV1Helper;
 import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
@@ -46,4 +47,6 @@ public interface BasicInjector {
     IamHelper iamHelper();
 
     IotIdExtractor iotIdExtractor();
+
+    CloudFormationHelper cloudFormationHelper();
 }
