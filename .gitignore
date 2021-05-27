@@ -6,3 +6,4 @@ generated
 *.swp
 .DS_Store
 *.pem
+/src/test/java/JunkTest.java
