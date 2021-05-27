@@ -1,6 +1,6 @@
 package com.awslabs.resultsiterator.implementations;
 
-import com.awslabs.resultsiterator.interfaces.ResultsIterator;
+import com.awslabs.resultsiterator.interfaces.ResultsIteratorInterface;
 import com.awslabs.resultsiterator.interfaces.ReflectionHelper;
 import io.vavr.collection.Iterator;
 import io.vavr.collection.List;
@@ -18,7 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 
-public abstract class ResultsIteratorAbstract<T> implements ResultsIterator<T> {
+public abstract class ResultsIteratorAbstract<T> implements ResultsIteratorInterface<T> {
     private final Logger log = LoggerFactory.getLogger(ResultsIteratorAbstract.class);
     private final SdkClient sdkClient;
     private final Class<? extends AwsRequest> awsRequestClass;
