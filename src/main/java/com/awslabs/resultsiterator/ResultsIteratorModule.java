@@ -1,5 +1,7 @@
 package com.awslabs.resultsiterator;
 
+import com.awslabs.cloudformation.implementations.BasicCloudFormationHelper;
+import com.awslabs.cloudformation.interfaces.CloudFormationHelper;
 import com.awslabs.general.helpers.implementations.BasicLambdaPackagingHelper;
 import com.awslabs.general.helpers.implementations.BasicProcessHelper;
 import com.awslabs.general.helpers.implementations.GsonHelper;
@@ -248,6 +250,11 @@ public class ResultsIteratorModule {
     @Provides
     public S3Helper s3Helper(BasicS3Helper basicS3Helper) {
         return basicS3Helper;
+    }
+
+    @Provides
+    public CloudFormationHelper cloudFormationHelper(BasicCloudFormationHelper basicCloudFormationHelper) {
+        return basicCloudFormationHelper;
     }
 
     @Provides
