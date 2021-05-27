@@ -4,6 +4,7 @@ import com.awslabs.cloudformation.data.ResourceType;
 import com.awslabs.cloudformation.data.StackName;
 import com.awslabs.cloudformation.interfaces.CloudFormationHelper;
 import com.awslabs.resultsiterator.implementations.ResultsIterator;
+import io.vavr.Predicates;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
@@ -12,9 +13,12 @@ import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.*;
 
 import javax.inject.Inject;
+import java.util.function.Predicate;
 
 public class BasicCloudFormationHelper implements CloudFormationHelper {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BasicCloudFormationHelper.class);
+    private final Predicate<StackSummary> isCreateComplete = stackSummary -> stackSummary.stackStatus().equals(StackStatus.CREATE_COMPLETE);
+    private final Predicate<StackSummary> isUpdateComplete = stackSummary -> stackSummary.stackStatus().equals(StackStatus.UPDATE_COMPLETE);
     @Inject
     CloudFormationClient cloudFormationClient;
 
@@ -30,7 +34,7 @@ public class BasicCloudFormationHelper implements CloudFormationHelper {
     @Override
     public Option<StackSummary> getStackSummary(StackName stackName) {
         return getStackSummaries()
-                .filter(stackSummary -> stackSummary.stackStatus().equals(StackStatus.CREATE_COMPLETE))
+                .filter(stackSummary -> Predicates.anyOf(isCreateComplete, isUpdateComplete).test(stackSummary))
                 .filter(stackSummary -> stackSummary.stackName().equals(stackName.getStackName()))
                 .toOption();
     }
