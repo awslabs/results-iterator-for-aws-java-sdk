@@ -129,6 +129,7 @@ dependencies {
     api("software.amazon.awssdk:lambda:$awsSdk2Version")
     api("software.amazon.awssdk:sqs:$awsSdk2Version")
     api("software.amazon.awssdk:ec2:$awsSdk2Version")
+    api("software.amazon.awssdk:cloudformation:$awsSdk2Version")
     implementation("software.amazon.awssdk:apache-client:$awsSdk2Version")
 
     // For certificate based authentication

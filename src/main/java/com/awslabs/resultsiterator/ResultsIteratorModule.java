@@ -2,8 +2,8 @@ package com.awslabs.resultsiterator;
 
 import com.awslabs.general.helpers.implementations.BasicLambdaPackagingHelper;
 import com.awslabs.general.helpers.implementations.BasicProcessHelper;
-import com.awslabs.general.helpers.implementations.IoHelper;
 import com.awslabs.general.helpers.implementations.GsonHelper;
+import com.awslabs.general.helpers.implementations.IoHelper;
 import com.awslabs.general.helpers.interfaces.LambdaPackagingHelper;
 import com.awslabs.general.helpers.interfaces.ProcessHelper;
 import com.awslabs.iam.helpers.implementations.BasicIamHelper;
@@ -32,6 +32,8 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClientBuilder;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
@@ -209,6 +211,16 @@ public class ResultsIteratorModule {
     @Provides
     public Ec2Client ec2Client(Ec2ClientBuilder ec2ClientBuilder) {
         return new SafeProvider<>(ec2ClientBuilder::build).get();
+    }
+
+    @Provides
+    public CloudFormationClientBuilder cloudFormationClientBuilder(AwsCredentialsProvider awsCredentialsProvider, ApacheHttpClient.Builder apacheHttpClientBuilder) {
+        return CloudFormationClient.builder().httpClientBuilder(apacheHttpClientBuilder).credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public CloudFormationClient cloudFormationClient(CloudFormationClientBuilder cloudFormationClientBuilder) {
+        return new SafeProvider<>(cloudFormationClientBuilder::build).get();
     }
 
     // Clients that need special configuration
