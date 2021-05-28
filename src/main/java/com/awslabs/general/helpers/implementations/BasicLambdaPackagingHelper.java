@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeroturnaround.zip.ZipUtil;
@@ -41,12 +42,10 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         // Determine the absolute path of the package directory
         File absolutePackageDirectory = new File(String.join("/", baseDirectory.getAbsolutePath(), PACKAGE_DIRECTORY));
 
-        // Determine what the output ZIP file name will be
-        String zipFileName = String.join(".", functionName.getName(), "zip");
-        Path zipFilePath = baseDirectory.toPath().resolve(zipFileName);
-
         // Delete any existing package directory
         cleanUpPackageDirectory(absolutePackageDirectory);
+
+        Path zipFilePath = getPythonZipFilePath(functionName, pythonLambdaFunctionDirectory);
 
         // Delete any existing ZIP file
         Try.of(() -> Files.deleteIfExists(zipFilePath.toAbsolutePath())).get();
@@ -86,6 +85,14 @@ public class BasicLambdaPackagingHelper implements LambdaPackagingHelper {
         cleanUpPackageDirectory(absolutePackageDirectory);
 
         return zipFilePath;
+    }
+
+    @Override
+    @NotNull
+    public Path getPythonZipFilePath(FunctionName functionName, PythonLambdaFunctionDirectory pythonLambdaFunctionDirectory) {
+        // Determine what the output ZIP file name will be
+        String zipFileName = String.join(".", functionName.getName(), "zip");
+        return pythonLambdaFunctionDirectory.getDirectory().toPath().resolve(zipFileName);
     }
 
     @Override
