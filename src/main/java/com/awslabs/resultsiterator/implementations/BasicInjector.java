@@ -1,6 +1,7 @@
 package com.awslabs.resultsiterator.implementations;
 
 import com.awslabs.cloudformation.interfaces.CloudFormationHelper;
+import com.awslabs.dynamodb.interfaces.DynamoDbHelper;
 import com.awslabs.iam.helpers.interfaces.IamHelper;
 import com.awslabs.iot.helpers.interfaces.GreengrassV1Helper;
 import com.awslabs.iot.helpers.interfaces.GreengrassV2Helper;
@@ -49,4 +50,6 @@ public interface BasicInjector {
     IotIdExtractor iotIdExtractor();
 
     CloudFormationHelper cloudFormationHelper();
+
+    DynamoDbHelper dynamoDbHelper();
 }

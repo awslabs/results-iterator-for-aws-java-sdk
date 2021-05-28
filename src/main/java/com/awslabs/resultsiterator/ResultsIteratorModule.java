@@ -2,6 +2,8 @@ package com.awslabs.resultsiterator;
 
 import com.awslabs.cloudformation.implementations.BasicCloudFormationHelper;
 import com.awslabs.cloudformation.interfaces.CloudFormationHelper;
+import com.awslabs.dynamodb.implementations.BasicDynamoDbHelper;
+import com.awslabs.dynamodb.interfaces.DynamoDbHelper;
 import com.awslabs.general.helpers.implementations.BasicLambdaPackagingHelper;
 import com.awslabs.general.helpers.implementations.BasicProcessHelper;
 import com.awslabs.general.helpers.implementations.GsonHelper;
@@ -36,6 +38,8 @@ import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClientBuilder;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 import software.amazon.awssdk.services.greengrass.GreengrassClient;
@@ -225,6 +229,16 @@ public class ResultsIteratorModule {
         return new SafeProvider<>(cloudFormationClientBuilder::build).get();
     }
 
+    @Provides
+    public DynamoDbClientBuilder dynamoDbClientBuilder(AwsCredentialsProvider awsCredentialsProvider, ApacheHttpClient.Builder apacheHttpClientBuilder) {
+        return DynamoDbClient.builder().httpClientBuilder(apacheHttpClientBuilder).credentialsProvider(awsCredentialsProvider);
+    }
+
+    @Provides
+    public DynamoDbClient dynamoDbClient(DynamoDbClientBuilder dynamoDbClientBuilder) {
+        return new SafeProvider<>(dynamoDbClientBuilder::build).get();
+    }
+
     // Clients that need special configuration
     // NOTE: Using this pattern allows us to wrap the creation of these clients in some error checking code that can give the user information on what to do in the case of a failure
     @Provides
@@ -255,6 +269,11 @@ public class ResultsIteratorModule {
     @Provides
     public CloudFormationHelper cloudFormationHelper(BasicCloudFormationHelper basicCloudFormationHelper) {
         return basicCloudFormationHelper;
+    }
+
+    @Provides
+    public DynamoDbHelper dynamoDbHelper(BasicDynamoDbHelper basicDynamoDbHelper) {
+        return basicDynamoDbHelper;
     }
 
     @Provides
