@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
@@ -32,6 +33,10 @@ public interface S3Helper {
     PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, File file);
 
     PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Key s3Key, File file);
+
+    PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, String filename, InputStream inputStream, int inputStreamLength);
+
+    PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Key s3Key, InputStream inputStream, int inputStreamLength);
 
     URL getObjectHttpsUrl(S3Bucket s3Bucket, S3Key s3Key);
 

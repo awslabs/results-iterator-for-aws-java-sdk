@@ -7,6 +7,7 @@ import io.vavr.Tuple2;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -20,6 +21,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
@@ -163,17 +165,15 @@ public class BasicS3Helper implements S3Helper {
         return (message.contains("the region") && message.contains("is wrong"));
     }
 
-    @Override
-    public PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, File file) {
+    @NotNull
+    private S3Key getS3Key(S3Path s3Path, String s3Filename) {
         if (s3Path.path().equals("/")) {
             // Clear out the S3 directory if it is just the root
             s3Path = ImmutableS3Path.builder().path("").build();
         }
 
-        String s3FileName = file.getName();
-
         // Put the key together from the path
-        String keyString = String.join("/", s3Path.path(), s3FileName);
+        String keyString = String.join("/", s3Path.path(), s3Filename);
 
         if (keyString.startsWith("/")) {
             // If there's a leading slash remove it
@@ -184,6 +184,12 @@ public class BasicS3Helper implements S3Helper {
         keyString = keyString.replaceAll("//", "/");
 
         S3Key s3Key = ImmutableS3Key.builder().key(keyString).build();
+        return s3Key;
+    }
+
+    @Override
+    public PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, File file) {
+        S3Key s3Key = getS3Key(s3Path, file.getName());
 
         return copyToS3(s3Bucket, s3Key, file);
     }
@@ -196,6 +202,23 @@ public class BasicS3Helper implements S3Helper {
                 .build();
 
         return s3ClientProvider.get().putObject(putObjectRequest, RequestBody.fromFile(file));
+    }
+
+    @Override
+    public PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Path s3Path, String filename, InputStream inputStream, int inputStreamLength) {
+        S3Key s3Key = getS3Key(s3Path, filename);
+
+        return copyToS3(s3Bucket, s3Key, inputStream, inputStreamLength);
+    }
+
+    @Override
+    public PutObjectResponse copyToS3(S3Bucket s3Bucket, S3Key s3Key, InputStream inputStream, int inputStreamLength) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(s3Bucket.bucket())
+                .key(s3Key.key())
+                .build();
+
+        return s3ClientProvider.get().putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, inputStreamLength));
     }
 
     @Override
