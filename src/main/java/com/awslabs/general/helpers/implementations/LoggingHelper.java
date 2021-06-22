@@ -3,8 +3,16 @@ package com.awslabs.general.helpers.implementations;
 import org.jetbrains.annotations.NotNull;
 
 public class LoggingHelper {
+    public static void info() {
+        System.out.println(getOutputString(null));
+    }
+
     public static void info(String message) {
         System.out.println(getOutputString(message));
+    }
+
+    public static void error() {
+        System.err.println(getOutputString(null));
     }
 
     public static void error(String message) {
