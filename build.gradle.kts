@@ -77,7 +77,7 @@ val commonsIoVersion = "2.11.0"
 val ztZipVersion = "1.14"
 val mockitoVersion = "3.11.2"
 val bouncyCastleVersion = "1.69"
-val jodahFailsafeVersion = "2.4.0"
+val jodahFailsafeVersion = "2.4.2"
 val gsonVersion = "2.8.7"
 val log4jVersion = "2.14.1"
 
