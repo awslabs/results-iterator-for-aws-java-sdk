@@ -63,8 +63,6 @@ public class BasicCloudFormationHelper implements CloudFormationHelper {
 
     @Override
     public Option<String> getStackResource(StackName stackName, String resourceType, Option<String> expectedNameOption) {
-        CloudFormationClient cloudFormationClient = CloudFormationClient.create();
-
         DescribeStackResourcesRequest describeStackResourcesRequest = DescribeStackResourcesRequest.builder()
                 .stackName(stackName.getStackName())
                 .build();
