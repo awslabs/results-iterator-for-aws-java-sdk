@@ -73,7 +73,10 @@ public class BasicCloudFormationHelper implements CloudFormationHelper {
                         // Remove dashes because they're not allowed
                         .map(value -> value.replaceAll("-", ""))
                         // Make sure the resource starts with the expected string
-                        .map(expectedName -> stackResource.logicalResourceId().startsWith(expectedName)).getOrElse(true))
+                        .map(expectedName -> stackResource.logicalResourceId().startsWith(expectedName))
+                        // If no expected name was specified then match anything with the given resource type
+                        .getOrElse(true))
+                // Get the physical ID
                 .map(StackResource::physicalResourceId)
                 .toOption();
     }
