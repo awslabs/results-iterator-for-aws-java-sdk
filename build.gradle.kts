@@ -29,6 +29,7 @@ tasks.wrapper {
 
 repositories {
     mavenCentral()
+    google()
     // For Greengrass CLI libraries
     maven(url = "https://jitpack.io")
     // Required for Gradle Tooling API
