@@ -18,4 +18,6 @@ public interface CloudFormationHelper {
     Stream<StackResourceSummary> filterStackResources(Stream<StackResourceSummary> stackResourceSummaryStream, List<ResourceType> resourceTypeList);
 
     boolean stackExists(StackName stackName);
+
+    Option<String> getStackResource(StackName stackName, String resourceType, Option<String> expectedNameOption);
 }

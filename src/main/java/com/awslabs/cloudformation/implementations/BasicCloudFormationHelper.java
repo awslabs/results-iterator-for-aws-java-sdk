@@ -60,4 +60,23 @@ public class BasicCloudFormationHelper implements CloudFormationHelper {
     public boolean stackExists(StackName stackName) {
         return getStackSummary(stackName).isDefined();
     }
+
+    @Override
+    public Option<String> getStackResource(StackName stackName, String resourceType, Option<String> expectedNameOption) {
+        CloudFormationClient cloudFormationClient = CloudFormationClient.create();
+
+        DescribeStackResourcesRequest describeStackResourcesRequest = DescribeStackResourcesRequest.builder()
+                .stackName(stackName.getStackName())
+                .build();
+
+        return new ResultsIterator<StackResource>(cloudFormationClient, describeStackResourcesRequest).stream()
+                .filter(stackResource -> stackResource.resourceType().equals(resourceType))
+                .filter(stackResource -> expectedNameOption
+                        // Remove dashes because they're not allowed
+                        .map(value -> value.replaceAll("-", ""))
+                        // Make sure the resource starts with the expected string
+                        .map(expectedName -> stackResource.logicalResourceId().startsWith(expectedName)).getOrElse(true))
+                .map(StackResource::physicalResourceId)
+                .toOption();
+    }
 }
