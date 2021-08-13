@@ -16,7 +16,7 @@ Only the v2 SDK is supported now.
 
 This library has Dagger modules that simplify the setup of AWS SDK clients and the classes that enable the iteration functions.
 
-[v2 Dagger helper module](https://github.com/awslabs/results-iterator-for-aws-java-sdk/blob/master/java/src/main/java/com/awslabs/resultsiterator/v2/HelperModule.java)
+[v2 Dagger helper module](https://github.com/awslabs/results-iterator-for-aws-java-sdk/blob/master/src/main/java/com/awslabs/resultsiterator/ResultsIteratorModule.java)
 
 ### Stream support
 
