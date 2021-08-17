@@ -20,7 +20,7 @@ idea.module.isDownloadJavadoc = true
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
-val gradleDependencyVersion = "7.2"
+val gradleDependencyVersion = "7.1"
 
 tasks.wrapper {
     gradleVersion = gradleDependencyVersion
@@ -65,7 +65,7 @@ val integrationTestTask = tasks.register("integrationTest", Test::class) {
 }
 
 // Specify all of our dependency versions
-val awsSdk2Version = "2.17.19"
+val awsSdk2Version = "2.17.20"
 val junitVersion = "4.13.2"
 val guavaVersion = "30.1.1-jre"
 val hamcrestVersion = "2.2"
