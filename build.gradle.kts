@@ -65,11 +65,12 @@ val integrationTestTask = tasks.register("integrationTest", Test::class) {
 }
 
 // Specify all of our dependency versions
-val awsSdk2Version = "2.17.16"
+val awsSdk2Version = "2.17.19"
 val junitVersion = "4.13.2"
 val guavaVersion = "30.1.1-jre"
 val hamcrestVersion = "2.2"
-val vavrVersion = "0.10.3"
+val vavrVersion = "0.10.4"
+val vavrJacksonVersion = "0.10.3"
 val vavrGsonVersion = "0.10.2"
 val immutablesValueVersion = "2.8.9-ea-1"
 val daggerVersion = "2.38.1"
@@ -110,7 +111,7 @@ dependencies {
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("io.vavr:vavr:$vavrVersion")
     implementation("io.vavr:vavr-gson:$vavrGsonVersion")
-    implementation("io.vavr:vavr-jackson:$vavrVersion")
+    implementation("io.vavr:vavr-jackson:$vavrJacksonVersion")
     implementation("org.apache.commons:commons-text:$commonsTextVersion")
 
     // For building Lambda functions
