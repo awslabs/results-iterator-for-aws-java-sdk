@@ -20,7 +20,7 @@ idea.module.isDownloadJavadoc = true
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
-val gradleDependencyVersion = "7.2"
+val gradleDependencyVersion = "7.1"
 
 tasks.wrapper {
     gradleVersion = gradleDependencyVersion
@@ -80,7 +80,7 @@ val ztZipVersion = "1.14"
 val mockitoVersion = "3.11.2"
 val bouncyCastleVersion = "1.69"
 val jodahFailsafeVersion = "2.4.3"
-val gsonVersion = "2.8.7"
+val gsonVersion = "2.8.8"
 val log4jVersion = "2.14.1"
 
 configurations.all {
