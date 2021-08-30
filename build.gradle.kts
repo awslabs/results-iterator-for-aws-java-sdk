@@ -7,7 +7,7 @@ plugins {
     id("maven-publish")
 }
 
-// Required for Gradle 7.0 and JitPack
+// Required for Gradle 7.x and JitPack
 publishing.publications.create<MavenPublication>("maven").from(components["java"])
 
 extensions.findByName("buildScan")?.withGroovyBuilder {
