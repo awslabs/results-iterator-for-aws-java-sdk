@@ -21,6 +21,7 @@ idea.module.isDownloadJavadoc = true
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
 val gradleDependencyVersion = "7.2"
+val gradleToolingApiDependencyVersion = "7.1.1"
 
 tasks.wrapper {
     gradleVersion = gradleDependencyVersion
@@ -117,7 +118,7 @@ dependencies {
     // For building Lambda functions
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("org.zeroturnaround:zt-zip:$ztZipVersion")
-    implementation("org.gradle:gradle-tooling-api:$gradleDependencyVersion")
+    implementation("org.gradle:gradle-tooling-api:$gradleToolingApiDependencyVersion")
 
     // SDK v2
     api("software.amazon.awssdk:aws-core:$awsSdk2Version")
