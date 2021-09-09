@@ -21,7 +21,7 @@ idea.module.isDownloadJavadoc = true
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
 val gradleDependencyVersion = "7.2"
-val gradleToolingApiDependencyVersion = "7.2"
+val gradleToolingApiDependencyVersion = "7.1.1"
 
 tasks.wrapper {
     gradleVersion = gradleDependencyVersion
@@ -100,10 +100,10 @@ dependencies {
     annotationProcessor("com.google.dagger:dagger-compiler:$daggerVersion")
 
     // Dependency injection with Dagger
-    implementation("com.google.dagger:dagger:$daggerVersion")
+    api("com.google.dagger:dagger:$daggerVersion")
 
-    implementation("org.immutables:value:$immutablesValueVersion")
-    implementation("org.immutables:gson:$immutablesValueVersion")
+    api("org.immutables:value:$immutablesValueVersion")
+    api("org.immutables:gson:$immutablesValueVersion")
 
     implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
@@ -118,7 +118,7 @@ dependencies {
     // For building Lambda functions
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("org.zeroturnaround:zt-zip:$ztZipVersion")
-    implementation("org.gradle:gradle-tooling-api:$gradleToolingApiDependencyVersion")
+    api("org.gradle:gradle-tooling-api:$gradleToolingApiDependencyVersion")
 
     // SDK v2
     api("software.amazon.awssdk:aws-core:$awsSdk2Version")
@@ -134,7 +134,7 @@ dependencies {
     api("software.amazon.awssdk:ec2:$awsSdk2Version")
     api("software.amazon.awssdk:cloudformation:$awsSdk2Version")
     api("software.amazon.awssdk:dynamodb:$awsSdk2Version")
-    implementation("software.amazon.awssdk:apache-client:$awsSdk2Version")
+    api("software.amazon.awssdk:apache-client:$awsSdk2Version")
 
     // For certificate based authentication
     implementation("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")
@@ -143,7 +143,7 @@ dependencies {
     implementation("com.google.code.gson:gson:$gsonVersion")
 
     // For GreengrassV2 ComponentRecipe class
-    implementation("com.github.aws-greengrass:aws-greengrass-component-common:main-SNAPSHOT") { isChanging = true }
+    api("com.github.aws-greengrass:aws-greengrass-component-common:main-SNAPSHOT") { isChanging = true }
 
     testImplementation("junit:junit:$junitVersion")
     testImplementation("software.amazon.awssdk:iot:$awsSdk2Version")
