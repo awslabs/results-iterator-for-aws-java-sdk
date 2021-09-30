@@ -82,7 +82,6 @@ val mockitoVersion = "3.12.4"
 val bouncyCastleVersion = "1.69"
 val jodahFailsafeVersion = "2.4.3"
 val gsonVersion = "2.8.8"
-val log4jVersion = "2.14.1"
 
 configurations.all {
     // Check for updates on changing dependencies at most every 10 minutes
@@ -104,10 +103,6 @@ dependencies {
 
     api("org.immutables:value:$immutablesValueVersion")
     api("org.immutables:gson:$immutablesValueVersion")
-
-    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    api("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
 
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("io.vavr:vavr:$vavrVersion")
