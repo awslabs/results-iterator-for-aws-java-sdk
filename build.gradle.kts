@@ -80,7 +80,7 @@ val commonsIoVersion = "2.11.0"
 val ztZipVersion = "1.14"
 val mockitoVersion = "3.12.4"
 val bouncyCastleVersion = "1.69"
-val jodahFailsafeVersion = "2.4.3"
+val jodahFailsafeVersion = "2.4.4"
 val gsonVersion = "2.8.8"
 
 configurations.all {
