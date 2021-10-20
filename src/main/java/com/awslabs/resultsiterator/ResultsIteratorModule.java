@@ -62,6 +62,7 @@ import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.StsClientBuilder;
 
+import javax.inject.Singleton;
 import java.security.Security;
 
 @Module
@@ -72,57 +73,68 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public GsonHelper gsonHelper(GsonHelper basicGsonHelper) {
         return basicGsonHelper;
     }
 
     @Provides
+    @Singleton
     public IoHelper ioHelper(IoHelper basicIoHelper) {
         return basicIoHelper;
     }
 
     @Provides
+    @Singleton
     public GreengrassV1IdExtractor greengrassIdExtractor(BasicGreengrassV1IdExtractor basicGreengrassIdExtractor) {
         return basicGreengrassIdExtractor;
     }
 
     @Provides
+    @Singleton
     public IotIdExtractor iotIdExtractor(BasicIotIdExtractor basicIotIdExtractor) {
         return basicIotIdExtractor;
     }
 
     @Provides
+    @Singleton
     public LambdaPackagingHelper lambdaPackagingHelper(BasicLambdaPackagingHelper basicLambdaPackagingHelper) {
         return basicLambdaPackagingHelper;
     }
 
     @Provides
+    @Singleton
     public ProcessHelper processHelper(BasicProcessHelper basicProcessHelper) {
         return basicProcessHelper;
     }
 
     @Provides
+    @Singleton
     public AwsCredentialsProvider awsCredentialsProvider(CertificateCredentialsProvider certificateCredentialsProvider) {
         return new SafeProvider<>(() -> AwsCredentialsProviderChain.of(certificateCredentialsProvider, DefaultCredentialsProvider.create())).get();
     }
 
     @Provides
+    @Singleton
     public AwsRegionProviderChain awsRegionProviderChain() {
         return new SafeProvider<>(DefaultAwsRegionProviderChain::new).get();
     }
 
     @Provides
+    @Singleton
     public ApacheHttpClient.Builder apacheHttpClientBuilderProvider() {
         return ApacheHttpClient.builder();
     }
 
     @Provides
+    @Singleton
     public CertificateCredentialsProvider certificateCredentialsProvider(BouncyCastleCertificateCredentialsProvider bouncyCastleCertificateCredentialsProvider) {
         return bouncyCastleCertificateCredentialsProvider;
     }
 
-    // Centralized error handling for  SDK errors
+    // Centralized error handling for SDK errors
     @Provides
+    @Singleton
     public SdkErrorHandler sdkErrorHandler(BasicSdkErrorHandler basicSdkErrorHandler) {
         return basicSdkErrorHandler;
     }
@@ -135,6 +147,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public StsClient stsClient(StsClientBuilder stsClientBuilder) {
         return new SafeProvider<>(stsClientBuilder::build).get();
     }
@@ -145,6 +158,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
         return new SafeProvider<>(s3ClientBuilder::build).get();
     }
@@ -155,6 +169,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public SqsClient sqsClient(SqsClientBuilder sqsClientBuilder) {
         return new SafeProvider<>(sqsClientBuilder::build).get();
     }
@@ -165,6 +180,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public IotClient iotClient(IotClientBuilder iotClientBuilder) {
         return new SafeProvider<>(iotClientBuilder::build).get();
     }
@@ -175,6 +191,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public IotDataPlaneClient iotDataPlaneClient(IotDataPlaneClientBuilder iotDataPlaneClientBuilder) {
         return new SafeProvider<>(iotDataPlaneClientBuilder::build).get();
     }
@@ -185,6 +202,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public GreengrassClient greengrassClient(GreengrassClientBuilder greengrassClientBuilder) {
         return new SafeProvider<>(greengrassClientBuilder::build).get();
     }
@@ -195,6 +213,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public GreengrassV2Client greengrassV2Client(GreengrassV2ClientBuilder greengrassV2ClientBuilder) {
         return new SafeProvider<>(greengrassV2ClientBuilder::build).get();
     }
@@ -205,6 +224,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public LambdaClient lambdaClient(LambdaClientBuilder lambdaClientBuilder) {
         return new SafeProvider<>(lambdaClientBuilder::build).get();
     }
@@ -215,6 +235,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public Ec2Client ec2Client(Ec2ClientBuilder ec2ClientBuilder) {
         return new SafeProvider<>(ec2ClientBuilder::build).get();
     }
@@ -225,6 +246,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public CloudFormationClient cloudFormationClient(CloudFormationClientBuilder cloudFormationClientBuilder) {
         return new SafeProvider<>(cloudFormationClientBuilder::build).get();
     }
@@ -235,6 +257,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public DynamoDbClient dynamoDbClient(DynamoDbClientBuilder dynamoDbClientBuilder) {
         return new SafeProvider<>(dynamoDbClientBuilder::build).get();
     }
@@ -247,6 +270,7 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public IamClient iamClient(IamClientBuilder iamClientBuilder) {
         return new SafeProvider<>(iamClientBuilder::build).get();
     }
@@ -257,61 +281,73 @@ public class ResultsIteratorModule {
     }
 
     @Provides
+    @Singleton
     public IamHelper iamHelper(BasicIamHelper basicIamHelper) {
         return basicIamHelper;
     }
 
     @Provides
+    @Singleton
     public S3Helper s3Helper(BasicS3Helper basicS3Helper) {
         return basicS3Helper;
     }
 
     @Provides
+    @Singleton
     public CloudFormationHelper cloudFormationHelper(BasicCloudFormationHelper basicCloudFormationHelper) {
         return basicCloudFormationHelper;
     }
 
     @Provides
+    @Singleton
     public DynamoDbHelper dynamoDbHelper(BasicDynamoDbHelper basicDynamoDbHelper) {
         return basicDynamoDbHelper;
     }
 
     @Provides
+    @Singleton
     public GreengrassV1Helper greengrassHelper(BasicGreengrassV1Helper basicGreengrassHelper) {
         return basicGreengrassHelper;
     }
 
     @Provides
+    @Singleton
     public GreengrassV2Helper greengrassV2Helper(BasicGreengrassV2Helper basicGreengrassV2Helper) {
         return basicGreengrassV2Helper;
     }
 
     @Provides
+    @Singleton
     public LambdaHelper lambdaHelper(BasicLambdaHelper basicLambdaHelper) {
         return basicLambdaHelper;
     }
 
     @Provides
+    @Singleton
     public IotHelper iotHelper(BasicIotHelper basicIotHelper) {
         return basicIotHelper;
     }
 
     @Provides
+    @Singleton
     public SqsHelper sqsHelper(BasicSqsHelper basicSqsHelper) {
         return basicSqsHelper;
     }
 
     @Provides
+    @Singleton
     public ReflectionHelper reflectionHelper(BasicReflectionHelper basicReflectionHelper) {
         return basicReflectionHelper;
     }
 
     @Provides
+    @Singleton
     public SslContextHelper sslContextHelper(BasicSslContextHelper basicSslContextHelper) {
         return basicSslContextHelper;
     }
 
     @Provides
+    @Singleton
     public S3Utilities s3Utilities(AwsRegionProviderChain awsRegionProviderChain) {
         return S3Utilities.builder().region(awsRegionProviderChain.getRegion()).build();
     }
