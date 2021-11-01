@@ -81,7 +81,7 @@ val ztZipVersion = "1.14"
 val mockitoVersion = "4.0.0"
 val bouncyCastleVersion = "1.69"
 val jodahFailsafeVersion = "2.4.4"
-val gsonVersion = "2.8.8"
+val gsonVersion = "2.8.9"
 
 configurations.all {
     // Check for updates on changing dependencies at most every 10 minutes
