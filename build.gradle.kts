@@ -79,7 +79,7 @@ val commonsTextVersion = "1.9"
 val commonsIoVersion = "2.11.0"
 val ztZipVersion = "1.14"
 val mockitoVersion = "4.0.0"
-val bouncyCastleVersion = "1.69"
+val bouncyCastleVersion = "1.70"
 val jodahFailsafeVersion = "2.4.4"
 val gsonVersion = "2.8.8"
 
