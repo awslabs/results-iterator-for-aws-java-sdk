@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.5.31"
+    kotlin("jvm") version "1.6.10"
     id("application")
     id("java")
     id("idea")
@@ -20,12 +20,24 @@ idea.module.isDownloadJavadoc = true
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
-val gradleDependencyVersion = "7.2"
+val gradleDependencyVersion = "7.4.1"
 val gradleToolingApiDependencyVersion = "7.1"
 
 tasks.wrapper {
     gradleVersion = gradleDependencyVersion
     distributionType = Wrapper.DistributionType.ALL
+}
+
+// To avoid this error in distTar:
+//   > Entry results-iterator-for-aws-java-sdk-1.0-SNAPSHOT/lib/gson-2.9.0.jar is a duplicate but no duplicate handling strategy has been set. Please refer to https://docs.gradle.org/7.4.1/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy for details.
+//
+// We follow the advice from https://github.com/gradle/gradle/issues/17236#issuecomment-870525957
+gradle.taskGraph.whenReady {
+    allTasks
+        .filter { it.hasProperty("duplicatesStrategy") } // Because it's some weird decorated wrapper that I can't cast.
+        .forEach {
+            it.setProperty("duplicatesStrategy", "EXCLUDE")
+        }
 }
 
 repositories {
@@ -66,22 +78,22 @@ val integrationTestTask = tasks.register("integrationTest", Test::class) {
 }
 
 // Specify all of our dependency versions
-val awsSdk2Version = "2.17.63"
+val awsSdk2Version = "2.17.209"
 val junitVersion = "4.13.2"
-val guavaVersion = "31.0.1-jre"
+val guavaVersion = "31.1-jre"
 val hamcrestVersion = "2.2"
 val vavrVersion = "0.10.4"
 val vavrJacksonVersion = "0.10.3"
 val vavrGsonVersion = "0.10.2"
-val immutablesValueVersion = "2.8.9-ea-1"
-val daggerVersion = "2.39.1"
+val immutablesValueVersion = "2.9.0"
+val daggerVersion = "2.42"
 val commonsTextVersion = "1.9"
 val commonsIoVersion = "2.11.0"
-val ztZipVersion = "1.14"
-val mockitoVersion = "4.0.0"
-val bouncyCastleVersion = "1.69"
+val ztZipVersion = "1.15"
+val mockitoVersion = "4.6.1"
+val bouncyCastleVersion = "1.70"
 val jodahFailsafeVersion = "2.4.4"
-val gsonVersion = "2.8.8"
+val gsonVersion = "2.9.0"
 
 configurations.all {
     // Check for updates on changing dependencies at most every 10 minutes
