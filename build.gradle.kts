@@ -21,7 +21,7 @@ idea.module.isDownloadJavadoc = true
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
 val gradleDependencyVersion = "7.4.1"
-val gradleToolingApiDependencyVersion = "7.1"
+val gradleToolingApiDependencyVersion = "8.0"
 
 tasks.wrapper {
     gradleVersion = gradleDependencyVersion
